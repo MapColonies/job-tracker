@@ -32,8 +32,6 @@ export class JobsController {
   };
 
   public createResource: CreateResourceHandler = (req, res) => {
-    const createdResource = this.manager.createResource(req.body);
-    this.createdResourceCounter.add(1);
-    return res.status(httpStatus.CREATED).json(createdResource);
+    return res.status(httpStatus.NOT_IMPLEMENTED).json();
   };
 }
