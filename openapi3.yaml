@@ -1,86 +1,76 @@
 openapi: 3.0.1
 info:
-  title: service-name
-  description: basic template for map colonies service
+  title: job-tracker
+  description: A service that exposes a dedicated API for jobs and tasks states tracking
   version: 1.0.0
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
 paths:
-  /anotherResource:
-    get:
-      operationId: getAnotherResource
-      tags:
-        - anotherResource
-      summary: gets the resource
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/anotherResource'
-  /resourceName:
-    get:
-      operationId: getResourceName
-      tags:
-        - resourceName
-      summary: gets the resource
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/resource'
+  /jobs/{jobId}/{taskId}/notify:
+    parameters:
+      - $ref: '#/components/parameters/jobId'
+      - $ref: '#/components/parameters/taskId'
     post:
-      operationId: createResource
+      operationId: notifyJobFinished
       tags:
-        - resourceName
-      summary: creates a new record of type resource
+        - jobs
+      summary: notify tracker on job completion
       responses:
         201:
-          description: created
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/resource'
-        400:
-          description: Bad Request
+                $ref: '#/components/schemas/defaultOkMessage'
+        404:
+          description: Job not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
 components:
+  parameters:
+    jobId:
+      in: path
+      name: jobId
+      description: ID of job
+      required: true
+      schema:
+        $ref: '#/components/schemas/jobId'
+    taskId:
+      in: path
+      name: taskId
+      description: ID of task
+      required: true
+      schema:
+        $ref: '#/components/schemas/taskId'
   schemas:
+    jobId:
+      type: string
+      format: uuid
+    taskId:
+      type: string
+      format: uuid
+    defaultOkMessage:
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - POLYGON_PARTS_TASK_CREATED_SUCCESSFULLY
+            - FINALIZATION_TASK_CREATED_SUCCESSFULLY
+            - JOB_PROGRESSION_UPDATED_SUCCESSFULLY
+            - SET_JOB_STATUS_TO_FAILED
+          example: POLYGON_PARTS_TASK_CREATED_SUCCESSFULLY
+      required:
+        - code
     error:
       type: object
-      required:
-        - message
       properties:
         message:
           type: string
-    resource:
-      type: object
+        stacktrace:
+          type: string
       required:
-        - id
-        - name
-        - description
-      properties:
-        id:
-          type: number
-          format: int64
-        name:
-          type: string
-        description:
-          type: string
-    anotherResource:
-      type: object
-      required:
-        - kind
-        - isAlive
-      properties:
-        kind:
-          type: string
-        isAlive:
-          type: boolean
+        - message
