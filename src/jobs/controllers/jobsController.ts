@@ -7,7 +7,12 @@ import { SERVICES } from '../../common/constants';
 
 import { IJobsModel, JobsManager } from '../models/jobsManager';
 
-type CreateResourceHandler = RequestHandler<undefined, IJobsModel, IJobsModel>;
+interface taskId {
+  jobId: string;
+  taskId: string;
+}
+
+type CreateResourceHandler = RequestHandler<taskId, IJobsModel, IJobsModel>;
 type GetResourceHandler = RequestHandler<undefined, IJobsModel>;
 
 @injectable()
