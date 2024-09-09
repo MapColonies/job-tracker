@@ -6,7 +6,7 @@ import { SERVICES } from '../../../src/common/constants';
 import { IAnotherResourceModel } from '../../../src/anotherResource/models/anotherResourceManager';
 import { AnotherResourceRequestSender } from './helpers/requestSender';
 
-describe('resourceName', function () {
+describe('jobs', function () {
   let requestSender: AnotherResourceRequestSender;
   beforeEach(function () {
     const app = getApp({

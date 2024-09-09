@@ -1,22 +1,22 @@
 import { Logger } from '@map-colonies/js-logger';
-import { Meter } from '@opentelemetry/api';
-import { BoundCounter } from '@opentelemetry/api-metrics';
+import { BoundCounter, Meter } from '@opentelemetry/api-metrics';
 import { RequestHandler } from 'express';
 import httpStatus from 'http-status-codes';
 import { injectable, inject } from 'tsyringe';
 import { SERVICES } from '../../common/constants';
 
-import { IAnotherResourceModel, AnotherResourceManager } from '../models/anotherResourceManager';
+import { IJobsModel, JobsManager } from '../models/jobsManager';
 
-type GetResourceHandler = RequestHandler<undefined, IAnotherResourceModel>;
+type CreateResourceHandler = RequestHandler<undefined, IJobsModel, IJobsModel>;
+type GetResourceHandler = RequestHandler<undefined, IJobsModel>;
 
 @injectable()
-export class AnotherResourceController {
+export class JobsController {
   private readonly createdResourceCounter: BoundCounter;
 
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(AnotherResourceManager) private readonly manager: AnotherResourceManager,
+    @inject(JobsManager) private readonly manager: JobsManager,
     @inject(SERVICES.METER) private readonly meter: Meter
   ) {
     this.createdResourceCounter = meter.createCounter('created_resource');
@@ -24,5 +24,11 @@ export class AnotherResourceController {
 
   public getResource: GetResourceHandler = (req, res) => {
     return res.status(httpStatus.OK).json(this.manager.getResource());
+  };
+
+  public createResource: CreateResourceHandler = (req, res) => {
+    const createdResource = this.manager.createResource(req.body);
+    this.createdResourceCounter.add(1);
+    return res.status(httpStatus.CREATED).json(createdResource);
   };
 }

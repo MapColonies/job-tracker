@@ -3,7 +3,7 @@ import { AnotherResourceManager } from '../../../../src/anotherResource/models/a
 
 let anotherResourceManager: AnotherResourceManager;
 
-describe('ResourceNameManager', () => {
+describe('JobsManager', () => {
   beforeEach(function () {
     anotherResourceManager = new AnotherResourceManager(jsLogger({ enabled: false }));
   });
