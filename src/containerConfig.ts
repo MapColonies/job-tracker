@@ -8,7 +8,6 @@ import { SERVICES, SERVICE_NAME } from './common/constants';
 import { tracing } from './common/tracing';
 import { jobsRouterFactory, JOBS_ROUTER_SYMBOL } from './jobs/routes/jobsRouter';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
-import { anotherResourceRouterFactory, ANOTHER_RESOURCE_ROUTER_SYMBOL } from './anotherResource/routes/anotherResourceRouter';
 
 export interface RegisterOptions {
   override?: InjectionObject<unknown>[];
@@ -30,7 +29,6 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     { token: SERVICES.TRACER, provider: { useValue: tracer } },
     { token: SERVICES.METER, provider: { useValue: OtelMetrics.getMeterProvider().getMeter(SERVICE_NAME) } },
     { token: JOBS_ROUTER_SYMBOL, provider: { useFactory: jobsRouterFactory } },
-    { token: ANOTHER_RESOURCE_ROUTER_SYMBOL, provider: { useFactory: anotherResourceRouterFactory } },
     {
       token: 'onSignal',
       provider: {

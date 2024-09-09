@@ -11,7 +11,6 @@ import { collectMetricsExpressMiddleware, getTraceContexHeaderMiddleware } from 
 import { SERVICES } from './common/constants';
 import { IConfig } from './common/interfaces';
 import { JOBS_ROUTER_SYMBOL } from './jobs/routes/jobsRouter';
-import { ANOTHER_RESOURCE_ROUTER_SYMBOL } from './anotherResource/routes/anotherResourceRouter';
 
 @injectable()
 export class ServerBuilder {
@@ -20,8 +19,7 @@ export class ServerBuilder {
   public constructor(
     @inject(SERVICES.CONFIG) private readonly config: IConfig,
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(JOBS_ROUTER_SYMBOL) private readonly jobsRouter: Router,
-    @inject(ANOTHER_RESOURCE_ROUTER_SYMBOL) private readonly anotherResourceRouter: Router
+    @inject(JOBS_ROUTER_SYMBOL) private readonly jobsRouter: Router
   ) {
     this.serverInstance = express();
   }
@@ -45,7 +43,6 @@ export class ServerBuilder {
 
   private buildRoutes(): void {
     this.serverInstance.use('/jobs', this.jobsRouter);
-    this.serverInstance.use('/anotherResource', this.anotherResourceRouter);
     this.buildDocsRoutes();
   }
 
