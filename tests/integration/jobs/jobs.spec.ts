@@ -18,7 +18,9 @@ describe('jobs', function () {
     requestSender = new JobsRequestSender(app);
   });
 
-  describe('Happy Path', function () {});
+  describe('Happy Path', function () {
+    // All requests with status code 2XX
+  });
   describe('Bad Path', function () {
     // All requests with status code of 400
   });
