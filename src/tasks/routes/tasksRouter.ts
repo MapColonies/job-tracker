@@ -6,7 +6,7 @@ const tasksRouterFactory: FactoryFunction<Router> = (dependencyContainer) => {
   const router = Router();
   const controller = dependencyContainer.resolve(TasksController);
 
-  router.post('/:taskId/notify', controller.notifyTaskFinished);
+  router.post('/:taskId/notify', controller.handleTaskNotification);
 
   return router;
 };
