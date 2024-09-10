@@ -21,7 +21,7 @@ export class TasksController {
     @inject(SERVICES.METER) private readonly meter: Meter
   ) {}
 
-  public notifyTaskFinished: NotifyTaskFinishedHandler = (req, res) => {
+  public handleTaskNotification: NotifyTaskFinishedHandler = (req, res) => {
     return res.status(httpStatus.NOT_IMPLEMENTED).json();
   };
 }
