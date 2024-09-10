@@ -28,7 +28,7 @@ paths:
               example:
                 message: 'OK'
         404:
-          description: Job not found
+          description: Task not found
           content:
             application/json:
               schema:
