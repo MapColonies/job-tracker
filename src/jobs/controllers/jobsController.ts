@@ -12,7 +12,7 @@ interface TaskId {
   taskId: string;
 }
 
-type CreateResourceHandler = RequestHandler<TaskId, undefined, undefined>;
+type NotifyTaskFinishedHandler = RequestHandler<TaskId, undefined, undefined>;
 
 @injectable()
 export class JobsController {
@@ -22,7 +22,7 @@ export class JobsController {
     @inject(SERVICES.METER) private readonly meter: Meter
   ) {}
 
-  public notifyTaskFinished: CreateResourceHandler = (req, res) => {
+  public notifyTaskFinished: NotifyTaskFinishedHandler = (req, res) => {
     return res.status(httpStatus.NOT_IMPLEMENTED).json();
   };
 }
