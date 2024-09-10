@@ -7,15 +7,14 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 paths:
-  /jobs/{jobId}/{taskId}/notify:
+  /tasks/{taskId}/notify:
     parameters:
-      - $ref: '#/components/parameters/jobId'
       - $ref: '#/components/parameters/taskId'
     post:
       operationId: notifyTaskFinished
       tags:
-        - jobs
-      summary: notify tracker on job completion
+        - tasks
+      summary: notify tracker on task finished
       responses:
         200:
           description: OK
@@ -36,13 +35,6 @@ paths:
                 $ref: '#/components/schemas/error'
 components:
   parameters:
-    jobId:
-      in: path
-      name: jobId
-      description: ID of job
-      required: true
-      schema:
-        $ref: '#/components/schemas/jobId'
     taskId:
       in: path
       name: taskId
@@ -51,9 +43,6 @@ components:
       schema:
         $ref: '#/components/schemas/taskId'
   schemas:
-    jobId:
-      type: string
-      format: uuid
     taskId:
       type: string
       format: uuid

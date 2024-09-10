@@ -3,6 +3,6 @@ import { inject, injectable } from 'tsyringe';
 import { SERVICES } from '../../common/constants';
 
 @injectable()
-export class JobsManager {
+export class TasksManager {
   public constructor(@inject(SERVICES.LOGGER) private readonly logger: Logger) {}
 }

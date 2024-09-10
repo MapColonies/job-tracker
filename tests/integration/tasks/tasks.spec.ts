@@ -3,10 +3,10 @@ import { trace } from '@opentelemetry/api';
 
 import { getApp } from '../../../src/app';
 import { SERVICES } from '../../../src/common/constants';
-import { JobsRequestSender } from './helpers/requestSender';
+import { TasksRequestSender } from './helpers/requestSender';
 
-describe('jobs', function () {
-  let requestSender: JobsRequestSender;
+describe('tasks', function () {
+  let requestSender: TasksRequestSender;
   beforeEach(function () {
     const app = getApp({
       override: [
@@ -15,7 +15,7 @@ describe('jobs', function () {
       ],
       useChild: true,
     });
-    requestSender = new JobsRequestSender(app);
+    requestSender = new TasksRequestSender(app);
   });
 
   describe('Happy Path', function () {

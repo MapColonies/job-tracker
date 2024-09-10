@@ -6,7 +6,7 @@ import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
 import { Metrics } from '@map-colonies/telemetry';
 import { SERVICES, SERVICE_NAME } from './common/constants';
 import { tracing } from './common/tracing';
-import { jobsRouterFactory, JOBS_ROUTER_SYMBOL } from './jobs/routes/jobsRouter';
+import { tasksRouterFactory, TASKS_ROUTER_SYMBOL } from './tasks/routes/tasksRouter';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
 
 export interface RegisterOptions {
@@ -28,7 +28,7 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     { token: SERVICES.LOGGER, provider: { useValue: logger } },
     { token: SERVICES.TRACER, provider: { useValue: tracer } },
     { token: SERVICES.METER, provider: { useValue: OtelMetrics.getMeterProvider().getMeter(SERVICE_NAME) } },
-    { token: JOBS_ROUTER_SYMBOL, provider: { useFactory: jobsRouterFactory } },
+    { token: TASKS_ROUTER_SYMBOL, provider: { useFactory: tasksRouterFactory } },
     {
       token: 'onSignal',
       provider: {

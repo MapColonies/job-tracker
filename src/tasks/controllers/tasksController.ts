@@ -5,20 +5,19 @@ import httpStatus from 'http-status-codes';
 import { injectable, inject } from 'tsyringe';
 import { SERVICES } from '../../common/constants';
 
-import { JobsManager } from '../models/jobsManager';
+import { TasksManager } from '../models/tasksManager';
 
 interface TaskId {
-  jobId: string;
   taskId: string;
 }
 
 type NotifyTaskFinishedHandler = RequestHandler<TaskId, undefined, undefined>;
 
 @injectable()
-export class JobsController {
+export class tasksController {
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(JobsManager) private readonly manager: JobsManager,
+    @inject(TasksManager) private readonly manager: TasksManager,
     @inject(SERVICES.METER) private readonly meter: Meter
   ) {}
 
