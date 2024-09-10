@@ -14,7 +14,7 @@ interface TaskId {
 type NotifyTaskFinishedHandler = RequestHandler<TaskId, undefined, undefined>;
 
 @injectable()
-export class tasksController {
+export class TasksController {
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(TasksManager) private readonly manager: TasksManager,
