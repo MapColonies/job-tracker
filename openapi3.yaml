@@ -12,17 +12,22 @@ paths:
       - $ref: '#/components/parameters/jobId'
       - $ref: '#/components/parameters/taskId'
     post:
-      operationId: notifyJobFinished
+      operationId: notifyTaskFinished
       tags:
         - jobs
       summary: notify tracker on job completion
       responses:
-        201:
+        200:
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/defaultOkMessage'
+                type: object
+                properties:
+                  message:
+                    type: string
+              example:
+                message: 'OK'
         404:
           description: Job not found
           content:
@@ -52,19 +57,6 @@ components:
     taskId:
       type: string
       format: uuid
-    defaultOkMessage:
-      type: object
-      properties:
-        code:
-          type: string
-          enum:
-            - POLYGON_PARTS_TASK_CREATED_SUCCESSFULLY
-            - FINALIZATION_TASK_CREATED_SUCCESSFULLY
-            - JOB_PROGRESSION_UPDATED_SUCCESSFULLY
-            - SET_JOB_STATUS_TO_FAILED
-          example: POLYGON_PARTS_TASK_CREATED_SUCCESSFULLY
-      required:
-        - code
     error:
       type: object
       properties:
