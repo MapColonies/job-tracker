@@ -6,7 +6,7 @@ const jobsRouterFactory: FactoryFunction<Router> = (dependencyContainer) => {
   const router = Router();
   const controller = dependencyContainer.resolve(JobsController);
 
-  router.post('/:jobId/:taskId/notify', controller.createResource);
+  router.post('/:jobId/:taskId/notify', controller.notifyTaskFinished);
 
   return router;
 };

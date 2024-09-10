@@ -4,7 +4,6 @@ import httpStatusCodes from 'http-status-codes';
 
 import { getApp } from '../../../src/app';
 import { SERVICES } from '../../../src/common/constants';
-import { IJobsModel } from '../../../src/jobs/models/jobsManager';
 import { JobsRequestSender } from './helpers/requestSender';
 
 describe('jobs', function () {
@@ -20,24 +19,7 @@ describe('jobs', function () {
     requestSender = new JobsRequestSender(app);
   });
 
-  describe('Happy Path', function () {
-    it('should return 200 status code and the resource', async function () {
-      const response = await requestSender.getResource();
-
-      expect(response.status).toBe(httpStatusCodes.OK);
-
-      const resource = response.body as IJobsModel;
-      expect(response).toSatisfyApiSpec();
-      expect(resource.id).toBe(1);
-      expect(resource.name).toBe('ronin');
-      expect(resource.description).toBe('can you do a logistics run?');
-    });
-    it('should return 200 status code and create the resource', async function () {
-      const response = await requestSender.createResource();
-
-      expect(response.status).toBe(httpStatusCodes.CREATED);
-    });
-  });
+  describe('Happy Path', function () {});
   describe('Bad Path', function () {
     // All requests with status code of 400
   });
