@@ -7,11 +7,11 @@ import { SERVICES } from '../../common/constants';
 
 import { TasksManager } from '../models/tasksManager';
 
-interface TileNotificationRequest {
+interface TaskNotificationRequest {
   taskId: string;
 }
 
-type TaskNotificationHandler = RequestHandler<TileNotificationRequest, undefined, undefined>;
+type TaskNotificationHandler = RequestHandler<TaskNotificationRequest, undefined, undefined>;
 
 @injectable()
 export class TasksController {
