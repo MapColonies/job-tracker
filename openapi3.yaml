@@ -11,7 +11,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/taskId'
     post:
-      operationId: notifyTaskFinished
+      operationId: handleTaskNotification
       tags:
         - tasks
       summary: notify tracker on task finished

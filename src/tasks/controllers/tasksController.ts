@@ -7,11 +7,11 @@ import { SERVICES } from '../../common/constants';
 
 import { TasksManager } from '../models/tasksManager';
 
-interface TaskId {
+interface TileNotificationRequest {
   taskId: string;
 }
 
-type NotifyTaskFinishedHandler = RequestHandler<TaskId, undefined, undefined>;
+type TaskNotificationHandler = RequestHandler<TileNotificationRequest, undefined, undefined>;
 
 @injectable()
 export class TasksController {
@@ -21,7 +21,7 @@ export class TasksController {
     @inject(SERVICES.METER) private readonly meter: Meter
   ) {}
 
-  public handleTaskNotification: NotifyTaskFinishedHandler = (req, res) => {
+  public handleTaskNotification: TaskNotificationHandler = (req, res) => {
     return res.status(httpStatus.NOT_IMPLEMENTED).json();
   };
 }
