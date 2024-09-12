@@ -1,7 +1,7 @@
 {
-  "name": "service-name",
+  "name": "job-tracker",
   "version": "1.0.0",
-  "description": "This is template for map colonies typescript service",
+  "description": "This is a service that exposes a dedicated API for jobs and tasks states tracking",
   "main": "./src/index.ts",
   "scripts": {
     "test:unit": "jest --config=./tests/configurations/unit/jest.config.js",
