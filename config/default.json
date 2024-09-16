@@ -7,7 +7,7 @@
   },
   "telemetry": {
     "logger": {
-      "level": "info",
+      "level": "debug",
       "prettyPrint": false
     }
   },
@@ -23,6 +23,28 @@
         "enabled": true,
         "options": null
       }
+    },
+    "httpRetry": {
+      "attempts": 5,
+      "delay": "exponential",
+      "shouldResetTimeout": true,
+      "disableHttpClientLogs": true
     }
+  },
+  "jobManagement": {
+    "config": {
+      "jobManagerBaseUrl": "https://common-job-manager-route-raster-dev.apps.j1lk3njp.eastus.aroapp.io/",
+      "heartbeat": {
+        "baseUrl": "http://localhost:8083",
+        "intervalMs": 3000
+      },
+      "dequeueIntervalMs": 3000
+    }
+  },
+  "taskTypes": {
+    "init": "init",
+    "polygonParts": "polygon-parts",
+    "finalize": "finalize",
+    "tilesMerging": "tilesMerging"
   }
 }

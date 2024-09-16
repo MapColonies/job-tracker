@@ -38,5 +38,21 @@
         }
       }
     }
+  },
+  "jobManagement": {
+    "config": {
+      "jobManagerBaseUrl": "JOB_MANAGER_URL",
+      "heartbeat": {
+        "baseUrl": "HEARTBEAT_BASE_URL",
+        "intervalMs": "HEARTBEAT_INTERVAL_MS"
+      },
+      "dequeueIntervalMs": "JOB_MANAGER_DEQUEUE_INTERVAL_MS"
+    }
+  },
+  "taskTypes": {
+    "init": "TASK_TYPES_INIT",
+    "polygonParts": "TASK_TYPES_POLYGON-PARTS",
+    "finalize": "TASK_TYPES_FINALIZE",
+    "tilesMerging": "TASK_TYPES_TILES_MERGING"
   }
 }

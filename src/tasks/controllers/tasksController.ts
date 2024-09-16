@@ -1,15 +1,14 @@
 import { Logger } from '@map-colonies/js-logger';
 import { Meter } from '@opentelemetry/api-metrics';
 import { RequestHandler } from 'express';
-import httpStatus from 'http-status-codes';
+import httpStatus, { StatusCodes } from 'http-status-codes';
 import { injectable, inject } from 'tsyringe';
 import { SERVICES } from '../../common/constants';
 
 import { TasksManager } from '../models/tasksManager';
-
-interface TaskNotificationRequest {
-  taskId: string;
-}
+import { TaskNotificationRequest } from '../../common/interfaces';
+import { HttpError } from 'express-openapi-validator/dist/framework/types';
+import { IrrelevantOperationStatusError, TasksNotFoundError } from '../../common/errors';
 
 type TaskNotificationHandler = RequestHandler<TaskNotificationRequest, undefined, undefined>;
 
@@ -17,11 +16,22 @@ type TaskNotificationHandler = RequestHandler<TaskNotificationRequest, undefined
 export class TasksController {
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(TasksManager) private readonly manager: TasksManager,
-    @inject(SERVICES.METER) private readonly meter: Meter
+    @inject(SERVICES.METER) private readonly meter: Meter,
+    @inject(TasksManager) private readonly manager: TasksManager
   ) {}
 
-  public handleTaskNotification: TaskNotificationHandler = (req, res) => {
-    return res.status(httpStatus.NOT_IMPLEMENTED).json();
+  public handleTaskNotification: TaskNotificationHandler = async (req, res, next) => {
+    try {
+      await this.manager.handleTaskNotification(req.params.taskId);
+      return res.status(httpStatus.OK).json();
+    } catch (error) {
+      if (error instanceof IrrelevantOperationStatusError) {
+        (error as HttpError).status = httpStatus.PRECONDITION_REQUIRED;
+      }
+      if (error instanceof TasksNotFoundError) {
+        (error as HttpError).status = httpStatus.NOT_FOUND;
+      }
+      next(error);
+    }
   };
 }
