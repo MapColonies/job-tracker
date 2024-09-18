@@ -7,7 +7,7 @@
   },
   "telemetry": {
     "logger": {
-      "level": "debug",
+      "level": "info",
       "prettyPrint": false
     }
   },
@@ -43,8 +43,8 @@
   },
   "taskTypes": {
     "init": "init",
+    "tilesMerging": "tilesMerging",
     "polygonParts": "polygon-parts",
-    "finalize": "finalize",
-    "tilesMerging": "tilesMerging"
+    "finalize": "finalize"
   }
 }

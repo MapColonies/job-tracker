@@ -12,7 +12,7 @@ import {
 import { inject, injectable } from 'tsyringe';
 import { SERVICES } from '../../common/constants';
 import { ITaskTypesConfig } from '../../common/interfaces';
-import { IrrelevantOperationStatusError, TasksNotFoundError } from '../../common/errors';
+import { invalidArgumentError, IrrelevantOperationStatusError, TasksNotFoundError } from '../../common/errors';
 import { calculateTaskPercentage } from '../../utils/taskUtils';
 
 @injectable()
@@ -30,7 +30,7 @@ export class TasksManager {
 
   public async handleTaskNotification(taskId: string) {
     const task = await this.findTask({ id: taskId });
-    if (task === undefined) throw new TasksNotFoundError(`Task ${taskId} not found`);
+    if (!task) throw new TasksNotFoundError(`Task ${taskId} not found`);
     if (task?.status === OperationStatus.FAILED) {
       await this.failJob(task.jobId);
       this.logger.info({ msg: `Failed job: ${task.jobId}` });
@@ -44,47 +44,25 @@ export class TasksManager {
 
   public async compareAndUpdateJobPercentage(job: IJobResponse<unknown, unknown>, task: ITaskResponse<unknown>) {
     const initTask = await this.findTask({ jobId: job.id, type: this.taskTypes.init });
-    if (initTask?.status === OperationStatus.COMPLETED) {
-      if (job.completedTasks === job.taskCount) {
-        switch (task.type) {
-          case this.taskTypes.tilesMerging: {
-            const polygonPartsTask = await this.jobManager.findTasks({ jobId: job.id, type: this.taskTypes.polygonParts });
-            if (polygonPartsTask?.length) {
-              break;
-            }
 
-            await this.createTask(job.id, { type: this.taskTypes.polygonParts, parameters: {} });
-            const updatedPercentage = calculateTaskPercentage(job.completedTasks, job.taskCount + 1);
-            await this.updateJobPercentage(job.id, updatedPercentage);
-            break;
-          }
-
-          case this.taskTypes.polygonParts: {
-            const finalizeTask = await this.jobManager.findTasks({ jobId: job.id, type: this.taskTypes.finalize });
-            if (finalizeTask?.length) {
-              break;
-            }
-
-            await this.createTask(job.id, { type: this.taskTypes.finalize, parameters: {} });
-            const updatedPercentage = calculateTaskPercentage(job.completedTasks, job.taskCount + 1);
-            await this.updateJobPercentage(job.id, updatedPercentage);
-            break;
-          }
-
-          default:
-            this.logger.debug({ msg: 'Skipping task creation' });
-            const updatedPercentage = calculateTaskPercentage(job.completedTasks, job.taskCount);
-            await this.updateJobPercentage(job.id, updatedPercentage);
-            break;
-        }
-      } else {
-        const updatedPercentage = calculateTaskPercentage(job.completedTasks, job.taskCount);
-        await this.updateJobPercentage(job.id, updatedPercentage);
-      }
-    } else if (initTask === undefined) {
+    if (!initTask) {
       this.logger.debug({ msg: 'Did nothing because init task was not found' });
-    } else {
+      return;
+    }
+
+    if (initTask.status !== OperationStatus.COMPLETED) {
       this.logger.debug({ msg: 'Did nothing because init task is not completed' });
+      return;
+    }
+
+    const taskHasSubsequentTask = task.type === this.taskTypes.tilesMerging || task.type === this.taskTypes.polygonParts;
+
+    if (job.completedTasks === job.taskCount && taskHasSubsequentTask) {
+      await this.createNextTask(task.type, job);
+    } else {
+      this.logger.debug({ msg: 'Skipping task creation' });
+      const updatedPercentage = calculateTaskPercentage(job.completedTasks, job.taskCount);
+      await this.updateJobPercentage(job.id, updatedPercentage);
     }
   }
 
@@ -92,9 +70,10 @@ export class TasksManager {
     await this.jobManager.updateJob(jobId, { status: OperationStatus.FAILED });
   }
 
-  public async createTask(jobId: string, taskBody: ICreateTaskBody<unknown>) {
-    await this.jobManager.createTaskForJob(jobId, taskBody);
-    this.logger.info({ msg: `Created ${taskBody.type} task for job: ${jobId}` });
+  public async createTask(jobId: string, taskType: string) {
+    const createTaskBody: ICreateTaskBody<unknown> = { type: taskType, parameters: {} };
+    await this.jobManager.createTaskForJob(jobId, createTaskBody);
+    this.logger.info({ msg: `Created ${taskType} task for job: ${jobId}` });
   }
 
   public async findTask(body: IFindTaskRequest<unknown>): Promise<ITaskResponse<unknown> | undefined> {
@@ -105,5 +84,29 @@ export class TasksManager {
   public async updateJobPercentage(jobId: string, desiredPercentage: number) {
     await this.jobManager.updateJob(jobId, { percentage: desiredPercentage });
     this.logger.info({ msg: `Updated percentages for job: ${jobId}` });
+  }
+
+  public async createNextTask(previousTaskType: string, job: IJobResponse<unknown, unknown>) {
+    let nextTaskType: string;
+    switch (previousTaskType) {
+      case this.taskTypes.tilesMerging: {
+        nextTaskType = this.taskTypes.polygonParts;
+        break;
+      }
+      case this.taskTypes.polygonParts: {
+        nextTaskType = this.taskTypes.finalize;
+        break;
+      }
+      default: {
+        throw new invalidArgumentError(`No subsequent task is defined for task type '${previousTaskType}'`);
+      }
+    }
+
+    const existingTask = await this.jobManager.findTasks({ jobId: job.id, type: nextTaskType });
+    if (!existingTask) {
+      await this.createTask(job.id, nextTaskType);
+      const updatedPercentage = calculateTaskPercentage(job.completedTasks, job.taskCount + 1);
+      await this.updateJobPercentage(job.id, updatedPercentage);
+    }
   }
 }

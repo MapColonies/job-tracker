@@ -39,10 +39,9 @@ const setConfigValues = (values: Record<string, unknown>): void => {
 };
 
 const registerDefaultConfig = (): void => {
-  const EPSG = 4326;
   const config = {
     openapiConfig: {
-      filePath: './bundledApi.yaml',
+      filePath: './openapi3.yaml',
       basePath: '/docs',
       rawPath: '/api',
       uiPath: '/api',
@@ -66,39 +65,28 @@ const registerDefaultConfig = (): void => {
           options: null,
         },
       },
+      httpRetry: {
+        attempts: 5,
+        delay: 'exponential',
+        shouldResetTimeout: true,
+        disableHttpClientLogs: true,
+      },
     },
-    storageExplorer: {
-      layerSourceDir: 'tests/mocks',
-      displayNameDir: '\\layerSources',
-      watchDirectory: 'watch',
-      validFileExtensions: ['gpkg'],
-    },
-
-    validationValuesByInfo: {
-      crs: [EPSG],
-      fileFormat: ['GPKG'],
-      tileSize: 256,
-      resolutionFixedPointTolerance: 12,
-      extentBufferInMeters: 50,
-    },
-    services: {
-      jobManagerURL: 'http://jobmanagerurl',
-      mapProxyApiServiceUrl: 'http://mapproxyapiserviceurl',
-      catalogServiceURL: 'http://catalogserviceurl',
-    },
-    jobManager: {
-      jobDomain: 'RASTER',
-      ingestionNewJobType: 'Ingestion_New',
-      ingestionUpdateJobType: 'Ingestion_Update',
-      ingestionSwapUpdateJobType: 'Ingestion_Swap_Update',
-      initTaskType: 'init',
-      supportedIngestionSwapTypes: [
-        {
-          productType: 'RasterVectorBest',
-          productSubType: 'testProductSubType',
+    jobManagement: {
+      config: {
+        jobManagerBaseUrl: 'https:localhost:8081',
+        heartbeat: {
+          baseUrl: 'http://localhost:8083',
+          intervalMs: 3000,
         },
-      ],
-      forbiddenJobTypesForParallelIngestion: ['Ingestion_New', 'Ingestion_Update'],
+        dequeueIntervalMs: 3000,
+      },
+    },
+    taskTypes: {
+      init: 'init',
+      polygonParts: 'polygon-parts',
+      finalize: 'finalize',
+      tilesMerging: 'tilesMerging',
     },
   };
 

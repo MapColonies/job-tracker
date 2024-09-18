@@ -51,8 +51,8 @@
   },
   "taskTypes": {
     "init": "TASK_TYPES_INIT",
+    "tilesMerging": "TASK_TYPES_TILES_MERGING",
     "polygonParts": "TASK_TYPES_POLYGON-PARTS",
-    "finalize": "TASK_TYPES_FINALIZE",
-    "tilesMerging": "TASK_TYPES_TILES_MERGING"
+    "finalize": "TASK_TYPES_FINALIZE"
   }
 }
