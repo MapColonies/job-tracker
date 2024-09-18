@@ -1,13 +1,13 @@
 import { Logger } from '@map-colonies/js-logger';
 import { Meter } from '@opentelemetry/api-metrics';
 import { RequestHandler } from 'express';
-import httpStatus, { StatusCodes } from 'http-status-codes';
+import httpStatus from 'http-status-codes';
 import { injectable, inject } from 'tsyringe';
+import { HttpError } from 'express-openapi-validator/dist/framework/types';
 import { SERVICES } from '../../common/constants';
 
 import { TasksManager } from '../models/tasksManager';
 import { TaskNotificationRequest } from '../../common/interfaces';
-import { HttpError } from 'express-openapi-validator/dist/framework/types';
 import { IrrelevantOperationStatusError, TasksNotFoundError } from '../../common/errors';
 
 type TaskNotificationHandler = RequestHandler<TaskNotificationRequest, undefined, undefined>;

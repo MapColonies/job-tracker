@@ -29,6 +29,4 @@ describe('TasksManager', () => {
     clearConfig();
     jest.resetAllMocks();
   });
-
-  describe('handleTaskNotification', () => {});
 });

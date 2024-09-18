@@ -12,7 +12,7 @@ export class TasksNotFoundError extends Error {
   }
 }
 
-export class invalidArgumentError extends Error {
+export class InvalidArgumentError extends Error {
   public constructor(message?: string) {
     super(message);
     this.name = 'invalidArgumentError';
