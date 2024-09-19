@@ -1,5 +1,3 @@
-import { ICreateTaskBody } from '@map-colonies/mc-priority-queue';
-
 export interface IConfig {
   get: <T>(setting: string) => T;
   has: (setting: string) => boolean;
