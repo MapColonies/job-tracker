@@ -38,13 +38,13 @@ export class TasksManager {
       this.logger.info({ msg: `Failed job: ${task.jobId}` });
     } else if (task.status === OperationStatus.COMPLETED) {
       const job = await this.jobManager.getJob(task.jobId);
-      await this.compareAndUpdateJobPercentage(job, task);
+      await this.handleCompletedTask(job, task);
     } else {
       throw new IrrelevantOperationStatusError(`Expected to get a 'Completed' or 'Failed' task' but instead got '${task.status}'`);
     }
   }
 
-  public async compareAndUpdateJobPercentage(job: IJobResponse<unknown, unknown>, task: ITaskResponse<unknown>): Promise<void> {
+  public async handleCompletedTask(job: IJobResponse<unknown, unknown>, task: ITaskResponse<unknown>): Promise<void> {
     const initTask = await this.findTask({ jobId: job.id, type: this.taskTypes.init });
 
     if (!initTask) {
