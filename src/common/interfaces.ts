@@ -12,11 +12,6 @@ export interface OpenApiConfig {
   uiPath: string;
 }
 
-export interface IConfig {
-  get: <T>(setting: string) => T;
-  has: (setting: string) => boolean;
-}
-
 export interface IHeartbeatConfig {
   baseUrl: string;
   intervalMs: number;
@@ -38,5 +33,3 @@ export interface ITaskTypesConfig {
 export interface TaskNotificationRequest {
   taskId: string;
 }
-
-export interface CreatePolygonPartsTaskRequest extends ICreateTaskBody<null> {}
