@@ -17,7 +17,7 @@ export const queueClientFactory = (container: DependencyContainer): QueueClient 
   const logger = container.resolve<Logger>(SERVICES.LOGGER);
   const config = container.resolve<IConfig>(SERVICES.CONFIG);
   const queueConfig = config.get<IJobManagerConfig>('jobManagement.config');
-  const httpRetryConfig = config.get<IHttpRetryConfig>('server.httpRetry');
+  const httpRetryConfig = config.get<IHttpRetryConfig>('httpRetry');
   return new QueueClient(
     logger,
     queueConfig.jobManagerBaseUrl,

@@ -39,9 +39,20 @@
       }
     }
   },
+  "httpRetry": {
+    "attempts": {
+      "__name": "HTTP_RETRY_ATTEMPTS",
+      "__format": "number"
+    },
+    "delay": "HTTP_RETRY_DELAY",
+    "shouldResetTimeout": {
+      "__name": "HTTP_RETRY_RESET_TIMEOUT",
+      "__format": "boolean"
+    }
+  },
   "jobManagement": {
     "config": {
-      "jobManagerBaseUrl": "JOB_MANAGER_URL",
+      "jobManagerBaseUrl": "JOB_MANAGER_BASE_URL",
       "heartbeat": {
         "baseUrl": "HEARTBEAT_BASE_URL",
         "intervalMs": "HEARTBEAT_INTERVAL_MS"
@@ -52,7 +63,7 @@
   "taskTypes": {
     "init": "TASK_TYPES_INIT",
     "tilesMerging": "TASK_TYPES_TILES_MERGING",
-    "polygonParts": "TASK_TYPES_POLYGON-PARTS",
+    "polygonParts": "TASK_TYPES_POLYGON_PARTS",
     "finalize": "TASK_TYPES_FINALIZE"
   }
 }

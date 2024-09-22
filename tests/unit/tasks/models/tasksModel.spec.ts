@@ -6,7 +6,7 @@ import { configMock, registerDefaultConfig, clear as clearConfig } from '../../.
 import { IJobManagerConfig } from '../../../../src/common/interfaces';
 
 describe('TasksManager', () => {
-  let jobManagerClient: TasksManager;
+  let taskManager: TasksManager;
   let jobManagerURL: string;
   const mockLogger = jsLogger({ enabled: false });
 
@@ -20,7 +20,7 @@ describe('TasksManager', () => {
       jobManagerConfig.dequeueIntervalMs,
       jobManagerConfig.heartbeat.intervalMs
     );
-    jobManagerClient = new TasksManager(mockLogger, queueClientInstance);
+    taskManager = new TasksManager(mockLogger, queueClientInstance);
     jobManagerURL = configMock.get<string>('jobManagement.config.jobManagerBaseUrl');
   });
 

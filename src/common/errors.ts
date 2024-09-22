@@ -5,13 +5,6 @@ export class IrrelevantOperationStatusError extends Error {
   }
 }
 
-export class TasksNotFoundError extends Error {
-  public constructor(message?: string) {
-    super(message);
-    this.name = 'TasksNotFoundError';
-  }
-}
-
 export class InvalidArgumentError extends Error {
   public constructor(message?: string) {
     super(message);
