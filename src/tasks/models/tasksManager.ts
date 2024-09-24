@@ -65,7 +65,8 @@ export class TasksManager {
       await this.createNextTask(task.type, job);
     } else {
       this.logger.debug({ msg: 'Updating job percentage; no need for task creation' });
-      await this.updateJobPercentage(job.id, calculateTaskPercentage(job.completedTasks, job.taskCount));
+      const calculatedPercentage = calculateTaskPercentage(job.completedTasks, job.taskCount);
+      await this.updateJobPercentage(job.id, calculatedPercentage);
     }
   }
 
@@ -112,7 +113,8 @@ export class TasksManager {
     const existingTask = await this.jobManager.findTasks({ jobId: job.id, type: nextTaskType });
     if (!existingTask) {
       await this.createTask(job.id, nextTaskType);
-      await this.updateJobPercentage(job.id, calculateTaskPercentage(job.completedTasks, job.taskCount + 1));
+      const calculatedPercentage = calculateTaskPercentage(job.completedTasks, job.taskCount + 1);
+      await this.updateJobPercentage(job.id, calculatedPercentage);
     }
   }
 }
