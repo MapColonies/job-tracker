@@ -1,4 +1,4 @@
-import config from 'config';
+import { IConfig } from 'config';
 import { Logger } from '@map-colonies/js-logger';
 import {
   TaskHandler as QueueClient,
@@ -24,10 +24,11 @@ export class TasksManager {
 
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
-    @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient
+    @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
+    @inject(SERVICES.CONFIG) private readonly config: IConfig
   ) {
     this.jobManager = this.queueClient.jobManagerClient;
-    this.taskTypes = config.get<ITaskTypesConfig>('taskTypes');
+    this.taskTypes = this.config.get<ITaskTypesConfig>('taskTypes');
   }
 
   public async handleTaskNotification(taskId: string): Promise<void> {
