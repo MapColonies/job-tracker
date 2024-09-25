@@ -119,6 +119,24 @@ describe('tasks', function () {
       expect(response.status).toBe(200);
       expect(response).toSatisfyApiSpec();
     });
+
+    it("Should return 200 when getting completed task who'se job's init task status is in progress", async () => {
+      // mocks
+      const mockIngestionJob = getIngestionJobMock();
+      const mockMergeTask = getTaskMock(mockIngestionJob.id, taskTypesConfigMock.tilesMerging, OperationStatus.COMPLETED);
+      const mockInitTask = getTaskMock(mockIngestionJob.id, taskTypesConfigMock.init, OperationStatus.IN_PROGRESS);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(200, [mockMergeTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockIngestionJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(200, mockIngestionJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { jobId: mockIngestionJob.id, type: taskTypesConfigMock.init }).reply(404);
+      // action
+      const response = await requestSender.handleTaskNotification(mockMergeTask.id);
+      // expectation
+      expect(response.status).toBe(200);
+      expect(response).toSatisfyApiSpec();
+    });
   });
 
   describe('Bad Path', function () {
