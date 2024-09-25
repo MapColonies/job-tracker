@@ -24,5 +24,27 @@
         "options": null
       }
     }
+  },
+  "httpRetry": {
+    "attempts": 5,
+    "delay": "exponential",
+    "shouldResetTimeout": true,
+    "disableHttpClientLogs": true
+  },
+  "jobManagement": {
+    "config": {
+      "jobManagerBaseUrl": "http://localhost:8081",
+      "heartbeat": {
+        "baseUrl": "http://localhost:8083",
+        "intervalMs": 3000
+      },
+      "dequeueIntervalMs": 3000
+    }
+  },
+  "taskTypes": {
+    "init": "init",
+    "tilesMerging": "tilesMerging",
+    "polygonParts": "polygon-parts",
+    "finalize": "finalize"
   }
 }

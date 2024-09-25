@@ -9,3 +9,25 @@ export interface OpenApiConfig {
   jsonPath: string;
   uiPath: string;
 }
+
+export interface IHeartbeatConfig {
+  baseUrl: string;
+  intervalMs: number;
+}
+
+export interface IJobManagerConfig {
+  jobManagerBaseUrl: string;
+  heartbeat: IHeartbeatConfig;
+  dequeueIntervalMs: number;
+}
+
+export interface ITaskTypesConfig {
+  polygonParts: string;
+  finalize: string;
+  tilesMerging: string;
+  init: string;
+}
+
+export interface TaskNotificationRequest {
+  taskId: string;
+}

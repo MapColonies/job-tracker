@@ -1,13 +1,32 @@
 import config from 'config';
 import { getOtelMixin } from '@map-colonies/telemetry';
+import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import { IHttpRetryConfig } from '@map-colonies/mc-utils';
 import { trace, metrics as OtelMetrics } from '@opentelemetry/api';
 import { DependencyContainer } from 'tsyringe/dist/typings/types';
-import jsLogger, { LoggerOptions } from '@map-colonies/js-logger';
+import jsLogger, { Logger, LoggerOptions } from '@map-colonies/js-logger';
 import { Metrics } from '@map-colonies/telemetry';
+import { instancePerContainerCachingFactory } from 'tsyringe';
 import { SERVICES, SERVICE_NAME } from './common/constants';
 import { tracing } from './common/tracing';
 import { tasksRouterFactory, TASKS_ROUTER_SYMBOL } from './tasks/routes/tasksRouter';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
+import { IConfig, IJobManagerConfig } from './common/interfaces';
+
+export const queueClientFactory = (container: DependencyContainer): QueueClient => {
+  const logger = container.resolve<Logger>(SERVICES.LOGGER);
+  const config = container.resolve<IConfig>(SERVICES.CONFIG);
+  const queueConfig = config.get<IJobManagerConfig>('jobManagement.config');
+  const httpRetryConfig = config.get<IHttpRetryConfig>('httpRetry');
+  return new QueueClient(
+    logger,
+    queueConfig.jobManagerBaseUrl,
+    queueConfig.heartbeat.baseUrl,
+    queueConfig.dequeueIntervalMs,
+    queueConfig.heartbeat.intervalMs,
+    httpRetryConfig
+  );
+};
 
 export interface RegisterOptions {
   override?: InjectionObject<unknown>[];
@@ -27,6 +46,7 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
     { token: SERVICES.CONFIG, provider: { useValue: config } },
     { token: SERVICES.LOGGER, provider: { useValue: logger } },
     { token: SERVICES.TRACER, provider: { useValue: tracer } },
+    { token: SERVICES.QUEUE_CLIENT, provider: { useFactory: instancePerContainerCachingFactory(queueClientFactory) } },
     { token: SERVICES.METER, provider: { useValue: OtelMetrics.getMeterProvider().getMeter(SERVICE_NAME) } },
     { token: TASKS_ROUTER_SYMBOL, provider: { useFactory: tasksRouterFactory } },
     {

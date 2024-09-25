@@ -1,10 +1,32 @@
 import jsLogger from '@map-colonies/js-logger';
+import nock from 'nock';
+import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { TasksManager } from '../../../../src/tasks/models/tasksManager';
-
-let tasksManager: TasksManager;
+import { configMock, registerDefaultConfig, clear as clearConfig } from '../../../mocks/configMock';
+import { IJobManagerConfig } from '../../../../src/common/interfaces';
 
 describe('TasksManager', () => {
+  let taskManager: TasksManager;
+  let jobManagerURL: string;
+  const mockLogger = jsLogger({ enabled: false });
+
   beforeEach(function () {
-    tasksManager = new TasksManager(jsLogger({ enabled: false }));
+    registerDefaultConfig();
+    const jobManagerConfig = configMock.get<IJobManagerConfig>('jobManagement.config');
+    const queueClientInstance = new QueueClient(
+      mockLogger,
+      jobManagerConfig.jobManagerBaseUrl,
+      jobManagerConfig.heartbeat.baseUrl,
+      jobManagerConfig.dequeueIntervalMs,
+      jobManagerConfig.heartbeat.intervalMs
+    );
+    taskManager = new TasksManager(mockLogger, queueClientInstance);
+    jobManagerURL = configMock.get<string>('jobManagement.config.jobManagerBaseUrl');
+  });
+
+  afterEach(() => {
+    nock.cleanAll();
+    clearConfig();
+    jest.resetAllMocks();
   });
 });
