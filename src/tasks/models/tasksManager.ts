@@ -94,7 +94,7 @@ export class TasksManager {
 
   public async updateJobPercentage(jobId: string, desiredPercentage: number): Promise<void> {
     await this.jobManager.updateJob(jobId, { percentage: desiredPercentage });
-    this.logger.info({ msg: `Updated percentages for job: ${jobId}` });
+    this.logger.info({ msg: `Updated percentages (${desiredPercentage}) for job: ${jobId}` });
   }
 
   public async createNextTask(currentTaskType: string, job: IJobResponse<unknown, unknown>): Promise<void> {
