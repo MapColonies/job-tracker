@@ -1,4 +1,3 @@
-import { IConfig } from 'config';
 import { Logger } from '@map-colonies/js-logger';
 import {
   TaskHandler as QueueClient,
@@ -13,6 +12,7 @@ import { NotFoundError } from '@map-colonies/error-types';
 import { IngestionNewFinalizeTaskParams } from '@map-colonies/mc-model-types';
 import { inject, injectable } from 'tsyringe';
 import { SERVICES } from '../../common/constants';
+import { IConfig } from '../../common/interfaces';
 import { ITaskTypesConfig } from '../../common/interfaces';
 import { InvalidArgumentError, IrrelevantOperationStatusError } from '../../common/errors';
 import { calculateTaskPercentage } from '../../utils/taskUtils';
