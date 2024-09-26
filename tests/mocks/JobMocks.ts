@@ -2,8 +2,8 @@ import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { faker } from '@faker-js/faker';
 
-export const getIngestionJobMock = (): IJobResponse<unknown, unknown> => {
-  return {
+export const getIngestionJobMock = (override?: Partial<IJobResponse<unknown, unknown>>): IJobResponse<unknown, unknown> => {
+  const defaultJobMock = {
     id: faker.string.uuid(),
     resourceId: 'test',
     version: '1.0',
@@ -32,21 +32,24 @@ export const getIngestionJobMock = (): IJobResponse<unknown, unknown> => {
     created: faker.date.anytime().toString(),
     updated: faker.date.anytime().toString(),
   };
+  return { ...defaultJobMock, ...override };
 };
 
-export const getTaskMock = (jobId: string, type: string, status: OperationStatus): ITaskResponse<unknown> => {
-  return {
+export const getTaskMock = (jobId: string, override?: Partial<Omit<IJobResponse<unknown, unknown>, 'jobId'>>): ITaskResponse<unknown> => {
+  const defaultTaskMock = {
     id: faker.string.uuid(),
     jobId,
     description: '',
     parameters: {},
     created: faker.date.anytime().toString(),
     updated: faker.date.anytime().toString(),
-    type,
-    status,
+    type: '',
+    status: OperationStatus.COMPLETED,
     percentage: 100,
     reason: '',
     attempts: 0,
     resettable: false,
   };
+
+  return { ...defaultTaskMock, ...override };
 };
