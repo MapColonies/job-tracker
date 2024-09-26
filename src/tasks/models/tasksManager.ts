@@ -14,7 +14,7 @@ import { inject, injectable } from 'tsyringe';
 import { SERVICES } from '../../common/constants';
 import { IConfig } from '../../common/interfaces';
 import { ITaskTypesConfig } from '../../common/interfaces';
-import { InvalidArgumentError, IrrelevantOperationStatusError } from '../../common/errors';
+import { IrrelevantOperationStatusError } from '../../common/errors';
 import { calculateTaskPercentage } from '../../utils/taskUtils';
 
 @injectable()
@@ -47,7 +47,7 @@ export class TasksManager {
     }
   }
 
-  public async handleCompletedTask(job: IJobResponse<unknown, unknown>, task: ITaskResponse<unknown>): Promise<void> {
+  private async handleCompletedTask(job: IJobResponse<unknown, unknown>, task: ITaskResponse<unknown>): Promise<void> {
     const initTask = await this.findTask({ jobId: job.id, type: this.taskTypes.init });
 
     if (!initTask) {
@@ -71,12 +71,12 @@ export class TasksManager {
     }
   }
 
-  public async failJob(jobId: string): Promise<void> {
+  private async failJob(jobId: string): Promise<void> {
     await this.jobManager.updateJob(jobId, { status: OperationStatus.FAILED });
     this.logger.info({ msg: `Failed job: ${jobId}` });
   }
 
-  public async createTask(jobId: string, taskType: string): Promise<void> {
+  private async createTask(jobId: string, taskType: string): Promise<void> {
     let createTaskBody: ICreateTaskBody<unknown>;
     if (taskType === this.taskTypes.finalize) {
       const taskParameters: IngestionNewFinalizeTaskParams = { insertedToCatalog: false, insertedToGeoServer: false, insertedToMapproxy: false };
@@ -88,17 +88,17 @@ export class TasksManager {
     this.logger.info({ msg: `Created ${taskType} task for job: ${jobId}` });
   }
 
-  public async findTask(body: IFindTaskRequest<unknown>): Promise<ITaskResponse<unknown> | undefined> {
+  private async findTask(body: IFindTaskRequest<unknown>): Promise<ITaskResponse<unknown> | undefined> {
     const task = await this.jobManager.findTasks(body);
     return task?.[0];
   }
 
-  public async updateJobPercentage(jobId: string, desiredPercentage: number): Promise<void> {
+  private async updateJobPercentage(jobId: string, desiredPercentage: number): Promise<void> {
     await this.jobManager.updateJob(jobId, { percentage: desiredPercentage });
     this.logger.info({ msg: `Updated percentages (${desiredPercentage}) for job: ${jobId}` });
   }
 
-  public async createNextTask(currentTaskType: string, job: IJobResponse<unknown, unknown>): Promise<void> {
+  private async createNextTask(currentTaskType: string, job: IJobResponse<unknown, unknown>): Promise<void> {
     let nextTaskType: string;
     switch (currentTaskType) {
       case this.taskTypes.tilesMerging:
@@ -108,14 +108,14 @@ export class TasksManager {
         nextTaskType = this.taskTypes.finalize;
         break;
       default:
-        throw new InvalidArgumentError(`No subsequent task is defined for task type '${currentTaskType}'`);
+        return;
     }
-
     const existingTask = await this.jobManager.findTasks({ jobId: job.id, type: nextTaskType });
-    if (!existingTask) {
-      await this.createTask(job.id, nextTaskType);
-      const calculatedPercentage = calculateTaskPercentage(job.completedTasks, job.taskCount + 1);
-      await this.updateJobPercentage(job.id, calculatedPercentage);
+    if (existingTask) {
+      return;
     }
+    await this.createTask(job.id, nextTaskType);
+    const calculatedPercentage = calculateTaskPercentage(job.completedTasks, job.taskCount + 1);
+    await this.updateJobPercentage(job.id, calculatedPercentage);
   }
 }
