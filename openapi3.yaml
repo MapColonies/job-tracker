@@ -18,17 +18,14 @@ paths:
       responses:
         200:
           description: OK
+        404:
+          description: Task not found
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-              example:
-                message: 'OK'
-        404:
-          description: Task not found
+                $ref: '#/components/schemas/error'
+        428:
+          description: Task neither in "Completed" nor "Failed" status
           content:
             application/json:
               schema:

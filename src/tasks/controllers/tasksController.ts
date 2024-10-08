@@ -2,7 +2,6 @@ import { RequestHandler } from 'express';
 import httpStatus from 'http-status-codes';
 import { injectable, inject } from 'tsyringe';
 import { HttpError } from 'express-openapi-validator/dist/framework/types';
-
 import { TasksManager } from '../models/tasksManager';
 import { TaskNotificationRequest } from '../../common/interfaces';
 import { IrrelevantOperationStatusError } from '../../common/errors';

@@ -65,16 +65,16 @@ const registerDefaultConfig = (): void => {
           options: null,
         },
       },
-      httpRetry: {
-        attempts: 5,
-        delay: 'exponential',
-        shouldResetTimeout: true,
-        disableHttpClientLogs: true,
-      },
+    },
+    httpRetry: {
+      attempts: 5,
+      delay: 'exponential',
+      shouldResetTimeout: true,
+      disableHttpClientLogs: true,
     },
     jobManagement: {
       config: {
-        jobManagerBaseUrl: 'https:localhost:8081',
+        jobManagerBaseUrl: 'http://localhost:8081',
         heartbeat: {
           baseUrl: 'http://localhost:8083',
           intervalMs: 3000,
