@@ -53,9 +53,42 @@ caPath: '/usr/local/share/ca-certificates'
 caKey: 'ca.crt'
 
 image:
-  repository: ts-server-boilerplate
+  repository: job-tracker
   tag: 'latest'
   pullPolicy: IfNotPresent
+
+serviceUrls:
+  jobManager: 'http://job-service-url'
+  heartbeatManager: 'http://heartbeat-service-url'
+
+jobManagement:
+  jobDomain: "RASTER"
+  ingestion:
+    init:
+      taskType: 'init'
+    polygonParts:
+      taskType: 'polygon-parts'
+    finalize:
+      taskType: 'finalize' 
+    new:
+      jobType: "Ingestion_New"
+      splitTilesTaskType: "tilesSplitting"
+      mergeTilesTaskType: "tilesMerging"
+    update:
+      jobType: "Ingestion_Update"
+      mergeTilesTaskType: "tilesMerging"
+    updateSwap:
+      jobType: "Ingestion_Swap_Update"
+      supportedIngestionSwapTypes:
+        - productType: "RasterVectorBest"
+          productSubType: "עבירות"
+  seed:
+    jobType: "TilesSeeding"
+    taskType: "TilesSeeding"
+  exporter:
+    jobType: "rasterTilesExporter"
+    taskTilesType: "rasterTilesExporter"
+    taskFinalizeType: "rasterFinalizeExporter"
 
 env:
   port: 8080
@@ -71,6 +104,10 @@ env:
   metrics:
     enabled: false
     url: http://localhost:55681/v1/metrics
+  queue:
+    dequeueIntervalMs: 3000
+    heartbeatIntervalMs: 3000
+
 
 resources:
   enabled: true
