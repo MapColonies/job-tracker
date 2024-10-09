@@ -1,5 +1,5 @@
 {{- $configmapName := include "configmap.fullname" . }}
-{{- $jobManagement := (include "common.jobManagement.merged" .) | fromYaml }}
+{{- $jobDefinitions := (include "common.jobDefinitions.merged" .) | fromYaml }}
 {{- $serviceUrls := (include "common.serviceUrls.merged" .) | fromYaml }}
 {{- $queue := .Values.env.queue }}
 {{- $tracing := (include "common.tracing.merged" .) | fromYaml }}
@@ -14,7 +14,7 @@ data:
   RESPONSE_COMPRESSION_ENABLED: {{ .Values.env.responseCompressionEnabled | quote }}
   LOG_LEVEL: {{ .Values.env.logLevel | quote }}
   LOG_PRETTY_PRINT_ENABLED: {{ .Values.env.logPrettyPrintEnabled | quote }}
-  {{ if $tracing.enabled | quote}}
+  {{ if $tracing.enabled | quote }}
   TELEMETRY_TRACING_ENABLED: 'true'
   TELEMETRY_TRACING_URL: {{ $tracing.url }}
   {{ end }}
@@ -27,9 +27,8 @@ data:
   HEARTBEAT_BASE_URL: {{ $serviceUrls.heartbeatManager | quote }}
   HEARTBEAT_INTERVAL_MS: {{ $queue.heartbeatIntervalMs | quote }}
   JOB_MANAGER_DEQUEUE_INTERVAL_MS: {{ $queue.dequeueIntervalMs | quote }}
-  TASK_TYPES_INIT: {{ $jobManagement.ingestion.init | quote }}
-  TASK_TYPES_TILES_MERGING: -
-  {{ ( $jobManagement.ingestion.new.mergeTilesTaskType | default $jobManagement.ingestion.update.mergeTilesTaskType) | quote }}
-  TASK_TYPES_POLYGON_PARTS: {{ $jobManagement.ingestion.polygonParts.taskType | quote }}
-  TASK_TYPES_FINALIZE: {{ $jobManagement.ingestion.finalize.taskType | quote }}
+  TASK_TYPES_INIT: {{ $jobDefinitions.tasks.init.type | quote }}
+  TASK_TYPES_TILES_MERGING: {{ $jobDefinitions.tasks.merge.type | quote }}
+  TASK_TYPES_POLYGON_PARTS: {{ $jobDefinitions.tasks.polygonParts.type | quote }}
+  TASK_TYPES_FINALIZE: {{ $jobDefinitions.tasks.finalize.type | quote }}
 {{- end }}

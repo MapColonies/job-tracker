@@ -49,12 +49,8 @@ Custom definitions
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.serviceUrls .Values.global.serviceUrls ) "context" . ) }}
 {{- end -}}
 
-{{- define "common.jobManagement.merged" -}}
-{{- include "common.tplvalues.merge" ( dict "values" ( list .Values.jobManagement .Values.global.jobManagement ) "context" . ) }}
-{{- end -}}
-
-{{- define "common.ingestion.merged" -}}
-{{- include "common.tplvalues.merge" ( dict "values" ( list .Values.ingestion .Values.global.ingestion ) "context" . ) }}
+{{- define "common.jobDefinitions.merged" -}}
+{{- include "common.tplvalues.merge" ( dict "values" ( list .Values.jobDefinitions .Values.global.jobDefinitions ) "context" . ) }}
 {{- end -}}
 
 {{- define "common.tracing.merged" -}}
@@ -63,8 +59,4 @@ Custom definitions
 
 {{- define "common.metrics.merged" -}}
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.metrics .Values.global.metrics ) "context" . ) }}
-{{- end -}}
-
-{{- define "common.queue.merged" -}}
-{{- include "common.tplvalues.merge" ( dict "values" ( list .Values.env.queue .Values.global.env.queue ) "context" . ) }}
 {{- end -}}
