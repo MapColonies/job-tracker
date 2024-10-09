@@ -1,14 +1,17 @@
 {{- $releaseName := .Release.Name -}}
 {{- $chartName := include "job-tracker.name" . -}}
+{{- $serviceName := include "service.fullname" . -}}
+{{- $ingressName := include "ingress.fullname" . }}
+{{- $ingressHost := include "ingress.host" . }}
 {{- if and (.Values.enabled) (.Values.ingress.enabled) -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ $releaseName }}-{{ $chartName }}-ingress
+  name: {{ $ingressName }}
   annotations:
     kubernetes.io/ingress.class: "nginx"
     nginx.org/mergeable-ingress-type: "minion"
-    nginx.org/rewrites: 'serviceName={{ $releaseName }}-{{ $chartName }} rewrite=/'    
+    nginx.org/rewrites: 'serviceName={{ $serviceName }} rewrite=/'    
     nginx.org/location-snippets: |
       if ($request_method = OPTIONS) {
         return 204;
@@ -27,8 +30,8 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: {{ printf "%s-service" (include "job-tracker.fullname" .) }}
+            name: {{ $serviceName }}
             port:
               number: {{ .Values.env.port }}
-    host: {{ .Values.ingress.host | quote }}
+    host: {{ $ingressHost }}
 {{- end -}}

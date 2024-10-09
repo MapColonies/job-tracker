@@ -1,11 +1,12 @@
 {{- $releaseName := .Release.Name -}}
 {{- $chartName := include "job-tracker.name" . -}}
 {{- $cloudProviderFlavor := include "job-tracker.cloudProviderFlavor" . -}}
+{{- $serviceName := include "service.fullname" . -}}
 {{- if .Values.enabled -}}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ printf "%s-service" (include "job-tracker.fullname" .) }}
+  name: {{ $serviceName }}
   labels:
     app: {{ $chartName }}
     component: {{ $chartName }}

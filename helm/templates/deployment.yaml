@@ -1,14 +1,17 @@
 {{- $releaseName := .Release.Name -}}
 {{- $chartName := include "job-tracker.name" . -}}
+{{- $deploymentName := include "deployment.fullname" . }}
+{{- $configmapName := include "configmap.fullname" . }}
 {{- $cloudProviderFlavor := include "job-tracker.cloudProviderFlavor" . -}}
 {{- $cloudProviderDockerRegistryUrl := include "job-tracker.cloudProviderDockerRegistryUrl" . -}}
 {{- $cloudProviderImagePullSecretName := include "job-tracker.cloudProviderImagePullSecretName" . -}}
 {{- $imageTag := include "job-tracker.tag" . -}}
+{{- $metrics := (include "common.metrics.merged" .) | fromYaml }}
 {{- if .Values.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ printf "%s-deployment" (include "job-tracker.fullname" .) }}
+  name: {{ $deploymentName }}
   labels:
     app: {{ $chartName }}
     component: {{ $chartName }}
@@ -34,6 +37,10 @@ spec:
       annotations:
       {{- if .Values.resetOnConfigChange }}
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      {{- end }}
+      {{ if $metrics.enabled }}
+        prometheus.io/port: {{ $metrics.prometheus.port | quote }}
+        prometheus.io/scrape: {{ $metrics.prometheus.scrape | quote }}
       {{- end }}
       {{- if .Values.podAnnotations }}
       {{- toYaml .Values.podAnnotations | nindent 8 }}
@@ -80,7 +87,7 @@ spec:
             {{- end }}            
           envFrom:
             - configMapRef:
-                name: {{ printf "%s-configmap" (include "job-tracker.fullname" .) }}
+                name: {{ $configmapName }}
           ports:
             - name: http
               containerPort: {{ .Values.env.targetPort }}
