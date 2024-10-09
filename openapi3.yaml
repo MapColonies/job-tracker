@@ -18,6 +18,12 @@ paths:
       responses:
         200:
           description: OK
+        400:
+          description: Bad task id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         404:
           description: Task not found
           content:

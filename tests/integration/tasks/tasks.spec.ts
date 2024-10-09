@@ -143,6 +143,11 @@ describe('tasks', function () {
 
   describe('Bad Path', function () {
     // All requests with status code of 400
+    it('Should return 400 if the endpoint is called with a path parameter that is not a valid uuid', async () => {
+      const response = await requestSender.handleTaskNotification('1');
+      expect(response.status).toBe(400);
+      expect(response).toSatisfyApiSpec();
+    });
   });
   describe('Sad Path', function () {
     // All requests with status code 4XX-5XX
