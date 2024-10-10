@@ -1,18 +1,13 @@
-import jsLogger from '@map-colonies/js-logger';
-import { trace } from '@opentelemetry/api';
 import httpStatusCodes from 'http-status-codes';
 import { getApp } from '../../../src/app';
-import { SERVICES } from '../../../src/common/constants';
+import { getTestContainerConfig } from '../tasks/helpers/containerConfig';
 import { DocsRequestSender } from './helpers/docsRequestSender';
 
 describe('docs', function () {
   let requestSender: DocsRequestSender;
   beforeEach(function () {
-    const app = getApp({
-      override: [
-        { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
-        { token: SERVICES.TRACER, provider: { useValue: trace.getTracer('testTracer') } },
-      ],
+    const [app] = getApp({
+      override: [...getTestContainerConfig()],
       useChild: true,
     });
     requestSender = new DocsRequestSender(app);
