@@ -5,6 +5,10 @@ global:
   environment: ''
   jobDefinitions: {}
   serviceUrls: {}
+  ca:    
+    secretName: ''
+    path: '/usr/local/share/ca-certificates'
+    key: 'ca.crt'
 
 enabled: true
 environment: development
@@ -61,10 +65,6 @@ metrics:
     scrape: false
     port: 8080
 
-caSecretName: ''
-caPath: '/usr/local/share/ca-certificates'
-caKey: 'ca.crt'
-
 image:
   repository: job-tracker
   tag: 'latest'
@@ -111,10 +111,19 @@ resources:
 route:
   enabled: false
   path: /
-  https: false
+  host: 
   timeout:
     enabled: false # defaults to 30s by openshift
     duration: 60s # supported units (us, ms, s, m, h, d)
+  rewriteTarget: ''
+  tls:
+    enabled: true
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+    useCerts: false
+    certificate: ''
+    key: ''
+    caCertificate: ''
 
 ingress:
   enabled: false
