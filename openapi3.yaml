@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: job-tracker
   description: A service that exposes a dedicated API for jobs and tasks states tracking
-  version: 1.0.0
+  version: 1.1.0
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -16,21 +16,21 @@ paths:
         - tasks
       summary: notify tracker on task finished
       responses:
-        200:
+        '200':
           description: OK
-        400:
+        '400':
           description: Bad task id
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-        404:
+        '404':
           description: Task not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-        428:
+        '428':
           description: Task neither in "Completed" nor "Failed" status
           content:
             application/json:
