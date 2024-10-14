@@ -1,11 +1,14 @@
 global:
-  imageRegistry: ""
-  imagePullSecrets: []
-  deploymentFlavor: "openshift"
-  pullPolicy: "IfNotPresent"
+  cloudProvider: {}
   tracing: {}
   metrics: {}
   environment: ''
+  jobDefinitions: {}
+  serviceUrls: {}
+  ca:    
+    secretName: ''
+    path: '/usr/local/share/ca-certificates'
+    key: 'ca.crt'
 
 enabled: true
 environment: development
@@ -46,16 +49,42 @@ args: []
 
 sidecars: []
 
-caSecretName: ''
-caPath: '/usr/local/share/ca-certificates'
-caKey: 'ca.crt'
+cloudProvider:
+  dockerRegistryUrl: 
+  imagePullSecretName: ''
+  flavor: openshift
+
+tracing:
+  enabled: false
+  url: ''
+
+metrics:
+  enabled: false
+  url: ''
+  prometheus:
+    scrape: false
+    port: 8080
 
 image:
-  registry: ""
-  repository: ts-server-boilerplate
-  tag: 'v4.2.0'
-  digest: ""
-  pullSecrets: []
+  repository: job-tracker
+  tag: 'latest'
+  pullPolicy: IfNotPresent
+
+serviceUrls:
+  jobManager: ''
+  heartbeatManager: ''
+
+jobDefinitions:
+  tasks:
+    init:
+      type: ''
+    merge:
+      type: ''
+    polygonParts:
+      type: ''
+    finalize:
+      type: ''
+
 env:
   port: 8080
   targetPort: 8080
@@ -64,15 +93,13 @@ env:
   logPrettyPrintEnabled: false
   responseCompressionEnabled: true
   requestPayloadLimit: 1mb
-  tracing:
-    enabled: false
-    url: http://localhost:55681/v1/trace
-  metrics:
-    enabled: false
-    url: http://localhost:55681/v1/metrics
+  queue:
+    dequeueIntervalMs: 3000
+    heartbeatIntervalMs: 3000
+
 
 resources:
-  enabled: true
+  enabled: false
   value:
     limits:
       cpu: 100m
@@ -82,7 +109,7 @@ resources:
       memory: 128Mi
 
 route:
-  enabled: true
+  enabled: false
   path: /
   host: 
   timeout:
@@ -100,8 +127,9 @@ route:
 
 ingress:
   enabled: false
+  type: "nginx-org" # supported values: 'nginx-org' | 'nginx-kubernetes'
   path: /
-  host: 'localhost'
+  host: "localhost"
   cors:
     enabled: true
-    origin: '*'
+    origin: "*"

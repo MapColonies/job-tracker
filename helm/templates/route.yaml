@@ -1,17 +1,19 @@
 {{- $releaseName := .Release.Name -}}
-{{- $chartName := include "ts-server-boilerplate.name" . -}}
-{{- $cloudProviderFlavor := include "ts-server-boilerplate.deploymentFlavor" . -}}
+{{- $chartName := include "job-tracker.name" . -}}
+{{- $cloudProviderFlavor := include "job-tracker.cloudProviderFlavor" . -}}
+{{- $serviceName := include "service.fullname" . -}}
+{{- $routeName := include "route.fullname" . }}
 {{- if and (and (.Values.enabled) (eq $cloudProviderFlavor "openshift")) (.Values.route.enabled) -}}
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: {{ $releaseName }}-{{ $chartName }}-route
+  name: {{ $routeName }}
   annotations:
     {{- if .Values.route.rewriteTarget }}
     haproxy.router.openshift.io/rewrite-target: {{ .Values.route.rewriteTarget }}
     {{- end }}
     {{- if .Values.route.timeout.enabled }}
-    haproxy.router.openshift.io/timeout: {{ .Values.route.timeout.durationSeconds }}
+    haproxy.router.openshift.io/timeout: {{ .Values.route.timeout.duration }}
     {{- end }}
 spec:
   {{- if .Values.route.host }}
@@ -20,7 +22,7 @@ spec:
   path: {{ .Values.route.path | default "/" }}
   to:
     kind: Service
-    name: {{ printf "%s-service" (include "ts-server-boilerplate.fullname" .) }}
+    name: {{ $serviceName }}
   {{- if .Values.route.tls.enabled }}
   tls:
     termination: {{ .Values.route.tls.termination | quote }}

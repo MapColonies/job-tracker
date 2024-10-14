@@ -1,11 +1,6 @@
 apiVersion: v2
-name: ts-server-boilerplate
-description: A Helm chart for ts-server-boilerplate service
+name: job-tracker
+description: A Helm chart for job-tracker service
 type: application
 version: 1.0.0
 appVersion: 1.0.0
-
-dependencies:
-- name: common
-  repository: oci://acrarolibotnonprod.azurecr.io/helm
-  version: 1.0.1

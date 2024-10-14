@@ -1,17 +1,15 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: ts-server-boilerplate
-  description: A boilerplate github repo for a REST API service in NodeJS for MapColonies
+  name: job-tracker
+  description: A github repo for a service that exposes a dedicated API for jobs and tasks states tracking
   annotations:
-    github.com/project-slug: MapColonies/ts-server-boilerplate
+    github.com/project-slug: MapColonies/job-tracker
   tags:
     - nodejs
     - typescript
     - expressjs
-    - boilerplate
 spec:
   type: service
   lifecycle: production
-  owner: DevInfra
-  system: boilerplate
+  owner: Raster
