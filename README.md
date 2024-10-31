@@ -6,6 +6,15 @@ Services notifies Job Tracker on completed tasks, and Job Tracker handles the re
 
 ## API
 Check out the OpenAPI spec [here](/openapi3.yaml)
+#### Get all items
+
+```http
+  GET /tasks/${taskId}/notify
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `taskId` | `uuid` | **Required**. Id of the completed task|
 ## Run Locally
 
 Clone the project
