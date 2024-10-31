@@ -90,7 +90,7 @@ const registerDefaultConfig = (): void => {
       },
       tasks: {
         init: 'init',
-        merge: 'tilesMerging',
+        merge: 'merge',
         polygonParts: 'polygon-parts',
         finalize: 'finalize',
       },
