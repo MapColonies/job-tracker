@@ -9,18 +9,22 @@ import {
   IJobResponse,
 } from '@map-colonies/mc-priority-queue';
 import { NotFoundError } from '@map-colonies/error-types';
-import { IngestionNewFinalizeTaskParams } from '@map-colonies/mc-model-types';
+import {
+  IngestionNewFinalizeTaskParams,
+  IngestionUpdateFinalizeTaskParams,
+  IngestionSwapUpdateFinalizeTaskParams,
+} from '@map-colonies/mc-model-types';
 import { inject, injectable } from 'tsyringe';
 import { SERVICES } from '../../common/constants';
 import { IConfig } from '../../common/interfaces';
-import { ITaskTypesConfig } from '../../common/interfaces';
+import { IJobDefinitionsConfig } from '../../common/interfaces';
 import { IrrelevantOperationStatusError } from '../../common/errors';
 import { calculateTaskPercentage } from '../../utils/taskUtils';
 
 @injectable()
 export class TasksManager {
   private readonly jobManager: JobManagerClient;
-  private readonly taskTypes: ITaskTypesConfig;
+  private readonly jobDefinitions: IJobDefinitionsConfig;
 
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
@@ -28,7 +32,7 @@ export class TasksManager {
     @inject(SERVICES.CONFIG) private readonly config: IConfig
   ) {
     this.jobManager = this.queueClient.jobManagerClient;
-    this.taskTypes = this.config.get<ITaskTypesConfig>('taskTypes');
+    this.jobDefinitions = this.config.get<IJobDefinitionsConfig>('jobDefinitions');
   }
 
   public async handleTaskNotification(taskId: string): Promise<void> {
@@ -48,7 +52,7 @@ export class TasksManager {
   }
 
   private async handleCompletedTask(job: IJobResponse<unknown, unknown>, task: ITaskResponse<unknown>): Promise<void> {
-    const initTask = await this.findTask({ jobId: job.id, type: this.taskTypes.init });
+    const initTask = await this.findTask({ jobId: job.id, type: this.jobDefinitions.tasks.init });
 
     if (!initTask) {
       this.logger.debug({ msg: 'Skipping because init task was not found' });
@@ -60,7 +64,7 @@ export class TasksManager {
       return;
     }
 
-    const taskHasSubsequentTask = task.type === this.taskTypes.tilesMerging || task.type === this.taskTypes.polygonParts;
+    const taskHasSubsequentTask = task.type === this.jobDefinitions.tasks.merge || task.type === this.jobDefinitions.tasks.polygonParts;
 
     if (job.completedTasks === job.taskCount && taskHasSubsequentTask) {
       await this.createNextTask(task.type, job);
@@ -76,16 +80,27 @@ export class TasksManager {
     this.logger.info({ msg: `Failed job: ${jobId}` });
   }
 
-  private async createTask(jobId: string, taskType: string): Promise<void> {
-    let createTaskBody: ICreateTaskBody<unknown>;
-    if (taskType === this.taskTypes.finalize) {
-      const taskParameters: IngestionNewFinalizeTaskParams = { insertedToCatalog: false, insertedToGeoServer: false, insertedToMapproxy: false };
-      createTaskBody = { type: taskType, parameters: taskParameters };
-    } else {
-      createTaskBody = { type: taskType, parameters: {} };
+  private async createTask(job: IJobResponse<unknown, unknown>, taskType: string): Promise<void> {
+    let taskParameters: unknown = {};
+    if (taskType === this.jobDefinitions.tasks.finalize) {
+      switch (job.type) {
+        case this.jobDefinitions.jobs.new: {
+          (taskParameters as IngestionNewFinalizeTaskParams) = { insertedToCatalog: false, insertedToGeoServer: false, insertedToMapproxy: false };
+          break;
+        }
+        case this.jobDefinitions.jobs.update: {
+          (taskParameters as IngestionUpdateFinalizeTaskParams) = { updatedInCatalog: false };
+          break;
+        }
+        case this.jobDefinitions.jobs.swapUpdate: {
+          (taskParameters as IngestionSwapUpdateFinalizeTaskParams) = { updatedInCatalog: false, updatedInMapproxy: false };
+          break;
+        }
+      }
     }
-    await this.jobManager.createTaskForJob(jobId, createTaskBody);
-    this.logger.info({ msg: `Created ${taskType} task for job: ${jobId}` });
+    const createTaskBody: ICreateTaskBody<unknown> = { type: taskType, parameters: taskParameters };
+    await this.jobManager.createTaskForJob(job.id, createTaskBody);
+    this.logger.info({ msg: `Created ${taskType} task for job: ${job.id}` });
   }
 
   private async findTask(body: IFindTaskRequest<unknown>): Promise<ITaskResponse<unknown> | undefined> {
@@ -101,11 +116,11 @@ export class TasksManager {
   private async createNextTask(currentTaskType: string, job: IJobResponse<unknown, unknown>): Promise<void> {
     let nextTaskType: string;
     switch (currentTaskType) {
-      case this.taskTypes.tilesMerging:
-        nextTaskType = this.taskTypes.polygonParts;
+      case this.jobDefinitions.tasks.merge:
+        nextTaskType = this.jobDefinitions.tasks.polygonParts;
         break;
-      case this.taskTypes.polygonParts:
-        nextTaskType = this.taskTypes.finalize;
+      case this.jobDefinitions.tasks.polygonParts:
+        nextTaskType = this.jobDefinitions.tasks.finalize;
         break;
       default:
         return;
@@ -114,7 +129,7 @@ export class TasksManager {
     if (existingTask) {
       return;
     }
-    await this.createTask(job.id, nextTaskType);
+    await this.createTask(job, nextTaskType);
     const calculatedPercentage = calculateTaskPercentage(job.completedTasks, job.taskCount + 1);
     await this.updateJobPercentage(job.id, calculatedPercentage);
   }
