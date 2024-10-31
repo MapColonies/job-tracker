@@ -21,11 +21,18 @@ export interface IJobManagerConfig {
   dequeueIntervalMs: number;
 }
 
-export interface ITaskTypesConfig {
-  polygonParts: string;
-  finalize: string;
-  tilesMerging: string;
-  init: string;
+export interface IJobDefinitionsConfig {
+  jobs: {
+    new: string;
+    update: string;
+    swapUpdate: string;
+  };
+  tasks: {
+    polygonParts: string;
+    finalize: string;
+    merge: string;
+    init: string;
+  };
 }
 
 export interface TaskNotificationRequest {

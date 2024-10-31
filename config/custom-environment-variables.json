@@ -60,10 +60,17 @@
       "dequeueIntervalMs": "JOB_MANAGER_DEQUEUE_INTERVAL_MS"
     }
   },
-  "taskTypes": {
-    "init": "TASK_TYPES_INIT",
-    "tilesMerging": "TASK_TYPES_TILES_MERGING",
-    "polygonParts": "TASK_TYPES_POLYGON_PARTS",
-    "finalize": "TASK_TYPES_FINALIZE"
+  "jobDefinitions": {
+    "jobs": {
+      "new": "JOB_DEFINITIONS_JOB_NEW",
+      "update": "JOB_DEFINITIONS_JOB_UPDATE",
+      "swapUpdate": "JOB_DEFINITIONS_JOB_SWAP_UPDATE"
+    },
+    "tasks": {
+      "init": "JOB_DEFINITIONS_TASK_INIT",
+      "merge": "JOB_DEFINITIONS_TASK_MERGE",
+      "polygonParts": "JOB_DEFINITIONS_TASK_POLYGON_PARTS",
+      "finalize": "JOB_DEFINITIONS_TASK_FINALIZE"
+    }
   }
 }

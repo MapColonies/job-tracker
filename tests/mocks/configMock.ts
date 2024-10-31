@@ -82,11 +82,18 @@ const registerDefaultConfig = (): void => {
         dequeueIntervalMs: 3000,
       },
     },
-    taskTypes: {
-      init: 'init',
-      polygonParts: 'polygon-parts',
-      finalize: 'finalize',
-      tilesMerging: 'tilesMerging',
+    jobDefinitions: {
+      jobs: {
+        new: 'Ingestion_New',
+        update: 'Ingestion_Update',
+        swapUpdate: 'Ingestion_Swap_Update',
+      },
+      tasks: {
+        init: 'init',
+        merge: 'tilesMerging',
+        polygonParts: 'polygon-parts',
+        finalize: 'finalize',
+      },
     },
   };
 

@@ -3,7 +3,7 @@ import jsLogger from '@map-colonies/js-logger';
 import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { TasksManager } from '../../../../src/tasks/models/tasksManager';
 import { configMock } from '../../../mocks/configMock';
-import { IJobManagerConfig, ITaskTypesConfig } from '../../../../src/common/interfaces';
+import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 
 interface QueueClientTestContext {
   mockGetJob: MockGetJob;
@@ -57,7 +57,7 @@ export type MockCreateTaskForJob = jest.MockedFunction<(jobId: string, body: ICr
 export interface TasksModelTestContext {
   tasksManager: TasksManager;
   configMock: typeof configMock;
-  taskTypesConfigMock: ITaskTypesConfig;
+  jobDefinitionsConfigMock: IJobDefinitionsConfig;
   mockGetJob: MockGetJob;
   mockFindTasks: MockFindTasks;
   mockUpdateJob: MockUpdateJob;
@@ -70,11 +70,11 @@ export function setupTasksManagerTest(useMockQueueClient = false): TasksModelTes
 
   const queueContext = setupQueueClient(useMockQueueClient);
   const tasksManager = new TasksManager(mockLogger, queueContext.queueClient, configMock);
-  const taskTypesConfigMock = configMock.get<ITaskTypesConfig>('taskTypes');
+  const jobDefinitionsConfigMock = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
   return {
     tasksManager,
     configMock,
-    taskTypesConfigMock,
+    jobDefinitionsConfigMock,
     ...queueContext,
   };
 }
