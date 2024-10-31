@@ -31,7 +31,13 @@ Start the server
 ```bash
   npm run start
 ```
+## Docker
 
+    # Build the Docker image
+    docker build -t job-tracker .
+    
+    # Run the Docker container
+    docker run -d -p 3000:3000 job-tracker
 
 ## Environment Variables
 
@@ -53,7 +59,7 @@ Start the server
 |`JOB_DEFINITIONS_TASK_FINALIZE`     |Task name.                                                                |finalize                     |
 |`HTTP_RETRY_ATTEMPTS`               |How many retries should the service make if a request fails.              |5                            |
 |`HTTP_RETRY_DELAY`                  |The delay between each http retry if a request fails.                     |exponential                  |
-|`HTTP_RETRY_RESET_TIMEOUT`          |boolean                                                                   |true                         |
+|`HTTP_RETRY_RESET_TIMEOUT`          |Defines if the timeout should be reset between retries                    |true                         |
 |`TELEMETRY_SERVICE_NAME`            |Name of the telemetry service.	                                        |(not set)                    |
 |`TELEMETRY_HOST_NAME`               |Hostname for the telemetry service.                                       |(not set)                    |
 |`TELEMETRY_SERVICE_VERSION`         |Version of the telemetry service.	                                        |(not set)                    |
