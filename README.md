@@ -5,7 +5,7 @@ A service that exposes a dedicated API for raster jobs and tasks state tracking.
 Services notifies Job Tracker on completed tasks, and Job Tracker handles the rest; including creating subsequent tasks, updating the job percentage, and failing the job, if necessary.
 
 ## API
-Checkout the OpenAPI spec [here](/openapi3.yaml)
+Check out the OpenAPI spec [here](/openapi3.yaml)
 ## Run Locally
 
 Clone the project
