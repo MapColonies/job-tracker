@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.1](https://github.com/MapColonies/job-tracker/compare/v1.2.0...v1.2.1) (2024-11-03)
+
+
+### Bug Fixes
+
+* changed environment variable names and added new vars in configmap ([5320e5d](https://github.com/MapColonies/job-tracker/commit/5320e5d86b38780638afaf896a93f22d83f8e6e9))
+
 ## [1.2.0](https://github.com/MapColonies/job-tracker/compare/v1.1.0...v1.2.0) (2024-11-03)
 
 
