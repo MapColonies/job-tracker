@@ -27,8 +27,11 @@ data:
   HEARTBEAT_BASE_URL: {{ $serviceUrls.heartbeatManager | quote }}
   HEARTBEAT_INTERVAL_MS: {{ $queue.heartbeatIntervalMs | quote }}
   JOB_MANAGER_DEQUEUE_INTERVAL_MS: {{ $queue.dequeueIntervalMs | quote }}
-  TASK_TYPES_INIT: {{ $jobDefinitions.tasks.init.type | quote }}
-  TASK_TYPES_TILES_MERGING: {{ $jobDefinitions.tasks.merge.type | quote }}
-  TASK_TYPES_POLYGON_PARTS: {{ $jobDefinitions.tasks.polygonParts.type | quote }}
-  TASK_TYPES_FINALIZE: {{ $jobDefinitions.tasks.finalize.type | quote }}
+  JOB_DEFINITIONS_JOB_NEW: {{ $jobDefinitions.jobs.new.type | quote }}
+  JOB_DEFINITIONS_JOB_UPDATE: {{ $jobDefinitions.jobs.update.type | quote }}
+  JOB_DEFINITIONS_JOB_SWAP_UPDATE: {{ $jobDefinitions.jobs.swapUpdate.type | quote }}
+  JOB_DEFINITIONS_TASK_INIT: {{ $jobDefinitions.tasks.init.type | quote }}
+  JOB_DEFINITIONS_TASK_MERGE: {{ $jobDefinitions.tasks.merge.type | quote }}
+  JOB_DEFINITIONS_TASK_POLYGON_PARTS: {{ $jobDefinitions.tasks.polygonParts.type | quote }}
+  JOB_DEFINITIONS_TASK_FINALIZE: {{ $jobDefinitions.tasks.finalize.type | quote }}
 {{- end }}

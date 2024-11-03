@@ -75,6 +75,13 @@ serviceUrls:
   heartbeatManager: ''
 
 jobDefinitions:
+  jobs:
+    new:
+      type: ''
+    update:
+      type: ''
+    swapUpdate:
+      type: ''
   tasks:
     init:
       type: ''
