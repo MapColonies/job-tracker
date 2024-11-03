@@ -19,7 +19,7 @@ describe('TasksManager', () => {
   });
 
   describe('handleTaskNotification', () => {
-    it('should create polygon-parts task and update job percentage in case of being called with a "Completed" tiles-merging task with Completed init task', async () => {
+    it('should create polygon-parts task and update job percentage in case of being called with a "Completed" merge task with Completed init task', async () => {
       // mocks
       const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
       const ingestionJobMock = getIngestionJobMock();
@@ -135,7 +135,7 @@ describe('TasksManager', () => {
       expect(mockUpdateJob).toHaveBeenCalledTimes(1);
     });
 
-    it("should only update percentage in case of being called with a 'Completed' task that's neither tiles-merging nor polygon-parts", async () => {
+    it("should only update percentage in case of being called with a 'Completed' task that's neither merge nor polygon-parts", async () => {
       // mocks
       const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
       const ingestionJobMock = getIngestionJobMock({ taskCount: 5, completedTasks: 4 });
