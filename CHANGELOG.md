@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.1](https://github.com/MapColonies/job-tracker/compare/v1.2.0...v1.2.1) (2024-11-17)
+
+
+### Bug Fixes
+
+* change port value to 80 ([5e6515b](https://github.com/MapColonies/job-tracker/commit/5e6515b922080ea124b1323c3efc7e56df933c10))
+* changed environment variable names and added new vars in configmap ([#7](https://github.com/MapColonies/job-tracker/issues/7)) ([03e5d04](https://github.com/MapColonies/job-tracker/commit/03e5d043e851c91a79a5e611c7efce41da91e06c))
+
 ## [1.2.0](https://github.com/MapColonies/job-tracker/compare/v1.1.0...v1.2.0) (2024-11-03)
 
 
