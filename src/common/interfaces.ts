@@ -33,6 +33,7 @@ export interface IJobDefinitionsConfig {
     merge: string;
     init: string;
   };
+  suspendingTaskTypes: string[];
 }
 
 export interface TaskNotificationRequest {

@@ -1,10 +1,23 @@
 global:
-  cloudProvider: {}
+  cloudProvider:
+    dockerRegistryUrl: acrarolibotnonprod.azurecr.io
+    imagePullSecretName: acr-registry
+    flavor: openshift
   tracing: {}
   metrics: {}
   environment: ''
   jobDefinitions: {}
-  serviceUrls: {}
+  serviceUrls: 
+    catalogManager: "http://raster-core-dev-raster-catalog-manager-service"
+    jobTracker: "http://raster-core-dev-job-tracker-service"
+    mapServerPublicDNS: "https://tiles-dev.mapcolonies.net/api/raster/v1"
+    mapproxyApi: "http://raster-ingestion-dev-mapproxy-api-service"
+    jobManager: "http://common-job-manager-service"
+    heartbeatManager: "http://common-heartbeat-manager-service"
+    downloadServerPublicDNS: "https://download-dev.mapcolonies.net/api/raster/v1"
+    geoserverUrl: "http://raster-serving-dev-pp-geoserver-service/geoserver"
+    geoserverApiUrl: "http://raster-ingestion-dev-geoserver-api-service"
+    polygonPartsManager: "http://raster-ingestion-dev-polygon-parts-manager-service"
   ca:    
     secretName: ''
     path: '/usr/local/share/ca-certificates'
@@ -67,7 +80,7 @@ metrics:
 
 image:
   repository: job-tracker
-  tag: 'latest'
+  tag: 'nitzan-test'
   pullPolicy: IfNotPresent
 
 serviceUrls:
@@ -77,20 +90,30 @@ serviceUrls:
 jobDefinitions:
   jobs:
     new:
-      type: ''
+      type: "Ingestion_New"
     update:
-      type: ''
+      type: "Ingestion_Update"
     swapUpdate:
-      type: ''
+      type: "Ingestion_Swap_Update"
+    seed:
+      type: "TilesSeeding"
+    export:
+      type: "rasterTilesExporter"
   tasks:
     init:
-      type: ''
+      type: "init"
+      suspendJobOnFail: true
     merge:
-      type: ''
+      type: "tilesMerging"
     polygonParts:
-      type: ''
+      type: "polygon-parts"
+      suspendJobOnFail: true
     finalize:
-      type: ''
+      type: "finalize"
+    seed:
+      type: "TilesSeeding"
+    export:
+      type: "rasterTilesExporter"
 
 env:
   port: 80
@@ -116,7 +139,7 @@ resources:
       memory: 128Mi
 
 route:
-  enabled: false
+  enabled: true
   path: /
   host: 
   timeout:

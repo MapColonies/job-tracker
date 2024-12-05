@@ -71,6 +71,7 @@
       "merge": "JOB_DEFINITIONS_TASK_MERGE",
       "polygonParts": "JOB_DEFINITIONS_TASK_POLYGON_PARTS",
       "finalize": "JOB_DEFINITIONS_TASK_FINALIZE"
-    }
+    },
+    "suspendingTaskTypes": "JOB_DEFINITIONS_SUSPENDING_TASKS"
   }
 }
