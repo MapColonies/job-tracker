@@ -86,7 +86,7 @@ export class TasksManager {
 
   private async suspendJob(jobId: string): Promise<void> {
     await this.jobManager.updateJob(jobId, { status: OperationStatus.SUSPENDED });
-    this.logger.info({ msg: `Failed job: ${jobId}` });
+    this.logger.info({ msg: `Suspended job: ${jobId}` });
   }
 
   private async createTask(job: IJobResponse<unknown, unknown>, taskType: string): Promise<void> {
