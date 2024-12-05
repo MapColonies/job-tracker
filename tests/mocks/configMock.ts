@@ -94,6 +94,7 @@ const registerDefaultConfig = (): void => {
         polygonParts: 'polygon-parts',
         finalize: 'finalize',
       },
+      suspendingTaskTypes: ['polygon-parts'],
     },
   };
 

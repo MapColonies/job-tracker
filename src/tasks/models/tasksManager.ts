@@ -42,7 +42,8 @@ export class TasksManager {
       throw new NotFoundError(`Task ${taskId} not found`);
     }
     if (task.status === OperationStatus.FAILED) {
-      await this.failJob(task.jobId);
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      this.jobDefinitions.suspendingTaskTypes.includes(task.type) ? await this.suspendJob(task.jobId) : await this.failJob(task.jobId);
     } else if (task.status === OperationStatus.COMPLETED) {
       const job = await this.jobManager.getJob(task.jobId);
       await this.handleCompletedTask(job, task);
@@ -78,6 +79,11 @@ export class TasksManager {
   private async failJob(jobId: string): Promise<void> {
     await this.jobManager.updateJob(jobId, { status: OperationStatus.FAILED });
     this.logger.info({ msg: `Failed job: ${jobId}` });
+  }
+
+  private async suspendJob(jobId: string): Promise<void> {
+    await this.jobManager.updateJob(jobId, { status: OperationStatus.SUSPENDED });
+    this.logger.info({ msg: `Suspended job: ${jobId}` });
   }
 
   private async createTask(job: IJobResponse<unknown, unknown>, taskType: string): Promise<void> {

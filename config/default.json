@@ -52,6 +52,7 @@
       "merge": "merge",
       "polygonParts": "polygon-parts",
       "finalize": "finalize"
-    }
+    },
+    "suspendingTaskTypes": ["polygon-parts"]
   }
 }

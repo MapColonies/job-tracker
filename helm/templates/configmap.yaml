@@ -1,5 +1,6 @@
 {{- $configmapName := include "configmap.fullname" . }}
 {{- $jobDefinitions := (include "common.jobDefinitions.merged" .) | fromYaml }}
+{{- $suspendingTaskTypes := include "suspendingTaskTypes" . }}
 {{- $serviceUrls := (include "common.serviceUrls.merged" .) | fromYaml }}
 {{- $queue := .Values.env.queue }}
 {{- $tracing := (include "common.tracing.merged" .) | fromYaml }}
@@ -34,4 +35,5 @@ data:
   JOB_DEFINITIONS_TASK_MERGE: {{ $jobDefinitions.tasks.merge.type | quote }}
   JOB_DEFINITIONS_TASK_POLYGON_PARTS: {{ $jobDefinitions.tasks.polygonParts.type | quote }}
   JOB_DEFINITIONS_TASK_FINALIZE: {{ $jobDefinitions.tasks.finalize.type | quote }}
+  JOB_DEFINITIONS_SUSPENDING_TASKS: {{ $suspendingTaskTypes | toYaml | nindent 4 }}
 {{- end }}

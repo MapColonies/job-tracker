@@ -89,6 +89,7 @@ jobDefinitions:
       type: ''
     polygonParts:
       type: ''
+      suspendJobOnFail: false
     finalize:
       type: ''
 

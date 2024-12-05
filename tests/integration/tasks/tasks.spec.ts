@@ -93,10 +93,10 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 and fail job when getting failed task', async () => {
+    it('Should return 200 and fail job when getting failed task whose type is not in suspendingTaskTypes list', async () => {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
-      const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.polygonParts, status: OperationStatus.FAILED });
+      const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.FAILED });
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(200, [mockMergeTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .put(`/jobs/${mockIngestionJob.id}`, _.matches({ status: OperationStatus.FAILED }))
@@ -108,7 +108,22 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it("Should return 200 when getting completed task who'se job have no init task", async () => {
+    it('Should return 200 and suspend job when getting failed task whose type is in suspendingTaskTypes list', async () => {
+      // mocks
+      const mockIngestionJob = getIngestionJobMock();
+      const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.polygonParts, status: OperationStatus.FAILED });
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(200, [mockMergeTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .put(`/jobs/${mockIngestionJob.id}`, _.matches({ status: OperationStatus.SUSPENDED }))
+        .reply(200);
+      // action
+      const response = await requestSender.handleTaskNotification(mockMergeTask.id);
+      // expectation
+      expect(response.status).toBe(200);
+      expect(response).toSatisfyApiSpec();
+    });
+
+    it('Should return 200 when getting completed task whose job have no init task', async () => {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
