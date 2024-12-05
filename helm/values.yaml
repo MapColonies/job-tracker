@@ -1,23 +1,10 @@
 global:
-  cloudProvider:
-    dockerRegistryUrl: acrarolibotnonprod.azurecr.io
-    imagePullSecretName: acr-registry
-    flavor: openshift
+  cloudProvider: {}
   tracing: {}
   metrics: {}
   environment: ''
   jobDefinitions: {}
-  serviceUrls: 
-    catalogManager: "http://raster-core-dev-raster-catalog-manager-service"
-    jobTracker: "http://raster-core-dev-job-tracker-service"
-    mapServerPublicDNS: "https://tiles-dev.mapcolonies.net/api/raster/v1"
-    mapproxyApi: "http://raster-ingestion-dev-mapproxy-api-service"
-    jobManager: "http://common-job-manager-service"
-    heartbeatManager: "http://common-heartbeat-manager-service"
-    downloadServerPublicDNS: "https://download-dev.mapcolonies.net/api/raster/v1"
-    geoserverUrl: "http://raster-serving-dev-pp-geoserver-service/geoserver"
-    geoserverApiUrl: "http://raster-ingestion-dev-geoserver-api-service"
-    polygonPartsManager: "http://raster-ingestion-dev-polygon-parts-manager-service"
+  serviceUrls: {}
   ca:    
     secretName: ''
     path: '/usr/local/share/ca-certificates'
@@ -80,7 +67,7 @@ metrics:
 
 image:
   repository: job-tracker
-  tag: 'nitzan-test'
+  tag: 'latest'
   pullPolicy: IfNotPresent
 
 serviceUrls:
@@ -90,29 +77,29 @@ serviceUrls:
 jobDefinitions:
   jobs:
     new:
-      type: "Ingestion_New"
+      type: ''
     update:
-      type: "Ingestion_Update"
+      type: ''
     swapUpdate:
-      type: "Ingestion_Swap_Update"
+      type: ''
     seed:
-      type: "TilesSeeding"
+      type: ''
     export:
-      type: "rasterTilesExporter"
+      type: ''
   tasks:
     init:
-      type: "init"
+      type: ''
     merge:
-      type: "tilesMerging"
+      type: ''
     polygonParts:
-      type: "polygon-parts"
+      type: ''
       suspendJobOnFail: false
     finalize:
-      type: "finalize"
+      type: ''
     seed:
-      type: "TilesSeeding"
+      type: ''
     export:
-      type: "rasterTilesExporter"
+      type: ''
 
 env:
   port: 80
@@ -138,7 +125,7 @@ resources:
       memory: 128Mi
 
 route:
-  enabled: true
+  enabled: false
   path: /
   host: 
   timeout:
