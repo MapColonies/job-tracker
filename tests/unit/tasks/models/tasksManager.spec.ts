@@ -237,7 +237,7 @@ describe('TasksManager', () => {
       expect(mockUpdateJob).toHaveBeenCalledWith(ingestionJobMock.id, { status: OperationStatus.FAILED });
     });
 
-    it("Should suspend the job if the given task's status is 'Failed' and task is in suspend job list", async () => {
+    it("Should suspend the job if the given task's status is 'Failed' and task is in suspendingTaskTypes list", async () => {
       // mocks
       const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock } = testContext;
       const ingestionJobMock = getIngestionJobMock();
