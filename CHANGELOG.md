@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/MapColonies/job-tracker/compare/v1.2.2...v1.3.0) (2024-12-05)
+
+
+### Features
+
+* make polygon parts fail suspend the job (MAPCO-5528) ([#9](https://github.com/MapColonies/job-tracker/issues/9)) ([e27eade](https://github.com/MapColonies/job-tracker/commit/e27eade0e3abd7b074162d446b91db32f740edb5))
+
 ### [1.2.2](https://github.com/MapColonies/job-tracker/compare/v1.2.0...v1.2.2) (2024-11-17)
 
 
