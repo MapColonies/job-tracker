@@ -61,11 +61,9 @@ Custom definitions
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.metrics .Values.global.metrics ) "context" . ) }}
 {{- end -}}
 
-{{
-  /*
+{{/*
   Returns a yaml array of all the tasks types from jobDefinitions that has suspendJobOnFail: true
-  */
-}}
+  */}}
 {{- define "suspendingTaskTypes" -}}
 {{- $jobDefinitions := include "common.jobDefinitions.merged" . | fromYaml -}}
 {{- $tasks := $jobDefinitions.tasks -}}
