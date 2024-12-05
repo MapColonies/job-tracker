@@ -63,7 +63,7 @@ Custom definitions
 
 {{
   /*
-  This function returns a yaml array of all the tasks types from jobDefinitions that has suspendJobOnFail: true
+  Returns a yaml array of all the tasks types from jobDefinitions that has suspendJobOnFail: true
   */
 }}
 {{- define "suspendingTaskTypes" -}}
