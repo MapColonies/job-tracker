@@ -102,12 +102,11 @@ jobDefinitions:
   tasks:
     init:
       type: "init"
-      suspendJobOnFail: true
     merge:
       type: "tilesMerging"
     polygonParts:
       type: "polygon-parts"
-      suspendJobOnFail: true
+      suspendJobOnFail: false
     finalize:
       type: "finalize"
     seed:
