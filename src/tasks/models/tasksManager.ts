@@ -42,11 +42,8 @@ export class TasksManager {
       throw new NotFoundError(`Task ${taskId} not found`);
     }
     if (task.status === OperationStatus.FAILED) {
-      if (this.jobDefinitions.suspendingTaskTypes.includes(task.type)) {
-        await this.suspendJob(task.jobId);
-      } else {
-        await this.failJob(task.jobId);
-      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      this.jobDefinitions.suspendingTaskTypes.includes(task.type) ? await this.suspendJob(task.jobId) : await this.failJob(task.jobId);
     } else if (task.status === OperationStatus.COMPLETED) {
       const job = await this.jobManager.getJob(task.jobId);
       await this.handleCompletedTask(job, task);
