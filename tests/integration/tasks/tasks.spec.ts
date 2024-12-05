@@ -93,7 +93,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 and fail job when getting failed task whose type is not in suspendedTaskTypes list', async () => {
+    it('Should return 200 and fail job when getting failed task whose type is not in suspendingTaskTypes list', async () => {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.FAILED });
@@ -108,7 +108,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 and suspend job when getting failed task whose type is in suspendedTaskTypes list', async () => {
+    it('Should return 200 and suspend job when getting failed task whose type is in suspendingTaskTypes list', async () => {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.polygonParts, status: OperationStatus.FAILED });
