@@ -50,9 +50,6 @@ describe('tasks', function () {
         .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.init })
         .reply(200, [mockInitTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.polygonParts })
-        .reply(404);
-      nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post(`/jobs/${mockIngestionJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts }))
         .reply(201);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockIngestionJob.id}`).reply(200);
@@ -79,9 +76,6 @@ describe('tasks', function () {
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.init })
         .reply(200, [mockInitTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.finalize })
-        .reply(404);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post(`/jobs/${mockIngestionJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.finalize }))
         .reply(201);
