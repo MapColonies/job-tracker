@@ -138,6 +138,7 @@ export class TasksManager {
       await this.createTask(job, nextTaskType);
     } catch (error) {
       if (error instanceof ConflictError) {
+        this.logger.warn({ msg: `Detected an existing ${nextTaskType} task for job: ${job.id} - silently ignoring` });
         return;
       }
       throw error;
