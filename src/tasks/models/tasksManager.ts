@@ -1,24 +1,23 @@
+import { ConflictError, NotFoundError } from '@map-colonies/error-types';
 import { Logger } from '@map-colonies/js-logger';
 import {
-  TaskHandler as QueueClient,
-  OperationStatus,
-  ICreateTaskBody,
-  ITaskResponse,
-  IFindTaskRequest,
-  JobManagerClient,
-  IJobResponse,
-} from '@map-colonies/mc-priority-queue';
-import { NotFoundError } from '@map-colonies/error-types';
-import {
   IngestionNewFinalizeTaskParams,
-  IngestionUpdateFinalizeTaskParams,
   IngestionSwapUpdateFinalizeTaskParams,
+  IngestionUpdateFinalizeTaskParams,
 } from '@map-colonies/mc-model-types';
+import {
+  ICreateTaskBody,
+  IFindTaskRequest,
+  IJobResponse,
+  ITaskResponse,
+  JobManagerClient,
+  OperationStatus,
+  TaskHandler as QueueClient,
+} from '@map-colonies/mc-priority-queue';
 import { inject, injectable } from 'tsyringe';
 import { SERVICES } from '../../common/constants';
-import { IConfig } from '../../common/interfaces';
-import { IJobDefinitionsConfig } from '../../common/interfaces';
 import { IrrelevantOperationStatusError } from '../../common/errors';
+import { IConfig, IJobDefinitionsConfig } from '../../common/interfaces';
 import { calculateTaskPercentage } from '../../utils/taskUtils';
 
 @injectable()
@@ -65,9 +64,7 @@ export class TasksManager {
       return;
     }
 
-    const taskHasSubsequentTask = task.type === this.jobDefinitions.tasks.merge || task.type === this.jobDefinitions.tasks.polygonParts;
-
-    if (job.completedTasks === job.taskCount && taskHasSubsequentTask) {
+    if (job.completedTasks === job.taskCount && this.taskHasSubsequentTask(task.type)) {
       await this.createNextTask(task.type, job);
     } else {
       this.logger.debug({ msg: 'Updating job percentage; no need for task creation' });
@@ -104,7 +101,12 @@ export class TasksManager {
         }
       }
     }
-    const createTaskBody: ICreateTaskBody<unknown> = { type: taskType, parameters: taskParameters };
+
+    const createTaskBody: ICreateTaskBody<unknown> = {
+      type: taskType,
+      parameters: taskParameters,
+      blockDuplication: this.taskBlocksDuplication(taskType),
+    };
     await this.jobManager.createTaskForJob(job.id, createTaskBody);
     this.logger.info({ msg: `Created ${taskType} task for job: ${job.id}` });
   }
@@ -131,12 +133,25 @@ export class TasksManager {
       default:
         return;
     }
-    const existingTask = await this.jobManager.findTasks({ jobId: job.id, type: nextTaskType });
-    if (existingTask) {
-      return;
+
+    try {
+      await this.createTask(job, nextTaskType);
+    } catch (error) {
+      if (error instanceof ConflictError) {
+        this.logger.warn({ msg: `Detected an existing ${nextTaskType} task for job: ${job.id} - silently ignoring` });
+        return;
+      }
+      throw error;
     }
-    await this.createTask(job, nextTaskType);
     const calculatedPercentage = calculateTaskPercentage(job.completedTasks, job.taskCount + 1);
     await this.updateJobPercentage(job.id, calculatedPercentage);
+  }
+
+  private taskHasSubsequentTask(taskType: string): boolean {
+    return [this.jobDefinitions.tasks.merge, this.jobDefinitions.tasks.polygonParts].includes(taskType);
+  }
+
+  private taskBlocksDuplication(taskType: string): boolean {
+    return [this.jobDefinitions.tasks.finalize, this.jobDefinitions.tasks.polygonParts].includes(taskType);
   }
 }
