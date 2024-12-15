@@ -63,6 +63,7 @@ describe('TasksManager', () => {
       expect(mockCreateTaskForJob).toHaveBeenCalledWith(ingestionJobMock.id, {
         parameters: { insertedToCatalog: false, insertedToGeoServer: false, insertedToMapproxy: false },
         type: jobDefinitionsConfigMock.tasks.finalize,
+        blockDuplication: true,
       });
       expect(mockUpdateJob).toHaveBeenCalledTimes(1);
     });
@@ -206,14 +207,17 @@ describe('TasksManager', () => {
       expect(mockCreateTaskForJob).toHaveBeenCalledWith(ingestionNewJobMock.id, {
         parameters: { insertedToMapproxy: false, insertedToGeoServer: false, insertedToCatalog: false },
         type: jobDefinitionsConfigMock.tasks.finalize,
+        blockDuplication: true,
       });
       expect(mockCreateTaskForJob).toHaveBeenCalledWith(ingestionUpdateJobMock.id, {
         parameters: { updatedInCatalog: false },
         type: jobDefinitionsConfigMock.tasks.finalize,
+        blockDuplication: true,
       });
       expect(mockCreateTaskForJob).toHaveBeenCalledWith(ingestionSwapJobMock.id, {
         parameters: { updatedInCatalog: false, updatedInMapproxy: false },
         type: jobDefinitionsConfigMock.tasks.finalize,
+        blockDuplication: true,
       });
     });
 
