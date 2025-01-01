@@ -26,14 +26,12 @@ export interface IJobDefinitionsConfig {
     new: string;
     update: string;
     swapUpdate: string;
-    export: string;
   };
   tasks: {
     polygonParts: string;
     finalize: string;
     merge: string;
     init: string;
-    export: string;
   };
   suspendingTaskTypes: string[];
 }
