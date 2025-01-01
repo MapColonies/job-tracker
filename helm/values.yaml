@@ -82,6 +82,8 @@ jobDefinitions:
       type: ''
     swapUpdate:
       type: ''
+    export:
+      type: ''
   tasks:
     init:
       type: ''
@@ -91,6 +93,8 @@ jobDefinitions:
       type: ''
       suspendJobOnFail: false
     finalize:
+      type: ''
+    export:
       type: ''
 
 env:

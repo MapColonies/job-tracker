@@ -1,7 +1,7 @@
 import { ConflictError, NotFoundError } from '@map-colonies/error-types';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { registerDefaultConfig, clear as clearConfig } from '../../../mocks/configMock';
-import { getIngestionJobMock, getTaskMock } from '../../../mocks/JobMocks';
+import { getExportJobMock, getIngestionJobMock, getTaskMock } from '../../../mocks/JobMocks';
 import { IrrelevantOperationStatusError } from '../../../../src/common/errors';
 import { setupTasksManagerTest, TasksModelTestContext } from './tasksManagerSetup';
 
@@ -35,6 +35,29 @@ describe('TasksManager', () => {
       expect(mockGetJob).toHaveBeenCalledWith(ingestionJobMock.id);
       expect(mockCreateTaskForJob).toHaveBeenCalledTimes(1);
       expect(mockCreateTaskForJob).toHaveBeenCalledWith(ingestionJobMock.id, {
+        parameters: {},
+        type: jobDefinitionsConfigMock.tasks.polygonParts,
+        blockDuplication: true,
+      });
+      expect(mockUpdateJob).toHaveBeenCalledTimes(1);
+    });
+
+    it('should create polygon-parts task and update job percentage in case of being called with a "Completed" export task with Completed init task', async () => {
+      // mocks
+      const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
+      const exportJobMock = getExportJobMock();
+      const exportTaskMock = getTaskMock(exportJobMock.id, { type: jobDefinitionsConfigMock.tasks.export, status: OperationStatus.COMPLETED });
+      const initTaskMock = getTaskMock(exportJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
+
+      mockFindTasks.mockResolvedValueOnce([exportTaskMock]).mockResolvedValueOnce([initTaskMock]);
+      mockGetJob.mockResolvedValueOnce(exportJobMock);
+      // action
+      await tasksManager.handleTaskNotification(exportTaskMock.id);
+      // expectation
+      expect(mockFindTasks).toHaveBeenCalledWith({ id: exportTaskMock.id });
+      expect(mockGetJob).toHaveBeenCalledWith(exportJobMock.id);
+      expect(mockCreateTaskForJob).toHaveBeenCalledTimes(1);
+      expect(mockCreateTaskForJob).toHaveBeenCalledWith(exportJobMock.id, {
         parameters: {},
         type: jobDefinitionsConfigMock.tasks.polygonParts,
         blockDuplication: true,
@@ -85,7 +108,7 @@ describe('TasksManager', () => {
       expect(mockUpdateJob).not.toHaveBeenCalled();
     });
 
-    it("should do nothing in case of being called with a 'Completed' task whose job's init task is not 'Completed'", async () => {
+    it("should only update percentage in case of being called with a 'Completed' task whose job's init task is not 'Completed'", async () => {
       // mocks
       const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
       const ingestionJobMock = getIngestionJobMock();
@@ -99,8 +122,8 @@ describe('TasksManager', () => {
       // expectation
       expect(mockFindTasks).toHaveBeenCalledTimes(2);
       expect(mockGetJob).toHaveBeenCalledTimes(1);
+      expect(mockUpdateJob).toHaveBeenCalledTimes(1);
       expect(mockCreateTaskForJob).not.toHaveBeenCalled();
-      expect(mockUpdateJob).not.toHaveBeenCalled();
     });
 
     it("should do nothing in case of being called with a 'Completed' task but subsequent task already exists", async () => {
@@ -236,26 +259,34 @@ describe('TasksManager', () => {
       // mocks
       const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock } = testContext;
       const ingestionJobMock = getIngestionJobMock();
-      const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.FAILED });
+      const mergeTaskMock = getTaskMock(ingestionJobMock.id, {
+        type: jobDefinitionsConfigMock.tasks.merge,
+        status: OperationStatus.FAILED,
+        reason: 'reason',
+      });
 
       mockFindTasks.mockResolvedValueOnce([mergeTaskMock]);
       // action
       await tasksManager.handleTaskNotification(mergeTaskMock.id);
       // expectation
-      expect(mockUpdateJob).toHaveBeenCalledWith(ingestionJobMock.id, { status: OperationStatus.FAILED });
+      expect(mockUpdateJob).toHaveBeenCalledWith(ingestionJobMock.id, { status: OperationStatus.FAILED, reason: 'reason' });
     });
 
     it("Should suspend the job if the given task's status is 'Failed' and task is in suspendingTaskTypes list", async () => {
       // mocks
       const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock } = testContext;
       const ingestionJobMock = getIngestionJobMock();
-      const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.polygonParts, status: OperationStatus.FAILED });
+      const mergeTaskMock = getTaskMock(ingestionJobMock.id, {
+        type: jobDefinitionsConfigMock.tasks.polygonParts,
+        status: OperationStatus.FAILED,
+        reason: 'reason',
+      });
 
       mockFindTasks.mockResolvedValueOnce([mergeTaskMock]);
       // action
       await tasksManager.handleTaskNotification(mergeTaskMock.id);
       // expectation
-      expect(mockUpdateJob).toHaveBeenCalledWith(ingestionJobMock.id, { status: OperationStatus.SUSPENDED });
+      expect(mockUpdateJob).toHaveBeenCalledWith(ingestionJobMock.id, { status: OperationStatus.SUSPENDED, reason: 'reason' });
     });
 
     it("Should throw IrrelevantOperationStatusError if the given task's status is neither 'Completed' nor 'Failed'", async () => {
