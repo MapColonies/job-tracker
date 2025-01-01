@@ -42,7 +42,9 @@ export class TasksManager {
     }
     if (task.status === OperationStatus.FAILED) {
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-      this.jobDefinitions.suspendingTaskTypes.includes(task.type) ? await this.suspendJob(task.jobId) : await this.failJob(task.jobId);
+      this.jobDefinitions.suspendingTaskTypes.includes(task.type)
+        ? await this.suspendJob(task.jobId, task.reason)
+        : await this.failJob(task.jobId, task.reason);
     } else if (task.status === OperationStatus.COMPLETED) {
       const job = await this.jobManager.getJob(task.jobId);
       await this.handleCompletedTask(job, task);
@@ -59,12 +61,7 @@ export class TasksManager {
       return;
     }
 
-    if (initTask.status !== OperationStatus.COMPLETED) {
-      this.logger.debug({ msg: 'Skipping because init task is not completed' });
-      return;
-    }
-
-    if (job.completedTasks === job.taskCount && this.taskHasSubsequentTask(task.type)) {
+    if (job.completedTasks === job.taskCount && this.taskHasSubsequentTask(task.type) && initTask.status === OperationStatus.COMPLETED) {
       await this.createNextTask(task.type, job);
     } else {
       this.logger.debug({ msg: 'Updating job percentage; no need for task creation' });
@@ -73,13 +70,13 @@ export class TasksManager {
     }
   }
 
-  private async failJob(jobId: string): Promise<void> {
-    await this.jobManager.updateJob(jobId, { status: OperationStatus.FAILED });
+  private async failJob(jobId: string, reason: string): Promise<void> {
+    await this.jobManager.updateJob(jobId, { status: OperationStatus.FAILED, reason });
     this.logger.info({ msg: `Failed job: ${jobId}` });
   }
 
-  private async suspendJob(jobId: string): Promise<void> {
-    await this.jobManager.updateJob(jobId, { status: OperationStatus.SUSPENDED });
+  private async suspendJob(jobId: string, reason: string): Promise<void> {
+    await this.jobManager.updateJob(jobId, { status: OperationStatus.SUSPENDED, reason });
     this.logger.info({ msg: `Suspended job: ${jobId}` });
   }
 
@@ -124,6 +121,7 @@ export class TasksManager {
   private async createNextTask(currentTaskType: string, job: IJobResponse<unknown, unknown>): Promise<void> {
     let nextTaskType: string;
     switch (currentTaskType) {
+      case this.jobDefinitions.tasks.export:
       case this.jobDefinitions.tasks.merge:
         nextTaskType = this.jobDefinitions.tasks.polygonParts;
         break;
@@ -148,10 +146,10 @@ export class TasksManager {
   }
 
   private taskHasSubsequentTask(taskType: string): boolean {
-    return [this.jobDefinitions.tasks.merge, this.jobDefinitions.tasks.polygonParts].includes(taskType);
+    return [this.jobDefinitions.tasks.merge, this.jobDefinitions.tasks.polygonParts, this.jobDefinitions.tasks.export].includes(taskType);
   }
 
   private taskBlocksDuplication(taskType: string): boolean {
-    return [this.jobDefinitions.tasks.finalize, this.jobDefinitions.tasks.polygonParts].includes(taskType);
+    return [this.jobDefinitions.tasks.finalize, this.jobDefinitions.tasks.polygonParts, this.jobDefinitions.tasks.export].includes(taskType);
   }
 }

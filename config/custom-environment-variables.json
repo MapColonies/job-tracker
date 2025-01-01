@@ -64,12 +64,14 @@
     "jobs": {
       "new": "JOB_DEFINITIONS_JOB_NEW",
       "update": "JOB_DEFINITIONS_JOB_UPDATE",
-      "swapUpdate": "JOB_DEFINITIONS_JOB_SWAP_UPDATE"
+      "swapUpdate": "JOB_DEFINITIONS_JOB_SWAP_UPDATE",
+      "export": "JOB_DEFINITIONS_JOB_EXPORT"
     },
     "tasks": {
       "init": "JOB_DEFINITIONS_TASK_INIT",
       "merge": "JOB_DEFINITIONS_TASK_MERGE",
       "polygonParts": "JOB_DEFINITIONS_TASK_POLYGON_PARTS",
+      "export": "JOB_DEFINITIONS_TASK_EXPORT",
       "finalize": "JOB_DEFINITIONS_TASK_FINALIZE"
     },
     "suspendingTaskTypes": "JOB_DEFINITIONS_SUSPENDING_TASKS"
