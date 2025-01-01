@@ -45,13 +45,15 @@
     "jobs": {
       "new": "Ingestion_New",
       "update": "Ingestion_Update",
-      "swapUpdate": "Ingestion_Swap_Update"
+      "swapUpdate": "Ingestion_Swap_Update",
+      "export": "export"
     },
     "tasks": {
       "init": "init",
       "merge": "merge",
       "polygonParts": "polygon-parts",
-      "finalize": "finalize"
+      "finalize": "finalize",
+      "export": "export"
     },
     "suspendingTaskTypes": ["polygon-parts"]
   }
