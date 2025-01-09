@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0](https://github.com/MapColonies/job-tracker/compare/v1.3.1...v1.4.0) (2025-01-09)
+
+
+### Features
+
+* add export job support ([e6517bb](https://github.com/MapColonies/job-tracker/commit/e6517bb10b55c09381bc04c0325531fae6280102))
+* add export job support (MAPCO-5962) ([#12](https://github.com/MapColonies/job-tracker/issues/12)) ([0ecbe55](https://github.com/MapColonies/job-tracker/commit/0ecbe55374ea5b620308b5be3fffae71e4881165))
+
 ### [1.3.1](https://github.com/MapColonies/job-tracker/compare/v1.3.0...v1.3.1) (2024-12-15)
 
 
