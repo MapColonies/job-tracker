@@ -68,7 +68,7 @@ metrics:
 image:
   repository: job-tracker
   # If commented, appVersion will be taken. See: _helpers.tpl
-  # tag: 'latest'
+  tag: 'latest'
   pullPolicy: IfNotPresent
 
 serviceUrls:
