@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.1](https://github.com/MapColonies/job-tracker/compare/v1.4.0...v1.4.1) (2025-02-24)
+
+
+### Bug Fixes
+
+* removing max_old_space_size from Dockerfile ([45fe0c4](https://github.com/MapColonies/job-tracker/commit/45fe0c466e2f7764efa60f7f1ca2c3a067a2596a))
+
 ## [1.4.0](https://github.com/MapColonies/job-tracker/compare/v1.3.1...v1.4.0) (2025-01-09)
 
 
