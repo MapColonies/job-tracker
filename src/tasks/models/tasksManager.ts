@@ -15,6 +15,7 @@ import {
   TaskHandler as QueueClient,
 } from '@map-colonies/mc-priority-queue';
 import { inject, injectable } from 'tsyringe';
+import { ExportFinalizeTaskParameters, exportFinalizeTaskParamsSchema } from '@map-colonies/raster-shared';
 import { SERVICES } from '../../common/constants';
 import { IrrelevantOperationStatusError } from '../../common/errors';
 import { IConfig, IJobDefinitionsConfig } from '../../common/interfaces';
@@ -41,10 +42,15 @@ export class TasksManager {
       throw new NotFoundError(`Task ${taskId} not found`);
     }
     if (task.status === OperationStatus.FAILED) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-      this.jobDefinitions.suspendingTaskTypes.includes(task.type)
-        ? await this.suspendJob(task.jobId, task.reason)
-        : await this.failJob(task.jobId, task.reason);
+      const job = await this.getJob(task.jobId);
+      if (job.type === this.jobDefinitions.jobs.export) {
+        await this.handleExportFailure(task.jobId, task.reason);
+        return;
+      } else if (this.jobDefinitions.suspendingTaskTypes.includes(task.type)) {
+        await this.suspendJob(task.jobId, task.reason);
+      } else {
+        await this.failJob(task.jobId, task.reason);
+      }
     } else if (task.status === OperationStatus.COMPLETED) {
       const job = await this.jobManager.getJob(task.jobId);
       await this.handleCompletedTask(job, task);
@@ -60,7 +66,16 @@ export class TasksManager {
       this.logger.debug({ msg: 'Skipping because init task was not found' });
       return;
     }
+    // Handle completed finalization of failed export
+    if (task.type === this.jobDefinitions.tasks.finalize && job.type === this.jobDefinitions.jobs.export) {
+      const result = exportFinalizeTaskParamsSchema.parse(task.parameters);
 
+      if (result.status === OperationStatus.FAILED) {
+        const { errorReason } = result;
+        await this.failJob(job.id, errorReason);
+        return;
+      }
+    }
     if (job.completedTasks === job.taskCount && this.taskHasSubsequentTask(task.type) && initTask.status === OperationStatus.COMPLETED) {
       await this.createNextTask(task.type, job);
     } else {
@@ -96,6 +111,15 @@ export class TasksManager {
           (taskParameters as IngestionSwapUpdateFinalizeTaskParams) = { updatedInCatalog: false, updatedInMapproxy: false };
           break;
         }
+        case this.jobDefinitions.jobs.export: {
+          (taskParameters as ExportFinalizeTaskParameters) = {
+            status: OperationStatus.COMPLETED,
+            callbacksSent: false,
+            gpkgModified: false,
+            gpkgUploadedToS3: false,
+          };
+          break;
+        }
       }
     }
 
@@ -111,6 +135,10 @@ export class TasksManager {
   private async findTask(body: IFindTaskRequest<unknown>): Promise<ITaskResponse<unknown> | undefined> {
     const task = await this.jobManager.findTasks(body);
     return task?.[0];
+  }
+
+  private async getJob(jobId: string): Promise<IJobResponse<unknown, unknown>> {
+    return this.jobManager.getJob(jobId);
   }
 
   private async updateJobPercentage(jobId: string, desiredPercentage: number): Promise<void> {
@@ -151,5 +179,17 @@ export class TasksManager {
 
   private taskBlocksDuplication(taskType: string): boolean {
     return [this.jobDefinitions.tasks.finalize, this.jobDefinitions.tasks.polygonParts, this.jobDefinitions.tasks.export].includes(taskType);
+  }
+
+  private async handleExportFailure(jobId: string, reason: string): Promise<void> {
+    const taskParameters: ExportFinalizeTaskParameters = { callbacksSent: false, status: OperationStatus.FAILED, errorReason: reason };
+    const taskType = this.jobDefinitions.tasks.finalize;
+    const createTaskBody: ICreateTaskBody<unknown> = {
+      type: taskType,
+      parameters: taskParameters,
+      blockDuplication: this.taskBlocksDuplication(taskType),
+    };
+    await this.jobManager.createTaskForJob(jobId, createTaskBody);
+    this.logger.info({ msg: `Created ${taskType} task for job: ${jobId}` });
   }
 }

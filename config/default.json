@@ -46,7 +46,7 @@
       "new": "Ingestion_New",
       "update": "Ingestion_Update",
       "swapUpdate": "Ingestion_Swap_Update",
-      "export": "export"
+      "export": "Export"
     },
     "tasks": {
       "init": "init",
