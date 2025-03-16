@@ -68,11 +68,13 @@ export class TasksManager {
     }
     // Handle completed finalization of failed export
     if (task.type === this.jobDefinitions.tasks.finalize && job.type === this.jobDefinitions.jobs.export) {
+      this.logger.info({ msg: `Handling finalize task of failed export for job: ${job.id}` });
       const result = exportFinalizeTaskParamsSchema.parse(task.parameters);
 
       if (result.status === OperationStatus.FAILED) {
         const { errorReason } = result;
         await this.failJob(job.id, errorReason);
+        this.logger.debug({ msg: `Failed export job: ${job.id}` });
         return;
       }
     }
@@ -126,7 +128,7 @@ export class TasksManager {
     const createTaskBody: ICreateTaskBody<unknown> = {
       type: taskType,
       parameters: taskParameters,
-      blockDuplication: this.taskBlocksDuplication(taskType),
+      blockDuplication: this.taskBlocksDuplication(taskType, job.type),
     };
     await this.jobManager.createTaskForJob(job.id, createTaskBody);
     this.logger.info({ msg: `Created ${taskType} task for job: ${job.id}` });
@@ -177,17 +179,22 @@ export class TasksManager {
     return [this.jobDefinitions.tasks.merge, this.jobDefinitions.tasks.polygonParts, this.jobDefinitions.tasks.export].includes(taskType);
   }
 
-  private taskBlocksDuplication(taskType: string): boolean {
-    return [this.jobDefinitions.tasks.finalize, this.jobDefinitions.tasks.polygonParts, this.jobDefinitions.tasks.export].includes(taskType);
+  private taskBlocksDuplication(taskType: string, jobType?: string): boolean {
+    if (taskType === this.jobDefinitions.tasks.finalize && jobType === this.jobDefinitions.jobs.export) {
+      return false;
+    } else {
+      return [this.jobDefinitions.tasks.finalize, this.jobDefinitions.tasks.polygonParts, this.jobDefinitions.tasks.export].includes(taskType);
+    }
   }
 
   private async handleExportFailure(jobId: string, reason: string): Promise<void> {
+    this.logger.info({ msg: `Handling Export Failure with jobId: ${jobId}, and reason: ${reason}` });
     const taskParameters: ExportFinalizeTaskParameters = { callbacksSent: false, status: OperationStatus.FAILED, errorReason: reason };
     const taskType = this.jobDefinitions.tasks.finalize;
-    const createTaskBody: ICreateTaskBody<unknown> = {
+    const createTaskBody: ICreateTaskBody<ExportFinalizeTaskParameters> = {
       type: taskType,
       parameters: taskParameters,
-      blockDuplication: this.taskBlocksDuplication(taskType),
+      blockDuplication: this.taskBlocksDuplication(taskType, this.jobDefinitions.jobs.export),
     };
     await this.jobManager.createTaskForJob(jobId, createTaskBody);
     this.logger.info({ msg: `Created ${taskType} task for job: ${jobId}` });

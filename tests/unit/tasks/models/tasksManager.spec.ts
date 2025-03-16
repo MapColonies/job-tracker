@@ -321,7 +321,7 @@ describe('TasksManager', () => {
       expect(mockCreateTaskForJob).toHaveBeenCalledWith(exportJobMock.id, {
         parameters: { callbacksSent: false, status: OperationStatus.FAILED, errorReason: 'reason' },
         type: jobDefinitionsConfigMock.tasks.finalize,
-        blockDuplication: true,
+        blockDuplication: false,
       });
     });
 
@@ -346,7 +346,7 @@ describe('TasksManager', () => {
       expect(mockCreateTaskForJob).toHaveBeenCalledWith(exportJobMock.id, {
         parameters: { status: OperationStatus.COMPLETED, callbacksSent: false, gpkgModified: false, gpkgUploadedToS3: false },
         type: jobDefinitionsConfigMock.tasks.finalize,
-        blockDuplication: true,
+        blockDuplication: false,
       });
       expect(mockUpdateJob).toHaveBeenCalledTimes(1);
     });

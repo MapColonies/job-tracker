@@ -117,7 +117,7 @@ describe('tasks', function () {
       const mockTaskParameters = {
         parameters: { callbacksSent: false, status: OperationStatus.FAILED, errorReason: 'reason' },
         type: jobDefinitionsConfigMock.tasks.finalize,
-        blockDuplication: true,
+        blockDuplication: false,
       };
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(200, [mockMergeTask]);
@@ -162,7 +162,7 @@ describe('tasks', function () {
       const mockTaskParameters = {
         parameters: { status: OperationStatus.COMPLETED, callbacksSent: false, gpkgModified: false, gpkgUploadedToS3: false },
         type: jobDefinitionsConfigMock.tasks.finalize,
-        blockDuplication: true,
+        blockDuplication: false,
       };
       const mockInitTask = getTaskMock(mockExportJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
 
@@ -178,7 +178,7 @@ describe('tasks', function () {
       // expectation
       expect(response.status).toBe(200);
       expect(response).toSatisfyApiSpec();
-    }, 5000000);
+    });
 
     it('Should return 200 and suspend job when getting failed task whose type is in suspendingTaskTypes list', async () => {
       // mocks
