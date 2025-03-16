@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/MapColonies/job-tracker/compare/v1.4.1...v1.5.0) (2025-03-16)
+
+
+### Features
+
+* handle finalization on export job ([6d15929](https://github.com/MapColonies/job-tracker/commit/6d15929003b7378957c48e0f04bf821a35a9a68d))
+
+
+### Bug Fixes
+
+* added logs and allow duplication on export finalize ([df76c1f](https://github.com/MapColonies/job-tracker/commit/df76c1f8ab9c10502cb2ebf6cfa499e78900a299))
+* git ignore ([7687384](https://github.com/MapColonies/job-tracker/commit/76873840cfad0e98d7d864809ce206e27383f0a1))
+
 ### [1.4.1](https://github.com/MapColonies/job-tracker/compare/v1.4.0...v1.4.1) (2025-02-24)
 
 
