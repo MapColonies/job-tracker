@@ -36,6 +36,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
 components:
   parameters:
     taskId:
