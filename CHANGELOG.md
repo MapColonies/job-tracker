@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.5.1](https://github.com/MapColonies/job-tracker/compare/v1.5.0...v1.5.1) (2025-03-26)
+
+
+### Bug Fixes
+
+* lint errors ([978f8f9](https://github.com/MapColonies/job-tracker/commit/978f8f96647de28b2412d9fa9b2fffcc1519197a))
+* remove this from logger instance ([6ad3013](https://github.com/MapColonies/job-tracker/commit/6ad3013d233061d9ceecd7e928c7812d7b107748))
+* update @map-colonies/raster-shared to version 1.9.0 and improve job completion handling (handle complete finalize tasks) ([6b7a91c](https://github.com/MapColonies/job-tracker/commit/6b7a91c3e5fd2e15cf6f06031091c4804bf736be))
+* update @map-colonies/raster-shared to version 1.9.0 and improve job completion handling (handle complete finalize tasks) ([b40f750](https://github.com/MapColonies/job-tracker/commit/b40f750c69b4396ca1e95b2605016e0365b9bd16))
+
 ## [1.5.0](https://github.com/MapColonies/job-tracker/compare/v1.4.1...v1.5.0) (2025-03-16)
 
 
