@@ -102,7 +102,7 @@ export class TasksManager {
     const logger = this.logger.child({ jobId: job.id, jobType: job.type });
     logger.info({ msg: `Completing job` });
     await this.jobManager.updateJob(job.id, { status: OperationStatus.COMPLETED, reason: JOB_COMPLETED_MESSAGE });
-    this.logger.info({ msg: JOB_COMPLETED_MESSAGE });
+    logger.info({ msg: JOB_COMPLETED_MESSAGE });
   }
 
   private async suspendJob(jobId: string, reason: string): Promise<void> {
