@@ -115,7 +115,7 @@ describe('tasks', function () {
         reason: 'reason',
       });
       const mockTaskParameters = {
-        parameters: { callbacksSent: false, status: OperationStatus.FAILED, errorReason: 'reason' },
+        parameters: { callbacksSent: false, status: OperationStatus.FAILED },
         type: jobDefinitionsConfigMock.tasks.finalize,
         blockDuplication: false,
       };
@@ -129,19 +129,46 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
+    it('Should return 200 and complete job when getting completed finalize task', async () => {
+      const mockExportJob = getExportJobMock();
+      const mockFinalizeTask = getTaskMock(mockExportJob.id, {
+        type: jobDefinitionsConfigMock.tasks.finalize,
+        status: OperationStatus.COMPLETED,
+        parameters: { status: OperationStatus.COMPLETED, gpkgModified: true, gpkgUploadedToS3: true, callbacksSent: true },
+      });
+      const mockInitTask = getTaskMock(mockExportJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
+
+      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockExportJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(200, [mockFinalizeTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
+        .reply(200, [mockInitTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .put(`/jobs/${mockExportJob.id}`, _.matches({ status: OperationStatus.COMPLETED }))
+        .reply(200);
+
+      const response = await requestSender.handleTaskNotification(mockFinalizeTask.id);
+
+      expect(response.status).toBe(200);
+      expect(response).toSatisfyApiSpec();
+    });
+
     it('Should return 200 and fail export job when finalize task is completed and represents a failure', async () => {
       // mocks
       const mockExportJob = getExportJobMock();
       const mockFinalizeTask = getTaskMock(mockExportJob.id, {
         type: jobDefinitionsConfigMock.tasks.finalize,
         status: OperationStatus.COMPLETED,
-        parameters: { callbacksSent: false, status: OperationStatus.FAILED, errorReason: 'reason' },
+        parameters: { callbacksSent: false, status: OperationStatus.FAILED },
+        reason: 'error reason',
       });
       const mockInitTask = getTaskMock(mockExportJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
 
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(200, [mockFinalizeTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { status: OperationStatus.FAILED, reason: 'reason' }).reply(200);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .put(`/jobs/${mockExportJob.id}`, { status: OperationStatus.FAILED, reason: mockFinalizeTask.reason })
+        .reply(200);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post('/tasks/find', { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
         .reply(200, [mockInitTask]);
