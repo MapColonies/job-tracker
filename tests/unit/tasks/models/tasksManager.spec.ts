@@ -1,11 +1,10 @@
 import { ConflictError, NotFoundError } from '@map-colonies/error-types';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
-import { ZodError } from 'zod';
 import { registerDefaultConfig, clear as clearConfig } from '../../../mocks/configMock';
+import { JOB_COMPLETED_MESSAGE } from '../../../../src/common/constants';
 import { getExportJobMock, getIngestionJobMock, getTaskMock } from '../../../mocks/JobMocks';
 import { IrrelevantOperationStatusError } from '../../../../src/common/errors';
 import { setupTasksManagerTest, TasksModelTestContext } from './tasksManagerSetup';
-import { JOB_COMPLETED_MESSAGE } from '../../../../src/common/constants';
 
 describe('TasksManager', () => {
   let testContext: TasksModelTestContext;
