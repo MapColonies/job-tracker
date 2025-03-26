@@ -16,7 +16,7 @@ import {
 } from '@map-colonies/mc-priority-queue';
 import { inject, injectable } from 'tsyringe';
 import { ExportFinalizeTaskParameters, exportFinalizeTaskParamsSchema } from '@map-colonies/raster-shared';
-import { JOB_COMPLETED_MESSAGE, SERVICES } from '../../common/constants';
+import { SERVICES } from '../../common/constants';
 import { IrrelevantOperationStatusError } from '../../common/errors';
 import { IConfig, IJobDefinitionsConfig } from '../../common/interfaces';
 import { calculateTaskPercentage } from '../../utils/taskUtils';
@@ -66,43 +66,30 @@ export class TasksManager {
       this.logger.debug({ msg: 'Skipping because init task was not found' });
       return;
     }
-    // Handle completed finalization task
-    if (task.type === this.jobDefinitions.tasks.finalize) {
-      await this.handleCompletedFinalizeTask(job, task);
-      return;
-    }
-    if (job.completedTasks === job.taskCount && this.taskHasSubsequentTask(task.type) && initTask.status === OperationStatus.COMPLETED) {
-      await this.createNextTask(task.type, job);
-      return;
-    }
-    this.logger.debug({ msg: `Updating job percentage; No subsequence task for taskType ${task.type}` });
-    const calculatedPercentage = calculateTaskPercentage(job.completedTasks, job.taskCount);
-    await this.updateJobPercentage(job.id, calculatedPercentage);
-  }
+    // Handle completed finalization of failed export
+    if (task.type === this.jobDefinitions.tasks.finalize && job.type === this.jobDefinitions.jobs.export) {
+      this.logger.info({ msg: `Handling finalize task of failed export for job: ${job.id}` });
+      const result = exportFinalizeTaskParamsSchema.parse(task.parameters);
 
-  private async handleCompletedFinalizeTask(job: IJobResponse<unknown, unknown>, task: ITaskResponse<unknown>): Promise<void> {
-    if (job.type === this.jobDefinitions.jobs.export) {
-      const exportFinalizeTask = exportFinalizeTaskParamsSchema.parse(task.parameters);
-      // Handle completed finalization task of failed export job
-      if (exportFinalizeTask.status === OperationStatus.FAILED) {
-        await this.failJob(job.id, task.reason);
+      if (result.status === OperationStatus.FAILED) {
+        const { errorReason } = result;
+        await this.failJob(job.id, errorReason);
         this.logger.debug({ msg: `Failed export job: ${job.id}` });
         return;
       }
     }
-    await this.completeJob(job);
+    if (job.completedTasks === job.taskCount && this.taskHasSubsequentTask(task.type) && initTask.status === OperationStatus.COMPLETED) {
+      await this.createNextTask(task.type, job);
+    } else {
+      this.logger.debug({ msg: 'Updating job percentage; no need for task creation' });
+      const calculatedPercentage = calculateTaskPercentage(job.completedTasks, job.taskCount);
+      await this.updateJobPercentage(job.id, calculatedPercentage);
+    }
   }
 
   private async failJob(jobId: string, reason: string): Promise<void> {
     await this.jobManager.updateJob(jobId, { status: OperationStatus.FAILED, reason });
     this.logger.info({ msg: `Failed job: ${jobId}` });
-  }
-
-  private async completeJob(job: IJobResponse<unknown, unknown>): Promise<void> {
-    const logger = this.logger.child({ jobId: job.id, jobType: job.type });
-    logger.info({ msg: `Completing job` });
-    await this.jobManager.updateJob(job.id, { status: OperationStatus.COMPLETED, reason: JOB_COMPLETED_MESSAGE });
-    this.logger.info({ msg: JOB_COMPLETED_MESSAGE });
   }
 
   private async suspendJob(jobId: string, reason: string): Promise<void> {
@@ -202,7 +189,7 @@ export class TasksManager {
 
   private async handleExportFailure(jobId: string, reason: string): Promise<void> {
     this.logger.info({ msg: `Handling Export Failure with jobId: ${jobId}, and reason: ${reason}` });
-    const taskParameters: ExportFinalizeTaskParameters = { callbacksSent: false, status: OperationStatus.FAILED };
+    const taskParameters: ExportFinalizeTaskParameters = { callbacksSent: false, status: OperationStatus.FAILED, errorReason: reason };
     const taskType = this.jobDefinitions.tasks.finalize;
     const createTaskBody: ICreateTaskBody<ExportFinalizeTaskParameters> = {
       type: taskType,
