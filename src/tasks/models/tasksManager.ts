@@ -203,7 +203,7 @@ export class TasksManager {
   private async handleExportFailure(task: ITaskResponse<unknown>): Promise<void> {
     this.logger.info({ msg: `Handling Export Failure with jobId: ${task.jobId}, and reason: ${task.reason}` });
 
-    if (task.type !== this.jobDefinitions.tasks.finalize) {
+    if (task.type === this.jobDefinitions.tasks.finalize) {
       const finalizeTask = exportFinalizeTaskParamsSchema.parse(task.parameters);
       if (finalizeTask.status === OperationStatus.FAILED) {
         await this.failJob(task.jobId, task.reason);

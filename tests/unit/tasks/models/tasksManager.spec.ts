@@ -315,6 +315,7 @@ describe('TasksManager', () => {
 
       mockFindTasks.mockResolvedValueOnce([mergeTaskMock]);
       mockGetJob.mockResolvedValue(exportJobMock);
+
       // action
       await tasksManager.handleTaskNotification(mergeTaskMock.id);
       // expectation
@@ -323,6 +324,25 @@ describe('TasksManager', () => {
         type: jobDefinitionsConfigMock.tasks.finalize,
         blockDuplication: false,
       });
+    });
+
+    it('Should fail job on export failed finalize task', async () => {
+      // mocks
+      const { tasksManager, mockFindTasks, jobDefinitionsConfigMock, mockGetJob, mockUpdateJob } = testContext;
+      const exportJobMock = getExportJobMock();
+      const finalizeTaskMock = getTaskMock(exportJobMock.id, {
+        type: jobDefinitionsConfigMock.tasks.finalize,
+        status: OperationStatus.FAILED,
+        reason: 'some error message',
+        parameters: { callbacksSent: false, status: OperationStatus.FAILED },
+      });
+
+      mockFindTasks.mockResolvedValue([finalizeTaskMock]);
+      mockGetJob.mockResolvedValue(exportJobMock);
+      // action
+      await tasksManager.handleTaskNotification(finalizeTaskMock.id);
+      // expectation
+      expect(mockUpdateJob).toHaveBeenCalledWith(exportJobMock.id, { status: OperationStatus.FAILED, reason: finalizeTaskMock.reason });
     });
 
     it('Should create export successful finalize task on successful export', async () => {
