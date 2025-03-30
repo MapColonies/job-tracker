@@ -328,7 +328,7 @@ describe('TasksManager', () => {
 
     it('Should fail job on export failed finalize task', async () => {
       // mocks
-      const { tasksManager, mockFindTasks, jobDefinitionsConfigMock, mockGetJob, mockUpdateJob } = testContext;
+      const { tasksManager, mockFindTasks, jobDefinitionsConfigMock, mockGetJob, mockUpdateJob, mockCreateTaskForJob } = testContext;
       const exportJobMock = getExportJobMock();
       const finalizeTaskMock = getTaskMock(exportJobMock.id, {
         type: jobDefinitionsConfigMock.tasks.finalize,
@@ -343,6 +343,7 @@ describe('TasksManager', () => {
       await tasksManager.handleTaskNotification(finalizeTaskMock.id);
       // expectation
       expect(mockUpdateJob).toHaveBeenCalledWith(exportJobMock.id, { status: OperationStatus.FAILED, reason: finalizeTaskMock.reason });
+      expect(mockCreateTaskForJob).not.toHaveBeenCalled();
     });
 
     it('Should create export successful finalize task on successful export', async () => {
