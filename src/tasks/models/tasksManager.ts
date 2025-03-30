@@ -44,7 +44,7 @@ export class TasksManager {
     if (task.status === OperationStatus.FAILED) {
       const job = await this.getJob(task.jobId);
       if (job.type === this.jobDefinitions.jobs.export) {
-        await this.handleExportFailure(task.jobId, task.reason);
+        await this.handleExportFailure(task);
         return;
       } else if (this.jobDefinitions.suspendingTaskTypes.includes(task.type)) {
         await this.suspendJob(task.jobId, task.reason);
@@ -95,7 +95,7 @@ export class TasksManager {
 
   private async failJob(jobId: string, reason: string): Promise<void> {
     await this.jobManager.updateJob(jobId, { status: OperationStatus.FAILED, reason });
-    this.logger.info({ msg: `Failed job: ${jobId}` });
+    this.logger.info({ msg: `Failed job: ${jobId}`, reason });
   }
 
   private async completeJob(job: IJobResponse<unknown, unknown>): Promise<void> {
@@ -200,8 +200,17 @@ export class TasksManager {
     }
   }
 
-  private async handleExportFailure(jobId: string, reason: string): Promise<void> {
-    this.logger.info({ msg: `Handling Export Failure with jobId: ${jobId}, and reason: ${reason}` });
+  private async handleExportFailure(task: ITaskResponse<unknown>): Promise<void> {
+    this.logger.info({ msg: `Handling Export Failure with jobId: ${task.jobId}, and reason: ${task.reason}` });
+
+    if (task.type === this.jobDefinitions.tasks.finalize) {
+      const finalizeTask = exportFinalizeTaskParamsSchema.parse(task.parameters);
+      if (finalizeTask.status === OperationStatus.FAILED) {
+        await this.failJob(task.jobId, task.reason);
+        return;
+      }
+    }
+
     const taskParameters: ExportFinalizeTaskParameters = { callbacksSent: false, status: OperationStatus.FAILED };
     const taskType = this.jobDefinitions.tasks.finalize;
     const createTaskBody: ICreateTaskBody<ExportFinalizeTaskParameters> = {
@@ -209,7 +218,7 @@ export class TasksManager {
       parameters: taskParameters,
       blockDuplication: this.taskBlocksDuplication(taskType, this.jobDefinitions.jobs.export),
     };
-    await this.jobManager.createTaskForJob(jobId, createTaskBody);
-    this.logger.info({ msg: `Created ${taskType} task for job: ${jobId}` });
+    await this.jobManager.createTaskForJob(task.jobId, createTaskBody);
+    this.logger.info({ msg: `Created ${taskType} task for job: ${task.jobId}` });
   }
 }

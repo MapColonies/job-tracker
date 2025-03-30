@@ -153,6 +153,27 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
+    it('Should return 200 and fail export job when failed finalize task is failing', async () => {
+      const mockExportJob = getExportJobMock();
+      const mockFinalizeTask = getTaskMock(mockExportJob.id, {
+        type: jobDefinitionsConfigMock.tasks.finalize,
+        status: OperationStatus.FAILED,
+        reason: 'error reason',
+        parameters: { callbacksSent: false, status: OperationStatus.FAILED },
+      });
+
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(200, [mockFinalizeTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockExportJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .put(`/jobs/${mockExportJob.id}`, { status: OperationStatus.FAILED, reason: mockFinalizeTask.reason })
+        .reply(200);
+
+      const response = await requestSender.handleTaskNotification(mockFinalizeTask.id);
+
+      expect(response.status).toBe(200);
+      expect(response).toSatisfyApiSpec();
+    });
+
     it('Should return 200 and fail export job when finalize task is completed and represents a failure', async () => {
       // mocks
       const mockExportJob = getExportJobMock();
