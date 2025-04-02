@@ -63,7 +63,7 @@ export class TasksManager {
     const initTask = await this.findTask({ jobId: job.id, type: this.jobDefinitions.tasks.init });
 
     if (!initTask) {
-      this.logger.debug({ msg: 'Skipping because init task was not found' });
+      this.logger.warn({ msg: 'Skipping because init task was not found' });
       return;
     }
     // Handle completed finalization task
@@ -71,7 +71,7 @@ export class TasksManager {
       await this.handleCompletedFinalizeTask(job, task);
       return;
     }
-    if (job.completedTasks === job.taskCount && this.taskHasSubsequentTask(task.type) && initTask.status === OperationStatus.COMPLETED) {
+    if (this.shouldCreateNextTask(job, initTask)) {
       await this.createNextTask(task.type, job);
       return;
     }
@@ -164,6 +164,7 @@ export class TasksManager {
   private async createNextTask(currentTaskType: string, job: IJobResponse<unknown, unknown>): Promise<void> {
     let nextTaskType: string;
     switch (currentTaskType) {
+      case this.jobDefinitions.tasks.init: // for cases where merge tasks completes before init task
       case this.jobDefinitions.tasks.export:
       case this.jobDefinitions.tasks.merge:
         nextTaskType = this.jobDefinitions.tasks.polygonParts;
@@ -188,8 +189,8 @@ export class TasksManager {
     await this.updateJobPercentage(job.id, calculatedPercentage);
   }
 
-  private taskHasSubsequentTask(taskType: string): boolean {
-    return [this.jobDefinitions.tasks.merge, this.jobDefinitions.tasks.polygonParts, this.jobDefinitions.tasks.export].includes(taskType);
+  private shouldCreateNextTask(job: IJobResponse<unknown, unknown>, initTask: ITaskResponse<unknown>): boolean {
+    return job.completedTasks === job.taskCount && initTask.status === OperationStatus.COMPLETED;
   }
 
   private taskBlocksDuplication(taskType: string, jobType?: string): boolean {
