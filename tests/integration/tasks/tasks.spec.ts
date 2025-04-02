@@ -60,6 +60,35 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
+    it('Should return 200 and create polygon-parts task when getting completed init task that finished after merge tasks', async () => {
+      // mocks
+      const mockIngestionJob = getIngestionJobMock();
+      const mockInitTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockInitTask.id }).reply(200, [mockInitTask]);
+
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockIngestionJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(200, mockIngestionJob);
+
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.init })
+        .reply(200, [mockInitTask]);
+
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post(`/jobs/${mockIngestionJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts }))
+        .reply(201);
+
+      nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockIngestionJob.id}`).reply(200);
+
+      // action
+      const response = await requestSender.handleTaskNotification(mockInitTask.id);
+
+      // expectation
+      expect(response.status).toBe(200);
+      expect(response).toSatisfyApiSpec();
+    });
+
     it('Should return 200 and create finalize task when getting polygon parts completed task', async () => {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
