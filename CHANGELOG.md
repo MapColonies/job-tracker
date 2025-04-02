@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.5.4](https://github.com/MapColonies/job-tracker/compare/v1.5.3...v1.5.4) (2025-04-02)
+
+
+### Bug Fixes
+
+* improve task handling logic and add tests for polygon-parts task creation ([f32b1a5](https://github.com/MapColonies/job-tracker/commit/f32b1a5ae6cc04fb2214754d93f6c6673947be3a))
+
 ### [1.5.3](https://github.com/MapColonies/job-tracker/compare/v1.5.2...v1.5.3) (2025-04-02)
 
 
