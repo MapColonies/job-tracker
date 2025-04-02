@@ -101,7 +101,7 @@ export class TasksManager {
   private async completeJob(job: IJobResponse<unknown, unknown>): Promise<void> {
     const logger = this.logger.child({ jobId: job.id, jobType: job.type });
     logger.info({ msg: `Completing job` });
-    await this.jobManager.updateJob(job.id, { status: OperationStatus.COMPLETED, reason: JOB_COMPLETED_MESSAGE });
+    await this.jobManager.updateJob(job.id, { status: OperationStatus.COMPLETED, reason: JOB_COMPLETED_MESSAGE, percentage: 100 });
     logger.info({ msg: JOB_COMPLETED_MESSAGE });
   }
 
