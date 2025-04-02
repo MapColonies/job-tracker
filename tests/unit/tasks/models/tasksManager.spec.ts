@@ -387,7 +387,7 @@ describe('TasksManager', () => {
 
       await tasksManager.handleTaskNotification(finalizeTaskMock.id);
 
-      expect(mockUpdateJob).toHaveBeenCalledWith(job.id, { status: OperationStatus.COMPLETED, reason: finalizeTaskMock.reason });
+      expect(mockUpdateJob).toHaveBeenCalledWith(job.id, { status: OperationStatus.COMPLETED, reason: finalizeTaskMock.reason, percentage: 100 });
     });
 
     it('Should fail a job when finalize is completed on a failed export', async () => {
