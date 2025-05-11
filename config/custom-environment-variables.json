@@ -70,8 +70,20 @@
     "tasks": {
       "init": "JOB_DEFINITIONS_TASK_INIT",
       "merge": "JOB_DEFINITIONS_TASK_MERGE",
-      "polygonParts": "JOB_DEFINITIONS_TASK_POLYGON_PARTS",
-      "export": "JOB_DEFINITIONS_TASK_EXPORT",
+      "polygonParts": {
+        "polygonPartsTaskType": "JOB_DEFINITIONS_TASK_POLYGON_PARTS",
+        "enabled": {
+          "__name": "POLYGON_PARTS_TASK_ENABLED",
+          "__format": "boolean"
+        }
+      },
+      "export": {
+        "exportTaskType": "JOB_DEFINITIONS_TASK_EXPORT",
+        "enabled": {
+          "__name": "EXPORT_TASK_ENABLED",
+          "__format": "boolean"
+        }
+      },
       "finalize": "JOB_DEFINITIONS_TASK_FINALIZE"
     },
     "suspendingTaskTypes": "JOB_DEFINITIONS_SUSPENDING_TASKS"
