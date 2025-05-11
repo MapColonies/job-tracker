@@ -51,10 +51,18 @@
     "tasks": {
       "init": "init",
       "merge": "merge",
-      "polygonParts": "polygon-parts",
-      "export": "export",
+      "polygonParts": {
+        "taskType": "polygon-parts",
+        "enabled": true
+      },
+      "export": {
+        "taskType": "export",
+        "enabled": true
+      },
       "finalize": "finalize"
     },
-    "suspendingTaskTypes": ["polygon-parts"]
+    "suspendingTaskTypes": [
+      "polygon-parts"
+    ]
   }
 }

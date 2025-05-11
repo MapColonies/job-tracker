@@ -161,20 +161,24 @@ export class TasksManager {
     this.logger.info({ msg: `Updated percentages (${desiredPercentage}) for job: ${jobId}` });
   }
 
-  private async createNextTask(currentTaskType: string, job: IJobResponse<unknown, unknown>): Promise<void> {
-    let nextTaskType: string;
-    switch (currentTaskType) {
-      case this.jobDefinitions.tasks.init: // for cases where merge tasks completes before init task
-      case this.jobDefinitions.tasks.export:
-      case this.jobDefinitions.tasks.merge:
-        nextTaskType = this.jobDefinitions.tasks.finalize;
-        break;
-      case this.jobDefinitions.tasks.polygonParts:
-        nextTaskType = this.jobDefinitions.tasks.finalize;
-        break;
-      default:
-        return;
+  private determineNextTask(currentTaskType: string): string {
+    let nextTaskType = '';
+
+    if (currentTaskType == this.jobDefinitions.tasks.init) {
+      if (this.jobDefinitions.tasks.export.enabled) {
+        nextTaskType = this.jobDefinitions.tasks.export.taskType;
+      }
+    } else if (currentTaskType == this.jobDefinitions.tasks.merge && nextTaskType != '' && this.jobDefinitions.tasks.polygonParts.enabled) {
+      nextTaskType = this.jobDefinitions.tasks.polygonParts.taskType;
+    } else {
+      nextTaskType = this.jobDefinitions.tasks.finalize;
     }
+
+    return nextTaskType;
+  }
+
+  private async createNextTask(currentTaskType: string, job: IJobResponse<unknown, unknown>): Promise<void> {
+    const nextTaskType = this.determineNextTask(currentTaskType);
 
     try {
       await this.createTask(job, nextTaskType);
