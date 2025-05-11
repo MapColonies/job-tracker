@@ -162,18 +162,9 @@ export class TasksManager {
   }
 
   private async createNextTask(currentTaskType: string, job: IJobResponse<unknown, unknown>): Promise<void> {
-    let nextTaskType: string;
-    switch (currentTaskType) {
-      case this.jobDefinitions.tasks.init: // for cases where merge tasks completes before init task
-      case this.jobDefinitions.tasks.export:
-      case this.jobDefinitions.tasks.merge:
-        nextTaskType = this.jobDefinitions.tasks.finalize;
-        break;
-      case this.jobDefinitions.tasks.polygonParts:
-        nextTaskType = this.jobDefinitions.tasks.finalize;
-        break;
-      default:
-        return;
+    const nextTaskType = this.jobDefinitions.tasks.finalize;
+    if (currentTaskType == this.jobDefinitions.tasks.finalize) {
+      return;
     }
 
     try {
