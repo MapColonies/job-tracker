@@ -167,7 +167,7 @@ export class TasksManager {
       case this.jobDefinitions.tasks.init: // for cases where merge tasks completes before init task
       case this.jobDefinitions.tasks.export:
       case this.jobDefinitions.tasks.merge:
-        nextTaskType = this.jobDefinitions.tasks.polygonParts;
+        nextTaskType = this.jobDefinitions.tasks.finalize;
         break;
       case this.jobDefinitions.tasks.polygonParts:
         nextTaskType = this.jobDefinitions.tasks.finalize;
