@@ -165,11 +165,11 @@ export class TasksManager {
     let nextTaskType: string;
     switch (currentTaskType) {
       case this.jobDefinitions.tasks.init: // for cases where merge tasks completes before init task
-      case this.jobDefinitions.tasks.export:
       case this.jobDefinitions.tasks.merge:
         nextTaskType = this.jobDefinitions.tasks.polygonParts;
         break;
       case this.jobDefinitions.tasks.polygonParts:
+      case this.jobDefinitions.tasks.export:
         nextTaskType = this.jobDefinitions.tasks.finalize;
         break;
       default:
