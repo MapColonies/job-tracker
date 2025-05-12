@@ -168,9 +168,10 @@ export class TasksManager {
       if (this.jobDefinitions.tasks.export.enabled) {
         nextTaskType = this.jobDefinitions.tasks.export.taskType;
       }
-    } else if (currentTaskType == this.jobDefinitions.tasks.merge && nextTaskType != '' && this.jobDefinitions.tasks.polygonParts.enabled) {
+    }
+    if (nextTaskType == '' && this.jobDefinitions.tasks.polygonParts.enabled) {
       nextTaskType = this.jobDefinitions.tasks.polygonParts.taskType;
-    } else {
+    } else if (nextTaskType == '') {
       nextTaskType = this.jobDefinitions.tasks.finalize;
     }
 
