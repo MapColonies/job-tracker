@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/MapColonies/job-tracker/compare/v1.5.4...v2.0.0) (2025-05-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove polygonParts process  (MAPCO-7575) (#19)
+
+### Features
+
+* remove polygonParts process  (MAPCO-7575) ([#19](https://github.com/MapColonies/job-tracker/issues/19)) ([e6f2fab](https://github.com/MapColonies/job-tracker/commit/e6f2fabf0058be2224183d1a11b60cceb6c2b880))
+
 ### [1.5.4](https://github.com/MapColonies/job-tracker/compare/v1.5.3...v1.5.4) (2025-04-02)
 
 
