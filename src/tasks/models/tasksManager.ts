@@ -15,7 +15,7 @@ import {
   TaskHandler as QueueClient,
 } from '@map-colonies/mc-priority-queue';
 import { inject, injectable } from 'tsyringe';
-import { ExportFinalizeTaskParameters, exportFinalizeTaskParamsSchema } from '@map-colonies/raster-shared';
+import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams } from '@map-colonies/raster-shared';
 import { JOB_COMPLETED_MESSAGE, SERVICES } from '../../common/constants';
 import { IrrelevantOperationStatusError } from '../../common/errors';
 import { IConfig, IJobDefinitionsConfig } from '../../common/interfaces';
@@ -41,21 +41,21 @@ export class TasksManager {
     if (!task) {
       throw new NotFoundError(`Task ${taskId} not found`);
     }
-    if (task.status === OperationStatus.FAILED) {
-      const job = await this.getJob(task.jobId);
-      if (job.type === this.jobDefinitions.jobs.export) {
-        await this.handleExportFailure(task);
-        return;
-      } else if (this.jobDefinitions.suspendingTaskTypes.includes(task.type)) {
-        await this.suspendJob(task.jobId, task.reason);
-      } else {
-        await this.failJob(task.jobId, task.reason);
-      }
-    } else if (task.status === OperationStatus.COMPLETED) {
-      const job = await this.jobManager.getJob(task.jobId);
-      await this.handleCompletedTask(job, task);
-    } else {
-      throw new IrrelevantOperationStatusError(`Expected to get a 'Completed' or 'Failed' task' but instead got '${task.status}'`);
+    const job = await this.getJob(task.jobId);
+    switch (task.status) {
+      case OperationStatus.FAILED:
+        this.jobDefinitions.suspendingTaskTypes.includes(task.type)
+          ? await this.suspendJob(task.jobId, task.reason)
+          : await this.failJob(task.jobId, task.reason);
+        if (job.type === this.jobDefinitions.jobs.export && task.type !== this.jobDefinitions.tasks.finalize) {
+          await this.handleExportFailure(task);
+        }
+        break;
+      case OperationStatus.COMPLETED:
+        await this.handleCompletedTask(job, task);
+        break;
+      default:
+        throw new IrrelevantOperationStatusError(`Expected to get a 'Completed' or 'Failed' task' but instead got '${task.status}'`);
     }
   }
 
@@ -68,7 +68,7 @@ export class TasksManager {
     }
     // Handle completed finalization task
     if (task.type === this.jobDefinitions.tasks.finalize) {
-      await this.handleCompletedFinalizeTask(job, task);
+      await this.completeJob(job);
       return;
     }
     if (this.shouldCreateNextTask(job, initTask)) {
@@ -78,19 +78,6 @@ export class TasksManager {
     this.logger.debug({ msg: `Updating job percentage; No subsequence task for taskType ${task.type}` });
     const calculatedPercentage = calculateTaskPercentage(job.completedTasks, job.taskCount);
     await this.updateJobPercentage(job.id, calculatedPercentage);
-  }
-
-  private async handleCompletedFinalizeTask(job: IJobResponse<unknown, unknown>, task: ITaskResponse<unknown>): Promise<void> {
-    if (job.type === this.jobDefinitions.jobs.export) {
-      const exportFinalizeTask = exportFinalizeTaskParamsSchema.parse(task.parameters);
-      // Handle completed finalization task of failed export job
-      if (exportFinalizeTask.status === OperationStatus.FAILED) {
-        await this.failJob(job.id, task.reason);
-        this.logger.debug({ msg: `Failed export job: ${job.id}` });
-        return;
-      }
-    }
-    await this.completeJob(job);
   }
 
   private async failJob(jobId: string, reason: string): Promise<void> {
@@ -127,11 +114,11 @@ export class TasksManager {
           break;
         }
         case this.jobDefinitions.jobs.export: {
-          (taskParameters as ExportFinalizeTaskParameters) = {
-            status: OperationStatus.COMPLETED,
-            callbacksSent: false,
+          (taskParameters as ExportFinalizeFullProcessingParams) = {
+            type: 'FullProcessing',
             gpkgModified: false,
             gpkgUploadedToS3: false,
+            callbacksSent: false,
           };
           break;
         }
@@ -143,6 +130,7 @@ export class TasksManager {
       parameters: taskParameters,
       blockDuplication: this.taskBlocksDuplication(taskType, job.type),
     };
+
     await this.jobManager.createTaskForJob(job.id, createTaskBody);
     this.logger.info({ msg: `Created ${taskType} task for job: ${job.id}` });
   }
@@ -166,10 +154,15 @@ export class TasksManager {
     switch (currentTaskType) {
       case this.jobDefinitions.tasks.init: // for cases where merge tasks completes before init task
       case this.jobDefinitions.tasks.merge:
-        nextTaskType = this.jobDefinitions.tasks.polygonParts;
-        break;
-      case this.jobDefinitions.tasks.polygonParts:
+        if (job.type !== this.jobDefinitions.jobs.export) {
+          // for cases that export tasks completes before init task
+          nextTaskType = this.jobDefinitions.tasks.polygonParts;
+          break;
+        }
+        nextTaskType = this.jobDefinitions.tasks.finalize; // temporary ! should be change for better handle
+        return;
       case this.jobDefinitions.tasks.export:
+      case this.jobDefinitions.tasks.polygonParts:
         nextTaskType = this.jobDefinitions.tasks.finalize;
         break;
       default:
@@ -203,18 +196,9 @@ export class TasksManager {
 
   private async handleExportFailure(task: ITaskResponse<unknown>): Promise<void> {
     this.logger.info({ msg: `Handling Export Failure with jobId: ${task.jobId}, and reason: ${task.reason}` });
-
-    if (task.type === this.jobDefinitions.tasks.finalize) {
-      const finalizeTask = exportFinalizeTaskParamsSchema.parse(task.parameters);
-      if (finalizeTask.status === OperationStatus.FAILED) {
-        await this.failJob(task.jobId, task.reason);
-        return;
-      }
-    }
-
-    const taskParameters: ExportFinalizeTaskParameters = { callbacksSent: false, status: OperationStatus.FAILED };
+    const taskParameters: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: 'ErrorCallback' };
     const taskType = this.jobDefinitions.tasks.finalize;
-    const createTaskBody: ICreateTaskBody<ExportFinalizeTaskParameters> = {
+    const createTaskBody: ICreateTaskBody<ExportFinalizeErrorCallbackParams> = {
       type: taskType,
       parameters: taskParameters,
       blockDuplication: this.taskBlocksDuplication(taskType, this.jobDefinitions.jobs.export),
