@@ -323,11 +323,12 @@ describe('TasksManager', () => {
       // mocks
       const { tasksManager, mockFindTasks, jobDefinitionsConfigMock, mockGetJob, mockUpdateJob, mockCreateTaskForJob } = testContext;
       const exportJobMock = getExportJobMock();
+      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: 'ErrorCallback' };
       const finalizeTaskMock = getTaskMock(exportJobMock.id, {
         type: jobDefinitionsConfigMock.tasks.finalize,
         status: OperationStatus.FAILED,
         reason: 'some error message',
-        parameters: { callbacksSent: false, status: OperationStatus.FAILED },
+        parameters: mockExportErrorFinalizeTaskParams,
       });
 
       mockFindTasks.mockResolvedValue([finalizeTaskMock]);
@@ -389,11 +390,12 @@ describe('TasksManager', () => {
       // mocks
       const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
       const exportJobMock = getExportJobMock();
+      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: 'ErrorCallback' };
       const exportTaskMock = getTaskMock(exportJobMock.id, {
         type: jobDefinitionsConfigMock.tasks.export,
         status: OperationStatus.FAILED,
         reason: 'some error message',
-        parameters: { callbacksSent: false, status: OperationStatus.FAILED },
+        parameters: mockExportErrorFinalizeTaskParams,
       });
 
       mockFindTasks.mockResolvedValue([exportTaskMock]);
@@ -409,11 +411,12 @@ describe('TasksManager', () => {
       // mocks
       const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
       const exportJobMock = getExportJobMock();
+      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: 'ErrorCallback' };
       const exportTaskMock = getTaskMock(exportJobMock.id, {
         type: jobDefinitionsConfigMock.tasks.init,
         status: OperationStatus.FAILED,
         reason: 'some error message',
-        parameters: { callbacksSent: false, status: OperationStatus.FAILED },
+        parameters: mockExportErrorFinalizeTaskParams,
       });
 
       mockFindTasks.mockResolvedValue([exportTaskMock]);

@@ -15,7 +15,7 @@ import {
   TaskHandler as QueueClient,
 } from '@map-colonies/mc-priority-queue';
 import { inject, injectable } from 'tsyringe';
-import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams } from '@map-colonies/raster-shared';
+import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams, exportFinalizeTaskParamsSchema } from '@map-colonies/raster-shared';
 import { JOB_COMPLETED_MESSAGE, SERVICES } from '../../common/constants';
 import { IrrelevantOperationStatusError } from '../../common/errors';
 import { IConfig, IJobDefinitionsConfig } from '../../common/interfaces';
@@ -68,6 +68,12 @@ export class TasksManager {
     }
     // Handle completed finalization task
     if (task.type === this.jobDefinitions.tasks.finalize) {
+      if (job.type === this.jobDefinitions.jobs.export) {
+        const validFinalizeTaskParams = exportFinalizeTaskParamsSchema.parse(task.parameters);
+        if (validFinalizeTaskParams.type === 'ErrorCallback') {
+return;
+}
+      }
       await this.completeJob(job);
       return;
     }
@@ -154,13 +160,15 @@ export class TasksManager {
     switch (currentTaskType) {
       case this.jobDefinitions.tasks.init: // for cases where merge tasks completes before init task
       case this.jobDefinitions.tasks.merge:
-        if (job.type !== this.jobDefinitions.jobs.export) {
-          // for cases that export tasks completes before init task
-          nextTaskType = this.jobDefinitions.tasks.polygonParts;
-          break;
+        if (job.type === this.jobDefinitions.jobs.export) {
+          // temporary ! should be change for better handle
+          if (job.taskCount === job.completedTasks) {
+            nextTaskType = this.jobDefinitions.tasks.finalize;
+            break;
+          }
         }
-        nextTaskType = this.jobDefinitions.tasks.finalize; // temporary ! should be change for better handle
-        return;
+        nextTaskType = this.jobDefinitions.tasks.polygonParts;
+        break;
       case this.jobDefinitions.tasks.export:
       case this.jobDefinitions.tasks.polygonParts:
         nextTaskType = this.jobDefinitions.tasks.finalize;
