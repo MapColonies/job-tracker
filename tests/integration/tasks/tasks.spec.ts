@@ -176,12 +176,6 @@ describe('tasks', function () {
         type: jobDefinitionsConfigMock.tasks.init,
         status: OperationStatus.COMPLETED,
       });
-      const fullProcessingFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
-        type: 'FullProcessing',
-        gpkgModified: false,
-        gpkgUploadedToS3: false,
-        callbacksSent: false,
-      };
 
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockInitTask.id }).reply(200, [mockInitTask]);
