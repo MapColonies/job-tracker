@@ -1,9 +1,8 @@
 import nock from 'nock';
-import { ICreateJobBody, ICreateTaskBody, OperationStatus } from '@map-colonies/mc-priority-queue';
+import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import _ from 'lodash';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import jestOpenAPI from 'jest-openapi';
-import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams, ExportFinalizeTaskParameters } from '@map-colonies/raster-shared';
+import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams } from '@map-colonies/raster-shared';
 import { configMock } from '../../mocks/configMock';
 import { getApp } from '../../../src/app';
 import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../src/common/interfaces';
@@ -37,58 +36,58 @@ describe('tasks', function () {
   });
 
   describe('Happy Path', function () {
-    // it('Should return 200 and create polygon parts task when getting tiles merging completed task', async () => {
-    //   // mocks
-    //   const mockIngestionJob = getIngestionJobMock();
-    //   const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
-    //   const mockInitTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(200, [mockMergeTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockIngestionJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(200, mockIngestionJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.init })
-    //     .reply(200, [mockInitTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post(`/jobs/${mockIngestionJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts }))
-    //     .reply(201);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockIngestionJob.id}`).reply(200);
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockMergeTask.id);
-    //   // expectation
-    //   expect(response.status).toBe(200);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+    it('Should return 200 and create polygon parts task when getting tiles merging completed task', async () => {
+      // mocks
+      const mockIngestionJob = getIngestionJobMock();
+      const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
+      const mockInitTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(200, [mockMergeTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockIngestionJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(200, mockIngestionJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.init })
+        .reply(200, [mockInitTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post(`/jobs/${mockIngestionJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts }))
+        .reply(201);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockIngestionJob.id}`).reply(200);
+      // action
+      const response = await requestSender.handleTaskNotification(mockMergeTask.id);
+      // expectation
+      expect(response.status).toBe(200);
+      expect(response).toSatisfyApiSpec();
+    });
 
-    // it('Should return 200 and create polygon-parts task when getting completed init task that finished after merge tasks', async () => {
-    //   // mocks
-    //   const mockIngestionJob = getIngestionJobMock();
-    //   const mockInitTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockInitTask.id }).reply(200, [mockInitTask]);
+    it('Should return 200 and create polygon-parts task when getting completed init task that finished after merge tasks', async () => {
+      // mocks
+      const mockIngestionJob = getIngestionJobMock();
+      const mockInitTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockInitTask.id }).reply(200, [mockInitTask]);
 
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockIngestionJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(200, mockIngestionJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockIngestionJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(200, mockIngestionJob);
 
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.init })
-    //     .reply(200, [mockInitTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.init })
+        .reply(200, [mockInitTask]);
 
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post(`/jobs/${mockIngestionJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts }))
-    //     .reply(201);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post(`/jobs/${mockIngestionJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts }))
+        .reply(201);
 
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockIngestionJob.id}`).reply(200);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockIngestionJob.id}`).reply(200);
 
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockInitTask.id);
+      // action
+      const response = await requestSender.handleTaskNotification(mockInitTask.id);
 
-    //   // expectation
-    //   expect(response.status).toBe(200);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+      // expectation
+      expect(response.status).toBe(200);
+      expect(response).toSatisfyApiSpec();
+    });
 
     it('Should return 200 and create finalize task when getting polygon parts completed task', async () => {
       // mocks

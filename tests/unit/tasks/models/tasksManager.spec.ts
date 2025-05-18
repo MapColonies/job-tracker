@@ -6,7 +6,6 @@ import { JOB_COMPLETED_MESSAGE } from '../../../../src/common/constants';
 import { getExportJobMock, getIngestionJobMock, getTaskMock } from '../../../mocks/JobMocks';
 import { IrrelevantOperationStatusError } from '../../../../src/common/errors';
 import { setupTasksManagerTest, TasksModelTestContext } from './tasksManagerSetup';
-import { polygonPartsTaskCreationTestCases } from './testCases';
 
 describe('TasksManager', () => {
   let testContext: TasksModelTestContext;

@@ -44,9 +44,11 @@ export class TasksManager {
     const job = await this.getJob(task.jobId);
     switch (task.status) {
       case OperationStatus.FAILED:
-        this.jobDefinitions.suspendingTaskTypes.includes(task.type)
-          ? await this.suspendJob(task.jobId, task.reason)
-          : await this.failJob(task.jobId, task.reason);
+        if (this.jobDefinitions.suspendingTaskTypes.includes(task.type)) {
+          await this.suspendJob(task.jobId, task.reason);
+        } else {
+          await this.failJob(task.jobId, task.reason);
+        }
         if (job.type === this.jobDefinitions.jobs.export && task.type !== this.jobDefinitions.tasks.finalize) {
           await this.handleExportFailure(task);
         }
@@ -71,8 +73,8 @@ export class TasksManager {
       if (job.type === this.jobDefinitions.jobs.export) {
         const validFinalizeTaskParams = exportFinalizeTaskParamsSchema.parse(task.parameters);
         if (validFinalizeTaskParams.type === 'ErrorCallback') {
-return;
-}
+          return;
+        }
       }
       await this.completeJob(job);
       return;
