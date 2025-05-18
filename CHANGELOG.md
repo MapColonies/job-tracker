@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/MapColonies/job-tracker/compare/v2.0.0...v3.0.0) (2025-05-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* removed 'failed' export finalize task and support one finalize … (#20)
+
+### Features
+
+* removed 'failed' export finalize task and support one finalize … ([#20](https://github.com/MapColonies/job-tracker/issues/20)) ([5c47346](https://github.com/MapColonies/job-tracker/commit/5c47346e833fcfaf3724c71f5504dede0174c563))
+
 ## [2.0.0](https://github.com/MapColonies/job-tracker/compare/v1.5.4...v2.0.0) (2025-05-12)
 
 
