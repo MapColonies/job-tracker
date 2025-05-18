@@ -426,5 +426,26 @@ describe('TasksManager', () => {
       // expectation
       expect(mockUpdateJob).toHaveBeenCalledWith(exportJobMock.id, { status: OperationStatus.FAILED, reason: exportTaskMock.reason });
     });
+
+    it('Should not update job on a completed error callback export finalize task', async () => {
+      // mocks
+      const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
+      const exportJobMock = getExportJobMock();
+      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: 'ErrorCallback' };
+      const exportTaskMock = getTaskMock(exportJobMock.id, {
+        type: jobDefinitionsConfigMock.tasks.finalize,
+        status: OperationStatus.COMPLETED,
+        reason: 'some error message',
+        parameters: mockExportErrorFinalizeTaskParams,
+      });
+
+      mockFindTasks.mockResolvedValue([exportTaskMock]);
+      //mockFindTasks.mockResolvedValueOnce([finalizeTaskMock]);
+      mockGetJob.mockResolvedValue(exportJobMock);
+      // action
+      await tasksManager.handleTaskNotification(exportTaskMock.id);
+      // expectation
+      expect(mockUpdateJob).not.toHaveBeenCalled();
+    });
   });
 });
