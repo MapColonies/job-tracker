@@ -15,7 +15,12 @@ import {
   TaskHandler as QueueClient,
 } from '@map-colonies/mc-priority-queue';
 import { inject, injectable } from 'tsyringe';
-import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams, exportFinalizeTaskParamsSchema, ExportFinalizeType } from '@map-colonies/raster-shared';
+import {
+  ExportFinalizeErrorCallbackParams,
+  ExportFinalizeFullProcessingParams,
+  exportFinalizeTaskParamsSchema,
+  ExportFinalizeType,
+} from '@map-colonies/raster-shared';
 import { JOB_COMPLETED_MESSAGE, SERVICES } from '../../common/constants';
 import { IrrelevantOperationStatusError } from '../../common/errors';
 import { IConfig, IJobDefinitionsConfig } from '../../common/interfaces';

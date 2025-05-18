@@ -3,6 +3,7 @@ import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import _ from 'lodash';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams } from '@map-colonies/raster-shared';
+import { ExportFinalizeType } from '@map-colonies/raster-shared';
 import { configMock } from '../../mocks/configMock';
 import { getApp } from '../../../src/app';
 import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../src/common/interfaces';
@@ -10,7 +11,6 @@ import { getExportJobMock, getIngestionJobMock, getTaskMock } from '../../mocks/
 import { calculateTaskPercentage } from '../../../src/utils/taskUtils';
 import { TasksRequestSender } from './helpers/requestSender';
 import { getTestContainerConfig, resetContainer } from './helpers/containerConfig';
-import { ExportFinalizeType } from '@map-colonies/raster-shared';
 
 describe('tasks', function () {
   let requestSender: TasksRequestSender;
@@ -250,7 +250,7 @@ describe('tasks', function () {
     it('Should return 200 and fail export job when error callback export finalize task type is failing', async () => {
       const mockExportJob = getExportJobMock();
 
-      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback  };
+      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
       const mockFinalizeTask = getTaskMock(mockExportJob.id, {
         type: jobDefinitionsConfigMock.tasks.finalize,
         status: OperationStatus.FAILED,
