@@ -15,7 +15,7 @@ import {
   TaskHandler as QueueClient,
 } from '@map-colonies/mc-priority-queue';
 import { inject, injectable } from 'tsyringe';
-import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams, exportFinalizeTaskParamsSchema } from '@map-colonies/raster-shared';
+import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams, exportFinalizeTaskParamsSchema, ExportFinalizeType } from '@map-colonies/raster-shared';
 import { JOB_COMPLETED_MESSAGE, SERVICES } from '../../common/constants';
 import { IrrelevantOperationStatusError } from '../../common/errors';
 import { IConfig, IJobDefinitionsConfig } from '../../common/interfaces';
@@ -72,7 +72,7 @@ export class TasksManager {
     if (task.type === this.jobDefinitions.tasks.finalize) {
       if (job.type === this.jobDefinitions.jobs.export) {
         const validFinalizeTaskParams = exportFinalizeTaskParamsSchema.parse(task.parameters);
-        if (validFinalizeTaskParams.type === 'ErrorCallback') {
+        if (validFinalizeTaskParams.type === ExportFinalizeType.Error_Callback) {
           return;
         }
       }
@@ -123,7 +123,7 @@ export class TasksManager {
         }
         case this.jobDefinitions.jobs.export: {
           (taskParameters as ExportFinalizeFullProcessingParams) = {
-            type: 'FullProcessing',
+            type: ExportFinalizeType.Full_Processing,
             gpkgModified: false,
             gpkgUploadedToS3: false,
             callbacksSent: false,
@@ -206,7 +206,7 @@ export class TasksManager {
 
   private async handleExportFailure(task: ITaskResponse<unknown>): Promise<void> {
     this.logger.info({ msg: `Handling Export Failure with jobId: ${task.jobId}, and reason: ${task.reason}` });
-    const taskParameters: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: 'ErrorCallback' };
+    const taskParameters: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
     const taskType = this.jobDefinitions.tasks.finalize;
     const createTaskBody: ICreateTaskBody<ExportFinalizeErrorCallbackParams> = {
       type: taskType,

@@ -1,6 +1,6 @@
 import { ConflictError, NotFoundError } from '@map-colonies/error-types';
 import { ICreateTaskBody, OperationStatus } from '@map-colonies/mc-priority-queue';
-import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams } from '@map-colonies/raster-shared';
+import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams, ExportFinalizeType } from '@map-colonies/raster-shared';
 import { registerDefaultConfig, clear as clearConfig } from '../../../mocks/configMock';
 import { JOB_COMPLETED_MESSAGE } from '../../../../src/common/constants';
 import { getExportJobMock, getIngestionJobMock, getTaskMock } from '../../../mocks/JobMocks';
@@ -311,7 +311,7 @@ describe('TasksManager', () => {
       await tasksManager.handleTaskNotification(exportTaskMock.id);
       // expectation
       const createTaskBody: ICreateTaskBody<ExportFinalizeErrorCallbackParams> = {
-        parameters: { callbacksSent: false, type: 'ErrorCallback' },
+        parameters: { callbacksSent: false, type: ExportFinalizeType.Error_Callback  },
         type: jobDefinitionsConfigMock.tasks.finalize,
         blockDuplication: false,
       };
@@ -322,7 +322,7 @@ describe('TasksManager', () => {
       // mocks
       const { tasksManager, mockFindTasks, jobDefinitionsConfigMock, mockGetJob, mockUpdateJob, mockCreateTaskForJob } = testContext;
       const exportJobMock = getExportJobMock();
-      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: 'ErrorCallback' };
+      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback  };
       const finalizeTaskMock = getTaskMock(exportJobMock.id, {
         type: jobDefinitionsConfigMock.tasks.finalize,
         status: OperationStatus.FAILED,
@@ -359,7 +359,7 @@ describe('TasksManager', () => {
       expect(mockCreateTaskForJob).toHaveBeenCalledTimes(1);
 
       const fullProccessingFinalizeTaskType: ICreateTaskBody<ExportFinalizeFullProcessingParams> = {
-        parameters: { type: 'FullProcessing', callbacksSent: false, gpkgModified: false, gpkgUploadedToS3: false },
+        parameters: { type: ExportFinalizeType.Full_Processing, callbacksSent: false, gpkgModified: false, gpkgUploadedToS3: false },
         type: jobDefinitionsConfigMock.tasks.finalize,
         blockDuplication: false,
       };
@@ -389,7 +389,7 @@ describe('TasksManager', () => {
       // mocks
       const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
       const exportJobMock = getExportJobMock();
-      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: 'ErrorCallback' };
+      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback  };
       const exportTaskMock = getTaskMock(exportJobMock.id, {
         type: jobDefinitionsConfigMock.tasks.export,
         status: OperationStatus.FAILED,
@@ -410,7 +410,7 @@ describe('TasksManager', () => {
       // mocks
       const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
       const exportJobMock = getExportJobMock();
-      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: 'ErrorCallback' };
+      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback  };
       const exportTaskMock = getTaskMock(exportJobMock.id, {
         type: jobDefinitionsConfigMock.tasks.init,
         status: OperationStatus.FAILED,
@@ -431,7 +431,7 @@ describe('TasksManager', () => {
       // mocks
       const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
       const exportJobMock = getExportJobMock();
-      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: 'ErrorCallback' };
+      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback  };
       const exportTaskMock = getTaskMock(exportJobMock.id, {
         type: jobDefinitionsConfigMock.tasks.finalize,
         status: OperationStatus.COMPLETED,

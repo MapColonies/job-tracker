@@ -10,6 +10,7 @@ import { getExportJobMock, getIngestionJobMock, getTaskMock } from '../../mocks/
 import { calculateTaskPercentage } from '../../../src/utils/taskUtils';
 import { TasksRequestSender } from './helpers/requestSender';
 import { getTestContainerConfig, resetContainer } from './helpers/containerConfig';
+import { ExportFinalizeType } from '@map-colonies/raster-shared';
 
 describe('tasks', function () {
   let requestSender: TasksRequestSender;
@@ -144,7 +145,7 @@ describe('tasks', function () {
         status: OperationStatus.COMPLETED,
       });
       const fullProcessingFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
-        type: 'FullProcessing',
+        type: ExportFinalizeType.Full_Processing,
         gpkgModified: false,
         gpkgUploadedToS3: false,
         callbacksSent: false,
@@ -201,7 +202,7 @@ describe('tasks', function () {
       });
 
       const mockExportErrorFinalizeTaskParams = {
-        parameters: { callbacksSent: false, type: 'ErrorCallback' },
+        parameters: { callbacksSent: false, type: ExportFinalizeType.Error_Callback },
         type: jobDefinitionsConfigMock.tasks.finalize,
         blockDuplication: false,
       };
@@ -219,7 +220,7 @@ describe('tasks', function () {
     it('Should return 200 and complete job when getting completed export finalize task', async () => {
       const mockExportJob = getExportJobMock();
       const fullProccessingFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
-        type: 'FullProcessing',
+        type: ExportFinalizeType.Full_Processing,
         gpkgModified: true,
         gpkgUploadedToS3: true,
         callbacksSent: true,
@@ -249,7 +250,7 @@ describe('tasks', function () {
     it('Should return 200 and fail export job when error callback export finalize task type is failing', async () => {
       const mockExportJob = getExportJobMock();
 
-      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: 'ErrorCallback' };
+      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback  };
       const mockFinalizeTask = getTaskMock(mockExportJob.id, {
         type: jobDefinitionsConfigMock.tasks.finalize,
         status: OperationStatus.FAILED,
@@ -277,7 +278,7 @@ describe('tasks', function () {
         status: OperationStatus.COMPLETED,
       });
       const fullProccessingFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
-        type: 'FullProcessing',
+        type: ExportFinalizeType.Full_Processing,
         gpkgModified: false,
         gpkgUploadedToS3: false,
         callbacksSent: false,
