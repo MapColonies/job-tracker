@@ -35,7 +35,9 @@ data:
   JOB_DEFINITIONS_TASK_INIT: {{ $jobDefinitions.tasks.init.type | quote }}
   JOB_DEFINITIONS_TASK_MERGE: {{ $jobDefinitions.tasks.merge.type | quote }}
   JOB_DEFINITIONS_TASK_POLYGON_PARTS: {{ $jobDefinitions.tasks.polygonParts.type | quote }}
+  POLYGON_PARTS_TASK_ENABLED: {{ $jobDefinitions.tasks.polygonParts.enabled | quote }}
   JOB_DEFINITIONS_TASK_EXPORT: {{ $jobDefinitions.tasks.export.type | quote }}
+  EXPORT_TASK_ENABLED: {{ $jobDefinitions.tasks.export.enabled | quote }}
   JOB_DEFINITIONS_TASK_FINALIZE: {{ $jobDefinitions.tasks.finalize.type | quote }}
   JOB_DEFINITIONS_SUSPENDING_TASKS: {{ $suspendingTaskTypes | toYaml | nindent 4 }}
 {{- end }}
