@@ -167,10 +167,9 @@ export class TasksManager {
 
     if (currentTaskType == this.jobDefinitions.tasks.init) {
       nextTaskType = this.jobDefinitions.tasks.export;
-    }
-    if (this.jobDefinitions.tasks.polygonParts.enabled && currentTaskType != this.jobDefinitions.tasks.polygonParts.taskType) {
+    } else if (this.jobDefinitions.tasks.polygonParts.enabled && currentTaskType != this.jobDefinitions.tasks.polygonParts.taskType) {
       nextTaskType = this.jobDefinitions.tasks.polygonParts.taskType;
-    } else if (nextTaskType == '') {
+    } else {
       nextTaskType = this.jobDefinitions.tasks.finalize;
     }
 
