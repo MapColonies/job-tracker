@@ -55,10 +55,7 @@
         "taskType": "polygon-parts",
         "enabled": true
       },
-      "export": {
-        "taskType": "export",
-        "enabled": true
-      },
+      "export": "export",
       "finalize": "finalize"
     },
     "suspendingTaskTypes": ["polygon-parts"]

@@ -1,0 +1,167 @@
+global:
+  cloudProvider:
+    dockerRegistryUrl: acrarolibotnonprod.azurecr.io
+    imagePullSecretName: acr-registry
+    flavor: openshift
+  tracing:
+    enabled: true
+    url: http://infra-monitoring-opentelemetry-collector.infra-services:4318/v1/traces
+  metrics:
+    enabled: true
+    url: http://localhost:55681/v1/metrics
+    interval: 15000
+  environment: "raster-dev"
+  jobDefinitions: {}
+  serviceUrls: 
+    catalogManager: "http://raster-core-dev-raster-catalog-manager-service"
+    jobTracker: "http://raster-core-dev-job-tracker-service"
+    mapServerPublicDNS: "https://tiles-dev.mapcolonies.net/api/raster/v1"
+    mapproxyApi: "http://raster-ingestion-dev-mapproxy-api-service"
+    jobManager: "http://common-job-manager-service"
+    heartbeatManager: "http://common-heartbeat-manager-service"
+    downloadServerPublicDNS: "https://download-dev.mapcolonies.net/api/raster/v1"
+    ngnixS3Gateway: "http://raster-export-dev-nginx-s3-gateway"
+    geoserverUrl: "http://raster-serving-dev-pp-geoserver-service/geoserver"
+    geoserverApiUrl: "http://raster-ingestion-dev-geoserver-api-service"
+    polygonPartsManager: "http://raster-core-dev-polygon-parts-manager-service"
+  ca:
+    secretName: ''
+    path: '/usr/local/share/ca-certificates'
+    key: 'ca.crt'
+
+enabled: true
+environment: development
+replicaCount: 1
+revisionHistoryLimit: 5 # Amount of revisions we keep
+nodePort: 30030 #for minikube deployment only
+resetOnConfigChange: false
+
+nameOverride: ""
+fullnameOverride: ""
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  path: /liveness
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  path: /liveness
+
+podAnnotations: {}
+
+extraVolumes: []
+
+extraVolumeMounts: []
+
+extraEnvVars: []
+
+command: []
+args: []
+# command: [ "/bin/sh", "-c", "--" ]
+# args: [ "while true; do sleep infinity; done;" ]
+
+sidecars: []
+
+cloudProvider:
+  dockerRegistryUrl:
+  imagePullSecretName: ''
+  flavor: openshift
+
+tracing:
+  enabled: false
+  url: ''
+
+metrics:
+  enabled: false
+  url: ''
+  prometheus:
+    scrape: false
+    port: 8080
+
+image:
+  repository: job-tracker
+  tag: 'stagingFeatTesting'
+  pullPolicy: IfNotPresent
+
+serviceUrls:
+  jobManager: 'https://common-job-manager-route-raster-dev.apps.j1lk3njp.eastus.aroapp.io'
+  heartbeatManager: 'https://common-heartbeat-manager-route-raster-dev.apps.j1lk3njp.eastus.aroapp.io'
+
+jobDefinitions:
+  jobs:
+    new:
+      type: 'Ingestion_New'
+    update:
+      type: 'Ingestion_Update'
+    swapUpdate:
+      type: 'Ingestion_Swap_Update'
+    export:
+      type: 'Export'
+  tasks:
+    init:
+      type: 'init'
+    merge:
+      type: 'merge'
+    polygonParts:
+      type: 'polygon-parts'
+      enabled: true
+      suspendJobOnFail: true
+    finalize:
+      type: 'finalize'
+    export:
+      type: 'export'
+      enabled: true
+
+env:
+  port: 80
+  targetPort: 8080
+  protocol: TCP
+  logLevel: info
+  logPrettyPrintEnabled: false
+  responseCompressionEnabled: true
+  requestPayloadLimit: 1mb
+  queue:
+    dequeueIntervalMs: 3000
+    heartbeatIntervalMs: 3000
+
+resources:
+  enabled: false
+  value:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+route:
+  enabled: false
+  path: /
+  host:
+  timeout:
+    enabled: false # defaults to 30s by openshift
+    duration: 60s # supported units (us, ms, s, m, h, d)
+  rewriteTarget: ''
+  tls:
+    enabled: true
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+    useCerts: false
+    certificate: ''
+    key: ''
+    caCertificate: ''
+
+ingress:
+  enabled: false
+  type: "nginx-org" # supported values: 'nginx-org' | 'nginx-kubernetes'
+  path: /
+  host: "localhost"
+  cors:
+    enabled: true
+    origin: "*"
