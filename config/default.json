@@ -61,8 +61,6 @@
       },
       "finalize": "finalize"
     },
-    "suspendingTaskTypes": [
-      "polygon-parts"
-    ]
+    "suspendingTaskTypes": ["polygon-parts"]
   }
 }

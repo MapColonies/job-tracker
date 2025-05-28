@@ -77,15 +77,9 @@
           "__format": "boolean"
         }
       },
-      "export": {
-        "exportTaskType": "JOB_DEFINITIONS_TASK_EXPORT",
-        "enabled": {
-          "__name": "EXPORT_TASK_ENABLED",
-          "__format": "boolean"
-        }
-      },
-      "finalize": "JOB_DEFINITIONS_TASK_FINALIZE"
+      "export": "JOB_DEFINITIONS_TASK_EXPORT"
     },
-    "suspendingTaskTypes": "JOB_DEFINITIONS_SUSPENDING_TASKS"
-  }
+    "finalize": "JOB_DEFINITIONS_TASK_FINALIZE"
+  },
+  "suspendingTaskTypes": "JOB_DEFINITIONS_SUSPENDING_TASKS"
 }
