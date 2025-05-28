@@ -62,7 +62,7 @@ describe('TasksManager', () => {
       const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
       const ingestionJobMock = getIngestionJobMock();
       const mergeTaskMock = getTaskMock(ingestionJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.polygonParts,
+        type: jobDefinitionsConfigMock.tasks.polygonParts.taskType,
         status: OperationStatus.COMPLETED,
       });
       const initTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
@@ -182,16 +182,16 @@ describe('TasksManager', () => {
       const ingestionSwapJobMock = getIngestionJobMock({ type: jobDefinitionsConfigMock.jobs.swapUpdate });
 
       const newPolygonPartsTaskMock = getTaskMock(ingestionNewJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.polygonParts,
+        type: jobDefinitionsConfigMock.tasks.polygonParts.taskType,
         status: OperationStatus.COMPLETED,
         parameters: {},
       });
       const updatePolygonPartsTaskMock = getTaskMock(ingestionUpdateJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.polygonParts,
+        type: jobDefinitionsConfigMock.tasks.polygonParts.taskType,
         status: OperationStatus.COMPLETED,
       });
       const swapPolygonPartsTaskMock = getTaskMock(ingestionSwapJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.polygonParts,
+        type: jobDefinitionsConfigMock.tasks.polygonParts.taskType,
         status: OperationStatus.COMPLETED,
       });
 
@@ -270,7 +270,7 @@ describe('TasksManager', () => {
       const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
       const ingestionJobMock = getIngestionJobMock();
       const mergeTaskMock = getTaskMock(ingestionJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.polygonParts,
+        type: jobDefinitionsConfigMock.tasks.polygonParts.taskType,
         status: OperationStatus.FAILED,
         reason: 'reason',
       });
@@ -344,7 +344,7 @@ describe('TasksManager', () => {
       const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
       const exportJobMock = getExportJobMock();
       const polygonPartsTaskMock = getTaskMock(exportJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.polygonParts,
+        type: jobDefinitionsConfigMock.tasks.polygonParts.taskType,
         status: OperationStatus.COMPLETED,
       });
       const initTaskMock = getTaskMock(exportJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
