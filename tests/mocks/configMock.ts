@@ -93,8 +93,8 @@ const registerDefaultConfig = (): void => {
         init: 'init',
         merge: 'merge',
         polygonParts: {
-          "taskType": "polygon-parts",
-          "enabled": true
+          taskType: 'polygon-parts',
+          enabled: true,
         },
         finalize: 'finalize',
         export: 'export',
