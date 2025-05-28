@@ -4,13 +4,14 @@ import _ from 'lodash';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams } from '@map-colonies/raster-shared';
 import { ExportFinalizeType } from '@map-colonies/raster-shared';
-import { configMock } from '../../mocks/configMock';
+import { configMock, setPolygonPartsEnabled, setValue } from '../../mocks/configMock';
 import { getApp } from '../../../src/app';
 import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../src/common/interfaces';
 import { getExportJobMock, getIngestionJobMock, getTaskMock } from '../../mocks/JobMocks';
 import { calculateTaskPercentage } from '../../../src/utils/taskUtils';
 import { TasksRequestSender } from './helpers/requestSender';
 import { getTestContainerConfig, resetContainer } from './helpers/containerConfig';
+import { fa } from '@faker-js/faker';
 
 describe('tasks', function () {
   let requestSender: TasksRequestSender;
@@ -138,6 +139,7 @@ describe('tasks', function () {
     });
 
     it('Should return 200 and create finalize task when getting completed init task of export job when task count and completed task are even', async () => {
+      jobDefinitionsConfigMock.tasks.polygonParts.enabled = false;
       // mocks
       const mockExportJob = getExportJobMock();
       const mockInitTask = getTaskMock(mockExportJob.id, {
@@ -168,7 +170,7 @@ describe('tasks', function () {
       // expectation
       expect(response.status).toBe(200);
       expect(response).toSatisfyApiSpec();
-    },99999999999);
+    });
 
     it('Should return 200 when getting completed init task of export job when task count and completed task are not even', async () => {
       // mocks
@@ -271,6 +273,7 @@ describe('tasks', function () {
     });
 
     it('Should return 200 and create finalize task on a successful export merge', async () => {
+      jobDefinitionsConfigMock.tasks.polygonParts.enabled = false;
       // mocks
       const mockExportJob = getExportJobMock();
       const mockExportTask = getTaskMock(mockExportJob.id, {
