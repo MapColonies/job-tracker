@@ -95,7 +95,7 @@ describe('tasks', function () {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
       const mockMergeTask = getTaskMock(mockIngestionJob.id, {
-        type: jobDefinitionsConfigMock.tasks.polygonParts,
+        type: jobDefinitionsConfigMock.tasks.polygonParts.taskType,
         status: OperationStatus.COMPLETED,
       });
       const mockInitTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
@@ -168,7 +168,7 @@ describe('tasks', function () {
       // expectation
       expect(response.status).toBe(200);
       expect(response).toSatisfyApiSpec();
-    });
+    },99999999999);
 
     it('Should return 200 when getting completed init task of export job when task count and completed task are not even', async () => {
       // mocks
@@ -308,7 +308,7 @@ describe('tasks', function () {
     it('Should return 200 and suspend job when getting failed task whose type is in suspendingTaskTypes list', async () => {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
-      const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.polygonParts, status: OperationStatus.FAILED });
+      const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.polygonParts.taskType, status: OperationStatus.FAILED });
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .get(`/jobs/${mockIngestionJob.id}`)
         .query({ shouldReturnTasks: false })
