@@ -166,7 +166,7 @@ export class TasksManager {
     let nextTaskType = '';
 
     if (currentTaskType == this.jobDefinitions.tasks.init) {
-        nextTaskType = this.jobDefinitions.tasks.export.taskType;
+      nextTaskType = this.jobDefinitions.tasks.export;
     }
     if (this.jobDefinitions.tasks.polygonParts.enabled && currentTaskType != this.jobDefinitions.tasks.polygonParts.taskType) {
       nextTaskType = this.jobDefinitions.tasks.polygonParts.taskType;

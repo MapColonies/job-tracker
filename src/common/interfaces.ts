@@ -29,11 +29,11 @@ export interface IJobDefinitionsConfig {
     export: string;
   };
   tasks: {
-    polygonParts: {taskType: string; enabled: boolean};
+    polygonParts: { taskType: string; enabled: boolean };
     finalize: string;
     merge: string;
     init: string;
-    export: {taskType: string; enabled: boolean};
+    export: string;
   };
   suspendingTaskTypes: string[];
 }
