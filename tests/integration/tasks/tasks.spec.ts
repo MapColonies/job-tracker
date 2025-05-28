@@ -4,14 +4,13 @@ import _ from 'lodash';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams } from '@map-colonies/raster-shared';
 import { ExportFinalizeType } from '@map-colonies/raster-shared';
-import { configMock, setPolygonPartsEnabled, setValue } from '../../mocks/configMock';
+import { configMock } from '../../mocks/configMock';
 import { getApp } from '../../../src/app';
 import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../src/common/interfaces';
 import { getExportJobMock, getIngestionJobMock, getTaskMock } from '../../mocks/JobMocks';
 import { calculateTaskPercentage } from '../../../src/utils/taskUtils';
 import { TasksRequestSender } from './helpers/requestSender';
 import { getTestContainerConfig, resetContainer } from './helpers/containerConfig';
-import { fa } from '@faker-js/faker';
 
 describe('tasks', function () {
   let requestSender: TasksRequestSender;
@@ -311,7 +310,10 @@ describe('tasks', function () {
     it('Should return 200 and suspend job when getting failed task whose type is in suspendingTaskTypes list', async () => {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
-      const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.polygonParts.taskType, status: OperationStatus.FAILED });
+      const mockMergeTask = getTaskMock(mockIngestionJob.id, {
+        type: jobDefinitionsConfigMock.tasks.polygonParts.taskType,
+        status: OperationStatus.FAILED,
+      });
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .get(`/jobs/${mockIngestionJob.id}`)
         .query({ shouldReturnTasks: false })
