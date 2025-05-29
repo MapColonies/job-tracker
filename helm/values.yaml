@@ -5,7 +5,7 @@ global:
   environment: ''
   jobDefinitions: {}
   serviceUrls: {}
-  ca:    
+  ca:
     secretName: ''
     path: '/usr/local/share/ca-certificates'
     key: 'ca.crt'
@@ -50,7 +50,7 @@ args: []
 sidecars: []
 
 cloudProvider:
-  dockerRegistryUrl: 
+  dockerRegistryUrl:
   imagePullSecretName: ''
   flavor: openshift
 
@@ -91,6 +91,7 @@ jobDefinitions:
       type: ''
     polygonParts:
       type: ''
+      enabled: true
       suspendJobOnFail: false
     finalize:
       type: ''
@@ -109,7 +110,6 @@ env:
     dequeueIntervalMs: 3000
     heartbeatIntervalMs: 3000
 
-
 resources:
   enabled: false
   value:
@@ -123,7 +123,7 @@ resources:
 route:
   enabled: false
   path: /
-  host: 
+  host:
   timeout:
     enabled: false # defaults to 30s by openshift
     duration: 60s # supported units (us, ms, s, m, h, d)

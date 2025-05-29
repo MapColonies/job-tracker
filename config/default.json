@@ -51,7 +51,10 @@
     "tasks": {
       "init": "init",
       "merge": "merge",
-      "polygonParts": "polygon-parts",
+      "polygonParts": {
+        "taskType": "polygon-parts",
+        "enabled": true
+      },
       "export": "export",
       "finalize": "finalize"
     },

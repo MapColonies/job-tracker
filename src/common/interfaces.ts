@@ -29,7 +29,7 @@ export interface IJobDefinitionsConfig {
     export: string;
   };
   tasks: {
-    polygonParts: string;
+    polygonParts: { taskType: string; enabled: boolean };
     finalize: string;
     merge: string;
     init: string;

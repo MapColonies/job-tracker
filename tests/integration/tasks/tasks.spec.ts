@@ -52,7 +52,7 @@ describe('tasks', function () {
         .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.init })
         .reply(200, [mockInitTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .post(`/jobs/${mockIngestionJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts }))
+        .post(`/jobs/${mockIngestionJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts.taskType }))
         .reply(201);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockIngestionJob.id}`).reply(200);
       // action
@@ -78,7 +78,7 @@ describe('tasks', function () {
         .reply(200, [mockInitTask]);
 
       nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .post(`/jobs/${mockIngestionJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts }))
+        .post(`/jobs/${mockIngestionJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts.taskType }))
         .reply(201);
 
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockIngestionJob.id}`).reply(200);
@@ -95,7 +95,7 @@ describe('tasks', function () {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
       const mockMergeTask = getTaskMock(mockIngestionJob.id, {
-        type: jobDefinitionsConfigMock.tasks.polygonParts,
+        type: jobDefinitionsConfigMock.tasks.polygonParts.taskType,
         status: OperationStatus.COMPLETED,
       });
       const mockInitTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
@@ -138,6 +138,7 @@ describe('tasks', function () {
     });
 
     it('Should return 200 and create finalize task when getting completed init task of export job when task count and completed task are even', async () => {
+      jobDefinitionsConfigMock.tasks.polygonParts.enabled = false;
       // mocks
       const mockExportJob = getExportJobMock();
       const mockInitTask = getTaskMock(mockExportJob.id, {
@@ -271,6 +272,7 @@ describe('tasks', function () {
     });
 
     it('Should return 200 and create finalize task on a successful export merge', async () => {
+      jobDefinitionsConfigMock.tasks.polygonParts.enabled = false;
       // mocks
       const mockExportJob = getExportJobMock();
       const mockExportTask = getTaskMock(mockExportJob.id, {
@@ -308,7 +310,10 @@ describe('tasks', function () {
     it('Should return 200 and suspend job when getting failed task whose type is in suspendingTaskTypes list', async () => {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
-      const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.polygonParts, status: OperationStatus.FAILED });
+      const mockMergeTask = getTaskMock(mockIngestionJob.id, {
+        type: jobDefinitionsConfigMock.tasks.polygonParts.taskType,
+        status: OperationStatus.FAILED,
+      });
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .get(`/jobs/${mockIngestionJob.id}`)
         .query({ shouldReturnTasks: false })

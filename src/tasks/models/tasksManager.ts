@@ -162,27 +162,32 @@ export class TasksManager {
     this.logger.info({ msg: `Updated percentages (${desiredPercentage}) for job: ${jobId}` });
   }
 
-  private async createNextTask(currentTaskType: string, job: IJobResponse<unknown, unknown>): Promise<void> {
-    let nextTaskType: string;
-    switch (currentTaskType) {
-      case this.jobDefinitions.tasks.init: // for cases where merge tasks completes before init task
-      case this.jobDefinitions.tasks.merge:
-        if (job.type === this.jobDefinitions.jobs.export) {
-          // temporary ! should be change for better handle
-          if (job.taskCount === job.completedTasks) {
-            nextTaskType = this.jobDefinitions.tasks.finalize;
-            break;
-          }
+  private determineNextTask(currentTaskType: string, jobType: string): string {
+    let nextTaskType = '';
+
+    switch (jobType) {
+      case this.jobDefinitions.jobs.update:
+      case this.jobDefinitions.jobs.swapUpdate:
+      case this.jobDefinitions.jobs.new:
+        if (currentTaskType == this.jobDefinitions.tasks.init || currentTaskType == this.jobDefinitions.tasks.merge) {
+          nextTaskType = this.jobDefinitions.tasks.polygonParts.taskType;
+        } else {
+          nextTaskType = this.jobDefinitions.tasks.finalize;
         }
-        nextTaskType = this.jobDefinitions.tasks.polygonParts;
         break;
-      case this.jobDefinitions.tasks.export:
-      case this.jobDefinitions.tasks.polygonParts:
-        nextTaskType = this.jobDefinitions.tasks.finalize;
-        break;
-      default:
-        return;
+      case this.jobDefinitions.jobs.export:
+        if (this.jobDefinitions.tasks.polygonParts.enabled && currentTaskType != this.jobDefinitions.tasks.polygonParts.taskType) {
+          nextTaskType = this.jobDefinitions.tasks.polygonParts.taskType;
+        } else {
+          nextTaskType = this.jobDefinitions.tasks.finalize;
+        }
     }
+
+    return nextTaskType;
+  }
+
+  private async createNextTask(currentTaskType: string, job: IJobResponse<unknown, unknown>): Promise<void> {
+    const nextTaskType = this.determineNextTask(currentTaskType, job.type);
 
     try {
       await this.createTask(job, nextTaskType);
