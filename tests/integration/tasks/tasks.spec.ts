@@ -9,9 +9,9 @@ import { getApp } from '../../../src/app';
 import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../src/common/interfaces';
 import { getExportJobMock, getIngestionJobMock, getSeedingJobMock, getTaskMock } from '../../mocks/JobMocks';
 import { calculateTaskPercentage } from '../../../src/utils/taskUtils';
+import { JOB_COMPLETED_MESSAGE } from '../../../src/common/constants';
 import { TasksRequestSender } from './helpers/requestSender';
 import { getTestContainerConfig, resetContainer } from './helpers/containerConfig';
-import { JOB_COMPLETED_MESSAGE } from '../../../src/common/constants';
 
 describe('tasks', function () {
   let requestSender: TasksRequestSender;
