@@ -84,6 +84,8 @@ jobDefinitions:
       type: ''
     export:
       type: ''
+    seeding:
+      type: ''
   tasks:
     init:
       type: ''
@@ -95,6 +97,8 @@ jobDefinitions:
     finalize:
       type: ''
     export:
+      type: ''
+    seed:
       type: ''
 
 env:

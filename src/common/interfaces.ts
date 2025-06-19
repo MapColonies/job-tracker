@@ -27,6 +27,7 @@ export interface IJobDefinitionsConfig {
     update: string;
     swapUpdate: string;
     export: string;
+    seeding: string;
   };
   tasks: {
     polygonParts: string;
@@ -34,6 +35,7 @@ export interface IJobDefinitionsConfig {
     merge: string;
     init: string;
     export: string;
+    seed: string;
   };
   suspendingTaskTypes: string[];
 }
