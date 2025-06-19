@@ -7,10 +7,11 @@ import { ExportFinalizeType } from '@map-colonies/raster-shared';
 import { configMock } from '../../mocks/configMock';
 import { getApp } from '../../../src/app';
 import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../src/common/interfaces';
-import { getExportJobMock, getIngestionJobMock, getTaskMock } from '../../mocks/JobMocks';
+import { getExportJobMock, getIngestionJobMock, getSeedingJobMock, getTaskMock } from '../../mocks/JobMocks';
 import { calculateTaskPercentage } from '../../../src/utils/taskUtils';
 import { TasksRequestSender } from './helpers/requestSender';
 import { getTestContainerConfig, resetContainer } from './helpers/containerConfig';
+import { JOB_COMPLETED_MESSAGE } from '../../../src/common/constants';
 
 describe('tasks', function () {
   let requestSender: TasksRequestSender;
@@ -358,6 +359,57 @@ describe('tasks', function () {
         .reply(200, mockInitTask);
       // action
       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
+      // expectation
+      expect(response.status).toBe(200);
+      expect(response).toSatisfyApiSpec();
+    });
+
+    it('Should return 200 when getting completed but not last seeding task', async () => {
+      // mocks
+      const mockSeedingJob = getSeedingJobMock();
+      const mockSeedTask = getTaskMock(mockSeedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockSeedTask.id }).reply(200, [mockSeedTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockSeedingJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockSeedingJob);
+      const taskPercentage = calculateTaskPercentage(mockSeedingJob.completedTasks, mockSeedingJob.taskCount);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockSeedingJob.id}`, { percentage: taskPercentage }).reply(200);
+      // action
+      const response = await requestSender.handleTaskNotification(mockSeedTask.id);
+      // expectation
+      expect(response.status).toBe(200);
+      expect(response).toSatisfyApiSpec();
+    });
+
+    it('Should return 200 when getting last completed seeding task', async () => {
+      // mocks
+      const mockSeedingJob = getSeedingJobMock({ completedTasks: 5, taskCount: 5 });
+      const mockSeedTask = getTaskMock(mockSeedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockSeedTask.id }).reply(200, [mockSeedTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockSeedingJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockSeedingJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .put(`/jobs/${mockSeedingJob.id}`, { percentage: 100, status: OperationStatus.COMPLETED, reason: JOB_COMPLETED_MESSAGE })
+        .reply(200);
+      // action
+      const response = await requestSender.handleTaskNotification(mockSeedTask.id);
+      // expectation
+      expect(response.status).toBe(200);
+      expect(response).toSatisfyApiSpec();
+    });
+
+    it('Should return 200 when getting failed seeding task', async () => {
+      // mocks
+      const mockSeedingJob = getSeedingJobMock();
+      const mockSeedTask = getTaskMock(mockSeedingJob.id, {
+        type: jobDefinitionsConfigMock.tasks.seed,
+        status: OperationStatus.FAILED,
+        reason: 'some error reason',
+      });
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockSeedTask.id }).reply(200, [mockSeedTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockSeedingJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockSeedingJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .put(`/jobs/${mockSeedingJob.id}`, { status: OperationStatus.FAILED, reason: 'some error reason' })
+        .reply(200);
+      // action
+      const response = await requestSender.handleTaskNotification(mockSeedTask.id);
       // expectation
       expect(response.status).toBe(200);
       expect(response).toSatisfyApiSpec();

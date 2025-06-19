@@ -32,10 +32,12 @@ data:
   JOB_DEFINITIONS_JOB_UPDATE: {{ $jobDefinitions.jobs.update.type | quote }}
   JOB_DEFINITIONS_JOB_SWAP_UPDATE: {{ $jobDefinitions.jobs.swapUpdate.type | quote }}
   JOB_DEFINITIONS_JOB_EXPORT: {{ $jobDefinitions.jobs.export.type | quote }}
+  JOB_DEFINITIONS_JOB_SEEDING: {{ $jobDefinitions.jobs.seeding.type | quote }}
   JOB_DEFINITIONS_TASK_INIT: {{ $jobDefinitions.tasks.init.type | quote }}
   JOB_DEFINITIONS_TASK_MERGE: {{ $jobDefinitions.tasks.merge.type | quote }}
   JOB_DEFINITIONS_TASK_POLYGON_PARTS: {{ $jobDefinitions.tasks.polygonParts.type | quote }}
   JOB_DEFINITIONS_TASK_EXPORT: {{ $jobDefinitions.tasks.export.type | quote }}
   JOB_DEFINITIONS_TASK_FINALIZE: {{ $jobDefinitions.tasks.finalize.type | quote }}
+  JOB_DEFINITIONS_TASK_SEED: {{ $jobDefinitions.tasks.seed.type | quote }}
   JOB_DEFINITIONS_SUSPENDING_TASKS: {{ $suspendingTaskTypes | toYaml | nindent 4 }}
 {{- end }}

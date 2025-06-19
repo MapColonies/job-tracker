@@ -88,6 +88,7 @@ const registerDefaultConfig = (): void => {
         update: 'Ingestion_Update',
         swapUpdate: 'Ingestion_Swap_Update',
         export: 'export',
+        seeding: 'Tiles_Seeding',
       },
       tasks: {
         init: 'init',
@@ -95,6 +96,7 @@ const registerDefaultConfig = (): void => {
         polygonParts: 'polygon-parts',
         finalize: 'finalize',
         export: 'export',
+        seed: 'Tiles_Seeding',
       },
       suspendingTaskTypes: ['polygon-parts'],
     },
