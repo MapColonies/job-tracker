@@ -59,7 +59,11 @@ export class TasksManager {
         }
         break;
       case OperationStatus.COMPLETED:
-        await this.handleCompletedTask(job, task);
+        if (job.type === this.jobDefinitions.jobs.seed) {
+          await this.handleSeedingTask(job);
+        } else {
+          await this.handleCompletedTask(job, task);
+        }
         break;
       default:
         throw new IrrelevantOperationStatusError(`Expected to get a 'Completed' or 'Failed' task' but instead got '${task.status}'`);
@@ -67,6 +71,10 @@ export class TasksManager {
   }
 
   private async handleCompletedTask(job: IJobResponse<unknown, unknown>, task: ITaskResponse<unknown>): Promise<void> {
+    if (job.type === this.jobDefinitions.jobs.seed) {
+      await this.handleSeedingTask(job);
+      return;
+    }
     const initTask = await this.findTask({ jobId: job.id, type: this.jobDefinitions.tasks.init });
 
     if (!initTask) {
@@ -89,6 +97,15 @@ export class TasksManager {
       return;
     }
     this.logger.debug({ msg: `Updating job percentage; No subsequence task for taskType ${task.type}` });
+    const calculatedPercentage = calculateTaskPercentage(job.completedTasks, job.taskCount);
+    await this.updateJobPercentage(job.id, calculatedPercentage);
+  }
+
+  private async handleSeedingTask(job: IJobResponse<unknown, unknown>): Promise<void> {
+    if (job.taskCount === job.completedTasks) {
+      await this.completeJob(job);
+      return;
+    }
     const calculatedPercentage = calculateTaskPercentage(job.completedTasks, job.taskCount);
     await this.updateJobPercentage(job.id, calculatedPercentage);
   }

@@ -3,8 +3,9 @@ import { ICreateTaskBody, OperationStatus } from '@map-colonies/mc-priority-queu
 import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams, ExportFinalizeType } from '@map-colonies/raster-shared';
 import { registerDefaultConfig, clear as clearConfig } from '../../../mocks/configMock';
 import { JOB_COMPLETED_MESSAGE } from '../../../../src/common/constants';
-import { getExportJobMock, getIngestionJobMock, getTaskMock } from '../../../mocks/JobMocks';
+import { getExportJobMock, getIngestionJobMock, getSeedingJobMock, getTaskMock } from '../../../mocks/JobMocks';
 import { IrrelevantOperationStatusError } from '../../../../src/common/errors';
+import { calculateTaskPercentage } from '../../../../src/utils/taskUtils';
 import { setupTasksManagerTest, TasksModelTestContext } from './tasksManagerSetup';
 
 describe('TasksManager', () => {
@@ -440,12 +441,63 @@ describe('TasksManager', () => {
       });
 
       mockFindTasks.mockResolvedValue([exportTaskMock]);
-      //mockFindTasks.mockResolvedValueOnce([finalizeTaskMock]);
       mockGetJob.mockResolvedValue(exportJobMock);
       // action
       await tasksManager.handleTaskNotification(exportTaskMock.id);
       // expectation
       expect(mockUpdateJob).not.toHaveBeenCalled();
+    });
+
+    it('Should fail a job on a failed seeding task', async () => {
+      // mocks
+      const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
+      const seedingJob = getSeedingJobMock();
+      const seedTaskMock = getTaskMock(seedingJob.id, {
+        type: jobDefinitionsConfigMock.tasks.seed,
+        status: OperationStatus.FAILED,
+        reason: 'some error reason',
+      });
+
+      mockFindTasks.mockResolvedValueOnce([seedTaskMock]);
+      mockGetJob.mockResolvedValue(seedingJob);
+      // action
+      await tasksManager.handleTaskNotification(seedTaskMock.id);
+      // expectation
+      expect(mockUpdateJob).toHaveBeenCalledTimes(1);
+      expect(mockUpdateJob).toHaveBeenCalledWith(seedingJob.id, { status: OperationStatus.FAILED, reason: 'some error reason' });
+    });
+
+    it('Should update job on a completed seeding task', async () => {
+      const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockUpdateJob } = testContext;
+      const seedingJob = getSeedingJobMock({ taskCount: 6, completedTasks: 4 });
+      const seedTaskMock = getTaskMock(seedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
+      const desiredPercentage = calculateTaskPercentage(seedingJob.completedTasks, seedingJob.taskCount);
+
+      mockFindTasks.mockResolvedValue([seedTaskMock]);
+      mockGetJob.mockResolvedValue(seedingJob);
+      // action
+      await tasksManager.handleTaskNotification(seedTaskMock.id);
+      // expectation
+      expect(mockUpdateJob).toHaveBeenCalledTimes(1);
+      expect(mockUpdateJob).toHaveBeenCalledWith(seedingJob.id, { percentage: desiredPercentage });
+    });
+
+    it('Should set job to completed on completion of all tasks', async () => {
+      const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockUpdateJob } = testContext;
+      const seedingJob = getSeedingJobMock({ taskCount: 6, completedTasks: 6 });
+      const seedTaskMock = getTaskMock(seedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
+
+      mockFindTasks.mockResolvedValue([seedTaskMock]);
+      mockGetJob.mockResolvedValue(seedingJob);
+      // action
+      await tasksManager.handleTaskNotification(seedTaskMock.id);
+      // expectation
+      expect(mockUpdateJob).toHaveBeenCalledTimes(1);
+      expect(mockUpdateJob).toHaveBeenCalledWith(seedingJob.id, {
+        status: OperationStatus.COMPLETED,
+        percentage: 100,
+        reason: JOB_COMPLETED_MESSAGE,
+      });
     });
   });
 });
