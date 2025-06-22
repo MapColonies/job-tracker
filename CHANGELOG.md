@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.1.0](https://github.com-personal/MapColonies/job-tracker/compare/v3.0.0...v3.1.0) (2025-06-22)
+
+
+### Features
+
+* support tiles Seeding job and tasks ([ddc3e51](https://github.com-personal/MapColonies/job-tracker/commit/ddc3e51d48d3506326e2fbab78a0ddb4679eba95))
+
+
+### Bug Fixes
+
+* lint ([ac57ace](https://github.com-personal/MapColonies/job-tracker/commit/ac57ace275ef650775f2be075fcf574c55cc69e5))
+* lint error ([ed2752c](https://github.com-personal/MapColonies/job-tracker/commit/ed2752c3360a21ff796c7c8a5bfc1b4b035e572e))
+* pr changes ([fa51d2c](https://github.com-personal/MapColonies/job-tracker/commit/fa51d2ceb5792c280c04eff1d4b01d25410b4369))
+* pr changes ([2ab0665](https://github.com-personal/MapColonies/job-tracker/commit/2ab0665035d2b4869ee3d956421b2ff96ca37f59))
+
 ## [3.0.0](https://github.com/MapColonies/job-tracker/compare/v2.0.0...v3.0.0) (2025-05-18)
 
 
