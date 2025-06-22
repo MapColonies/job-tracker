@@ -66,7 +66,7 @@
       "update": "JOB_DEFINITIONS_JOB_UPDATE",
       "swapUpdate": "JOB_DEFINITIONS_JOB_SWAP_UPDATE",
       "export": "JOB_DEFINITIONS_JOB_EXPORT",
-      "seeding": "JOB_DEFINITIONS_JOB_SEEDING"
+      "seed": "JOB_DEFINITIONS_JOB_SEED"
     },
     "tasks": {
       "init": "JOB_DEFINITIONS_TASK_INIT",

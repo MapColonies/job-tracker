@@ -47,7 +47,7 @@
       "update": "Ingestion_Update",
       "swapUpdate": "Ingestion_Swap_Update",
       "export": "Export",
-      "seeding": "Tiles_Seeding"
+      "seed": "TilesSeeding"
     },
     "tasks": {
       "init": "init",
@@ -55,7 +55,7 @@
       "polygonParts": "polygon-parts",
       "export": "export",
       "finalize": "finalize",
-      "seed": "Tiles_Seeding"
+      "seed": "TilesSeeding"
     },
     "suspendingTaskTypes": ["polygon-parts"]
   }

@@ -73,7 +73,7 @@ export const getSeedingJobMock = (override?: Partial<IJobResponse<unknown, unkno
     id: faker.string.uuid(),
     resourceId: 'test',
     version: '1.0',
-    type: 'Tiles_Seeding',
+    type: 'TilesSeeding',
     description: '',
     status: OperationStatus.IN_PROGRESS,
     percentage: 87,

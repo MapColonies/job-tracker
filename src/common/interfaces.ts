@@ -27,7 +27,7 @@ export interface IJobDefinitionsConfig {
     update: string;
     swapUpdate: string;
     export: string;
-    seeding: string;
+    seed: string;
   };
   tasks: {
     polygonParts: string;

@@ -84,7 +84,7 @@ jobDefinitions:
       type: ''
     export:
       type: ''
-    seeding:
+    seed:
       type: ''
   tasks:
     init:

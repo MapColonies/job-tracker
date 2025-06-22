@@ -441,7 +441,6 @@ describe('TasksManager', () => {
       });
 
       mockFindTasks.mockResolvedValue([exportTaskMock]);
-      //mockFindTasks.mockResolvedValueOnce([finalizeTaskMock]);
       mockGetJob.mockResolvedValue(exportJobMock);
       // action
       await tasksManager.handleTaskNotification(exportTaskMock.id);
@@ -453,7 +452,6 @@ describe('TasksManager', () => {
       // mocks
       const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
       const seedingJob = getSeedingJobMock();
-      //const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
       const seedTaskMock = getTaskMock(seedingJob.id, {
         type: jobDefinitionsConfigMock.tasks.seed,
         status: OperationStatus.FAILED,

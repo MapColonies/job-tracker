@@ -59,7 +59,7 @@ export class TasksManager {
         }
         break;
       case OperationStatus.COMPLETED:
-        if (job.type === this.jobDefinitions.jobs.seeding) {
+        if (job.type === this.jobDefinitions.jobs.seed) {
           await this.handleSeedingTask(job, task);
         } else {
           await this.handleCompletedTask(job, task);
@@ -98,7 +98,6 @@ export class TasksManager {
   }
 
   private async handleSeedingTask(job: IJobResponse<unknown, unknown>, task: ITaskResponse<unknown>): Promise<void> {
-    this.logger.debug({ msg: `Updating seeding job percentage; ${task.type}` });
     if (job.taskCount === job.completedTasks) {
       await this.completeJob(job);
       return;
