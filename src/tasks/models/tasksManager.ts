@@ -71,6 +71,10 @@ export class TasksManager {
   }
 
   private async handleCompletedTask(job: IJobResponse<unknown, unknown>, task: ITaskResponse<unknown>): Promise<void> {
+    if (job.type === this.jobDefinitions.jobs.seed) {
+      await this.handleSeedingTask(job);
+      return;
+    }
     const initTask = await this.findTask({ jobId: job.id, type: this.jobDefinitions.tasks.init });
 
     if (!initTask) {

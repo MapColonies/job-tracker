@@ -463,11 +463,12 @@ describe('TasksManager', () => {
       // action
       await tasksManager.handleTaskNotification(seedTaskMock.id);
       // expectation
+      expect(mockUpdateJob).toHaveBeenCalledTimes(1);
       expect(mockUpdateJob).toHaveBeenCalledWith(seedingJob.id, { status: OperationStatus.FAILED, reason: 'some error reason' });
     });
 
     it('Should update job on a completed seeding task', async () => {
-      const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
+      const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockUpdateJob } = testContext;
       const seedingJob = getSeedingJobMock({ taskCount: 6, completedTasks: 4 });
       const seedTaskMock = getTaskMock(seedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
       const desiredPercentage = calculateTaskPercentage(seedingJob.completedTasks, seedingJob.taskCount);
@@ -477,9 +478,6 @@ describe('TasksManager', () => {
       // action
       await tasksManager.handleTaskNotification(seedTaskMock.id);
       // expectation
-      expect(mockFindTasks).toHaveBeenCalledTimes(1);
-      expect(mockGetJob).toHaveBeenCalledTimes(1);
-      expect(mockCreateTaskForJob).not.toHaveBeenCalled();
       expect(mockUpdateJob).toHaveBeenCalledTimes(1);
       expect(mockUpdateJob).toHaveBeenCalledWith(seedingJob.id, { percentage: desiredPercentage });
     });
@@ -494,9 +492,7 @@ describe('TasksManager', () => {
       // action
       await tasksManager.handleTaskNotification(seedTaskMock.id);
       // expectation
-      // action
-      await tasksManager.handleTaskNotification(seedTaskMock.id);
-      // expectation
+      expect(mockUpdateJob).toHaveBeenCalledTimes(1);
       expect(mockUpdateJob).toHaveBeenCalledWith(seedingJob.id, {
         status: OperationStatus.COMPLETED,
         percentage: 100,
