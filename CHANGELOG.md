@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.1.1](https://github.com-personal/MapColonies/job-tracker/compare/v3.1.0...v3.1.1) (2025-06-23)
+
+
+### Bug Fixes
+
+* format ([e4183e9](https://github.com-personal/MapColonies/job-tracker/commit/e4183e9719f671135f2b62715e92772e0b36621b))
+* unnessesary if ([612cefa](https://github.com-personal/MapColonies/job-tracker/commit/612cefa8f76859ce8c7c75362a66047177766d64))
+
 ## [3.1.0](https://github.com-personal/MapColonies/job-tracker/compare/v3.0.0...v3.1.0) (2025-06-22)
 
 
