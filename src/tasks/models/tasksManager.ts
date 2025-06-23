@@ -59,11 +59,7 @@ export class TasksManager {
         }
         break;
       case OperationStatus.COMPLETED:
-        if (job.type === this.jobDefinitions.jobs.seed) {
-          await this.handleSeedingTask(job);
-        } else {
-          await this.handleCompletedTask(job, task);
-        }
+        await this.handleCompletedTask(job, task);
         break;
       default:
         throw new IrrelevantOperationStatusError(`Expected to get a 'Completed' or 'Failed' task' but instead got '${task.status}'`);
