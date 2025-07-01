@@ -43,3 +43,11 @@ export interface IJobDefinitionsConfig {
 export interface TaskNotificationRequest {
   taskId: string;
 }
+
+export interface IJobHandler {
+  handleInitTask: (taskId: string) => Promise<void>;
+  handleFinalizeTask: (taskId: string) => Promise<void>;
+  handlePolygonTask: (taskId: string) => Promise<void>;
+  handleWorkTask: (taskId: string) => Promise<void>;
+  handleFailedTask: (taskId: string) => Promise<void>;
+}
