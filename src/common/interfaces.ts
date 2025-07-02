@@ -1,3 +1,7 @@
+import { Logger } from "@map-colonies/js-logger";
+import { IJobResponse, JobManagerClient, OperationStatus } from "@map-colonies/mc-priority-queue";
+import { JOB_COMPLETED_MESSAGE } from "./constants";
+
 export interface IConfig {
   get: <T>(setting: string) => T;
   has: (setting: string) => boolean;
@@ -42,12 +46,4 @@ export interface IJobDefinitionsConfig {
 
 export interface TaskNotificationRequest {
   taskId: string;
-}
-
-export interface IJobHandler {
-  handleInitTask: (taskId: string) => Promise<void>;
-  handleFinalizeTask: (taskId: string) => Promise<void>;
-  handlePolygonTask: (taskId: string) => Promise<void>;
-  handleWorkTask: (taskId: string) => Promise<void>;
-  handleFailedTask: (taskId: string) => Promise<void>;
 }
