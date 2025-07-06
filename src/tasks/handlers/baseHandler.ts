@@ -1,7 +1,8 @@
 import { ICreateTaskBody, IJobResponse, ITaskResponse, JobManagerClient, OperationStatus, TaskHandler as QueueClient } from "@map-colonies/mc-priority-queue";
 import { Logger } from "@map-colonies/js-logger";
-import { IConfig, IJobDefinitionsConfig, TaskTypesArray } from "../../common/interfaces";
+import { IConfig, IJobDefinitionsConfig, JobAndTask, TaskTypesArray } from "../../common/interfaces";
 import { JOB_COMPLETED_MESSAGE } from "../../common/constants";
+import { taskParameterMapper } from "../../common/mappers";
 
 export abstract class JobHandler {
 
@@ -23,6 +24,22 @@ export abstract class JobHandler {
         this.shouldBlockDuplicationForTypes = [this.jobDefinitions.tasks.finalize, this.jobDefinitions.tasks.polygonParts, this.jobDefinitions.tasks.export];
     }
 
+    public async createNextTask(): Promise<void> {
+        if (this.canProceed()) {
+            const nextTaskType = this.getNextTaskType();
+            const taskParameters = taskParameterMapper[`${this.job.type}_${nextTaskType}`]
+
+            const createTaskBody: ICreateTaskBody<unknown> = {
+                type: nextTaskType,
+                parameters: taskParameters,
+                blockDuplication: this.shouldBlockDuplicationForTypes.includes(nextTaskType)
+            };
+
+            this.logger.info({ msg: `Creating ${nextTaskType} task for job: ${this.job.id}` });
+            await this.jobManager.createTaskForJob(this.job.id, createTaskBody);
+        }
+    }
+
     protected async completeJob(): Promise<void> {
         this.logger.info({ msg: `Completing job` });
         await this.jobManager.updateJob(this.job.id, { status: OperationStatus.COMPLETED, reason: JOB_COMPLETED_MESSAGE, percentage: 100 });
@@ -37,24 +54,11 @@ export abstract class JobHandler {
         }
     };
 
-    protected async createNextTask(taskParameters: unknown): Promise<void> {
-        this.canProceed();
-        const nextTaskType = this.getNextTaskType();
-
-        const createTaskBody: ICreateTaskBody<unknown> = {
-            type: nextTaskType,
-            parameters: taskParameters,
-            blockDuplication: this.shouldBlockDuplicationForTypes.includes(nextTaskType)
-        };
-
-        this.logger.info({ msg: `Creating ${nextTaskType} task for job: ${this.job.id}` });
-        await this.jobManager.createTaskForJob(this.job.id, createTaskBody);
-    }
-
     private getNextTaskType(): string {
         const indexOfCurrentTask = this.tasksFlow.indexOf(this.task.type);
         const nextTaskType = this.tasksFlow[indexOfCurrentTask + 1];
         return nextTaskType;
+        //add coverage for last item in the array
     }
 
     private async suspendJob(): Promise<void> {

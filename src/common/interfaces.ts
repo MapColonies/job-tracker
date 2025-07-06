@@ -1,6 +1,10 @@
 type ValueOf<T> = T[keyof T];
-export type TaskTypesArray = ValueOf<IJobDefinitionsConfig['tasks']>[];
+type JobType = ValueOf<IJobDefinitionsConfig['jobs']>;
+type TaskType = ValueOf<IJobDefinitionsConfig['tasks']>;
 
+export type JobAndTask = `${JobType}_${TaskType}`;
+
+export type TaskTypesArray = ValueOf<IJobDefinitionsConfig['tasks']>[];
 export interface IConfig {
   get: <T>(setting: string) => T;
   has: (setting: string) => boolean;

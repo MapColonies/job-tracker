@@ -1,6 +1,5 @@
 import { Logger } from "@map-colonies/js-logger";
 import {
-    ICreateTaskBody,
     IJobResponse,
     ITaskResponse,
     TaskHandler as QueueClient,
@@ -22,20 +21,8 @@ export class NewJobHandler extends JobHandler {
         super(logger, queueClient, config, job, task);
     }
 
-    // public async handleInitTask(): Promise<void> {
-    //     const taskParameters = {};
-    //     if (isInitialWorkflowCompleted(this.job, this.task)) {
-    //         await this.createNextTask(taskParameters);
-    //     }
-    // };
+    public canProceed(): boolean {
+        return isInitialWorkflowCompleted(this.job, this.task);
+    }
 
-    // public async handleFinalizeTask(): Promise<void> {
-    //     await this.completeJob();
-    // }
-
-    // public async handlePolygonTask(): Promise<void> {
-    //     const taskParameters = {};
-    //     await this.createNextTask(taskParameters);
-
-    // }
 }
