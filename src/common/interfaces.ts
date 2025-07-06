@@ -1,6 +1,5 @@
-import { Logger } from "@map-colonies/js-logger";
-import { IJobResponse, JobManagerClient, OperationStatus } from "@map-colonies/mc-priority-queue";
-import { JOB_COMPLETED_MESSAGE } from "./constants";
+type ValueOf<T> = T[keyof T];
+export type TaskTypesArray = ValueOf<IJobDefinitionsConfig['tasks']>[];
 
 export interface IConfig {
   get: <T>(setting: string) => T;

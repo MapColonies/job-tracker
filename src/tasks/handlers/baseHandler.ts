@@ -1,12 +1,14 @@
-import { IJobResponse, ITaskResponse, JobManagerClient, OperationStatus, TaskHandler as QueueClient } from "@map-colonies/mc-priority-queue";
+import { ICreateTaskBody, IJobResponse, ITaskResponse, JobManagerClient, OperationStatus, TaskHandler as QueueClient } from "@map-colonies/mc-priority-queue";
 import { Logger } from "@map-colonies/js-logger";
-import { IConfig, IJobDefinitionsConfig } from "../../common/interfaces";
+import { IConfig, IJobDefinitionsConfig, TaskTypesArray } from "../../common/interfaces";
 import { JOB_COMPLETED_MESSAGE } from "../../common/constants";
 
 export abstract class JobHandler {
 
     protected readonly jobManager: JobManagerClient;
     protected readonly jobDefinitions: IJobDefinitionsConfig;
+    protected readonly tasksFlow: TaskTypesArray;
+    protected readonly shouldBlockDuplicationForTypes: TaskTypesArray;
 
     protected constructor(
         protected readonly logger: Logger,
@@ -17,21 +19,55 @@ export abstract class JobHandler {
     ) {
         this.jobManager = this.queueClient.jobManagerClient;
         this.jobDefinitions = this.config.get<IJobDefinitionsConfig>('jobDefinitions');
+        this.tasksFlow = this.config.get<TaskTypesArray>('TasksFlow');
+        this.shouldBlockDuplicationForTypes = [this.jobDefinitions.tasks.finalize, this.jobDefinitions.tasks.polygonParts, this.jobDefinitions.tasks.export];
     }
 
     protected async completeJob(): Promise<void> {
-        const logger = this.logger.child({ jobId: this.job.id, jobType: this.job.type });
-        logger.info({ msg: `Completing job` });
+        this.logger.info({ msg: `Completing job` });
         await this.jobManager.updateJob(this.job.id, { status: OperationStatus.COMPLETED, reason: JOB_COMPLETED_MESSAGE, percentage: 100 });
-        logger.info({ msg: JOB_COMPLETED_MESSAGE });
+        this.logger.info({ msg: JOB_COMPLETED_MESSAGE });
     }
 
+    protected async handleFailedTask(): Promise<void> {
+        if (this.jobDefinitions.suspendingTaskTypes.includes(this.task.type)) {
+            await this.suspendJob();
+        } else {
+            await this.failJob();
+        }
+    };
 
-    public abstract handleInitTask(taskId: string): Promise<void>;
-    public abstract handleFinalizeTask(taskId: string): Promise<void>;
-    public abstract handlePolygonTask(taskId: string): Promise<void>;
-    public abstract handleWorkTask(taskId: string): Promise<void>;
-    public abstract handleFailedTask(taskId: string): Promise<void>;
+    protected async createNextTask(taskParameters: unknown): Promise<void> {
+        this.canProceed();
+        const nextTaskType = this.getNextTaskType();
 
+        const createTaskBody: ICreateTaskBody<unknown> = {
+            type: nextTaskType,
+            parameters: taskParameters,
+            blockDuplication: this.shouldBlockDuplicationForTypes.includes(nextTaskType)
+        };
 
+        this.logger.info({ msg: `Creating ${nextTaskType} task for job: ${this.job.id}` });
+        await this.jobManager.createTaskForJob(this.job.id, createTaskBody);
+    }
+
+    private getNextTaskType(): string {
+        const indexOfCurrentTask = this.tasksFlow.indexOf(this.task.type);
+        const nextTaskType = this.tasksFlow[indexOfCurrentTask + 1];
+        return nextTaskType;
+    }
+
+    private async suspendJob(): Promise<void> {
+        const reason = this.task.reason;
+        this.logger.info({ msg: `Suspending job: ${this.job.id}`, reason: `Reason: ${reason}` });
+        await this.jobManager.updateJob(this.job.id, { status: OperationStatus.SUSPENDED, reason });
+    }
+
+    private async failJob(): Promise<void> {
+        const reason = this.task.reason;
+        this.logger.info({ msg: `Failing job: ${this.job.id}`, reason: `Reason: ${reason}` });
+        await this.jobManager.updateJob(this.job.id, { status: OperationStatus.FAILED, reason });
+    }
+
+    public abstract canProceed(): boolean;
 }

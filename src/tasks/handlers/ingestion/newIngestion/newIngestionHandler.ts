@@ -20,29 +20,22 @@ export class NewJobHandler extends JobHandler {
         job: IJobResponse<unknown, unknown>, task: ITaskResponse<unknown>
     ) {
         super(logger, queueClient, config, job, task);
-
     }
 
-    public async handleInitTask(taskId: string): Promise<void> {
-        if (isInitialWorkflowCompleted(this.job, this.task)) {
-            const nextTaskType = this.jobDefinitions.tasks.polygonParts;
-            const createTaskBody: ICreateTaskBody<unknown> = {
-                type: nextTaskType,
-                parameters: {},
-                blockDuplication: true
-            };
+    // public async handleInitTask(): Promise<void> {
+    //     const taskParameters = {};
+    //     if (isInitialWorkflowCompleted(this.job, this.task)) {
+    //         await this.createNextTask(taskParameters);
+    //     }
+    // };
 
-            await this.jobManager.createTaskForJob(this.job.id, createTaskBody);
-            this.logger.info({ msg: `Created ${nextTaskType} task for job: ${this.job.id}` });
-        }
+    // public async handleFinalizeTask(): Promise<void> {
+    //     await this.completeJob();
+    // }
 
-    };
+    // public async handlePolygonTask(): Promise<void> {
+    //     const taskParameters = {};
+    //     await this.createNextTask(taskParameters);
 
-    public async handleFinalizeTask(taskId: string): Promise<void> {
-        await this.completeJob();
-    }
-
-    public async handlePolygonTask(taskId: string): Promise<void> { }
-    public async handleWorkTask(taskId: string): Promise<void> { }
-    public async handleFailedTask(taskId: string): Promise<void> { }
+    // }
 }
