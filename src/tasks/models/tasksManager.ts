@@ -25,6 +25,7 @@ import { JOB_COMPLETED_MESSAGE, SERVICES } from '../../common/constants';
 import { IrrelevantOperationStatusError } from '../../common/errors';
 import { IConfig, IJobDefinitionsConfig } from '../../common/interfaces';
 import { calculateTaskPercentage } from '../../utils/taskUtils';
+import { initJobHandler } from '../handlers/jobHandlersFactory';
 
 @injectable()
 export class TasksManager {
@@ -68,34 +69,36 @@ export class TasksManager {
 
   private async handleCompletedTask(job: IJobResponse<unknown, unknown>, task: ITaskResponse<unknown>): Promise<void> {
 
-    // //handlers factory - job , task
-    // const handler = new IngestionJobHandler(this.logger, this.queueClient, this.config, job, task);
-    // await handler.createNextTask();
-    if (job.type === this.jobDefinitions.jobs.seed) {
-      await this.handleSeedingTask(job);
-      return;
-    }
-    const initTask = await this.findTask({ jobId: job.id, type: this.jobDefinitions.tasks.init });
+    //handlers factory - job , task
+    const handler = initJobHandler(job.type, this.jobDefinitions);
+    await handler.createNextTask();
+    // if (job.type === this.jobDefinitions.jobs.seed) {
+    //   await this.handleSeedingTask(job);
+    //   return;
+    // }
+    // const initTask = await this.findTask({ jobId: job.id, type: this.jobDefinitions.tasks.init });
 
-    if (!initTask) {
-      this.logger.warn({ msg: 'Skipping because init task was not found' });
-      return;
-    }
-    // Handle completed finalization task
-    if (task.type === this.jobDefinitions.tasks.finalize) {
-      if (job.type === this.jobDefinitions.jobs.export) {
-        const validFinalizeTaskParams = exportFinalizeTaskParamsSchema.parse(task.parameters);
-        if (validFinalizeTaskParams.type === ExportFinalizeType.Error_Callback) {
-          return;
-        }
-      }
-      await this.completeJob(job);
-      return;
-    }
-    if (this.shouldCreateNextTask(job, initTask)) {
-      await this.createNextTask(task.type, job);
-      return;
-    }
+    // if (!initTask) {
+    //   this.logger.warn({ msg: 'Skipping because init task was not found' });
+    //   return;
+    // }
+    // // Handle completed finalization task
+    // if (task.type === this.jobDefinitions.tasks.finalize) {
+    //   if (job.type === this.jobDefinitions.jobs.export) {
+    //     const validFinalizeTaskParams = exportFinalizeTaskParamsSchema.parse(task.parameters);
+    //     if (validFinalizeTaskParams.type === ExportFinalizeType.Error_Callback) {
+    //       return;
+    //     }
+    //   }
+    //   await this.completeJob(job);
+    //   return;
+    // }
+    // if (this.shouldCreateNextTask(job, initTask)) {
+    //   await this.createNextTask(task.type, job);
+    //   return;
+    // }
+
+
     this.logger.debug({ msg: `Updating job percentage; No subsequence task for taskType ${task.type}` });
     const calculatedPercentage = calculateTaskPercentage(job.completedTasks, job.taskCount);
     await this.updateJobPercentage(job.id, calculatedPercentage);
