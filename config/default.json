@@ -57,8 +57,18 @@
       "finalize": "finalize",
       "seed": "TilesSeeding"
     },
-    "suspendingTaskTypes": ["polygon-parts"]
+    "suspendingTaskTypes": [
+      "polygon-parts"
+    ]
   },
-  "TasksFlow": ["init", "tilesMerging", "polygon-parts", "finalize"]
-
+  "TasksFlow": [
+    "init",
+    "tilesMerging",
+    "polygon-parts",
+    "finalize"
+  ],
+  "creationExcludedTaskTypes": [
+    "tilesMerging",
+    "polygon-parts"
+  ]
 }
