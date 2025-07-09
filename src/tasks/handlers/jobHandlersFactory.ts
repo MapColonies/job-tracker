@@ -1,23 +1,27 @@
-import { container } from "tsyringe";
 import { BadRequestError } from "@map-colonies/error-types";
-import { IJobDefinitionsConfig } from "../../common/interfaces";
-import { HANDLERS } from "../../common/constants";
+import { Logger } from "@map-colonies/js-logger";
+import { IJobResponse, ITaskResponse, TaskHandler as QueueClient } from "@map-colonies/mc-priority-queue";
+import { IConfig, IJobDefinitionsConfig } from "../../common/interfaces";
 import { JobHandler } from "./baseHandler";
 import { IngestionJobHandler } from "./ingestion/ingestionHandler";
 import { ExportJobHandler } from "./export/exportHandler";
 
 export function initJobHandler(
     jobHandlerType: string,
-    jobDefinitions: IJobDefinitionsConfig
+    jobDefinitions: IJobDefinitionsConfig,
+    logger: Logger,
+    queueClient: QueueClient,
+    config: IConfig,
+    job: IJobResponse<unknown, unknown>, task: ITaskResponse<unknown>
 ): JobHandler {
     switch (jobHandlerType) {
         case jobDefinitions.jobs.new:
         case jobDefinitions.jobs.update:
         case jobDefinitions.jobs.swapUpdate:
             //CASESEED?
-            return container.resolve<IngestionJobHandler>(HANDLERS.INGESTION) as JobHandler;
+            return new IngestionJobHandler(logger, queueClient, config, job, task)
         case jobDefinitions.jobs.export:
-            return container.resolve<ExportJobHandler>(HANDLERS.EXPORT) as JobHandler;
+            return new ExportJobHandler(logger, queueClient, config, job, task)
 
         default:
             throw new BadRequestError(`${jobHandlerType} job type is invalid`);

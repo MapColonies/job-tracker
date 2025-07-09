@@ -48,16 +48,11 @@ export class TasksManager {
       throw new NotFoundError(`Task ${taskId} not found`);
     }
     const job = await this.getJob(task.jobId);
+    const handler = initJobHandler(job.type, this.jobDefinitions, this.logger, this.queueClient, this.config, job, task)
+
     switch (task.status) {
       case OperationStatus.FAILED:
-        if (this.jobDefinitions.suspendingTaskTypes.includes(task.type)) {
-          await this.suspendJob(task.jobId, task.reason);
-        } else {
-          await this.failJob(task.jobId, task.reason);
-        }
-        if (job.type === this.jobDefinitions.jobs.export && task.type !== this.jobDefinitions.tasks.finalize) {
-          await this.handleExportFailure(task);
-        }
+        await handler.handleFailedTask();
         break;
       case OperationStatus.COMPLETED:
         await this.handleCompletedTask(job, task);
