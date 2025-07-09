@@ -51,9 +51,9 @@
     },
     "tasks": {
       "init": "init",
-      "merge": "merge",
+      "merge": "tilesMerging",
       "polygonParts": "polygon-parts",
-      "export": "export",
+      "export": "tilesExporting",
       "finalize": "finalize",
       "seed": "TilesSeeding"
     },
@@ -68,7 +68,6 @@
     "finalize"
   ],
   "creationExcludedTaskTypes": [
-    "tilesMerging",
-    "polygon-parts"
+    "tilesMerging"
   ]
 }

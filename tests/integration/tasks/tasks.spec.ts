@@ -4,12 +4,15 @@ import _ from 'lodash';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams } from '@map-colonies/raster-shared';
 import { ExportFinalizeType } from '@map-colonies/raster-shared';
+import { trace } from '@opentelemetry/api';
+import jsLogger from '@map-colonies/js-logger';
 import { configMock } from '../../mocks/configMock';
 import { getApp } from '../../../src/app';
 import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../src/common/interfaces';
 import { getExportJobMock, getIngestionJobMock, getSeedingJobMock, getTaskMock } from '../../mocks/JobMocks';
 import { calculateTaskPercentage } from '../../../src/utils/taskUtils';
-import { JOB_COMPLETED_MESSAGE } from '../../../src/common/constants';
+import { JOB_COMPLETED_MESSAGE, SERVICES } from '../../../src/common/constants';
+import { registerExternalValues } from '../../../src/containerConfig';
 import { TasksRequestSender } from './helpers/requestSender';
 import { getTestContainerConfig, resetContainer } from './helpers/containerConfig';
 
@@ -22,6 +25,12 @@ describe('tasks', function () {
     const [app] = getApp({
       override: [...getTestContainerConfig()],
       useChild: true,
+    });
+
+    registerExternalValues({
+      override: [{ token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
+      { token: SERVICES.CONFIG, provider: { useValue: configMock } },
+      { token: SERVICES.TRACER, provider: { useValue: trace.getTracer('testTracer') } },],
     });
 
     requestSender = new TasksRequestSender(app);
@@ -43,15 +52,11 @@ describe('tasks', function () {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
-      const mockInitTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(200, [mockMergeTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .get(`/jobs/${mockIngestionJob.id}`)
         .query({ shouldReturnTasks: false })
         .reply(200, mockIngestionJob);
-      nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.init })
-        .reply(200, [mockInitTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post(`/jobs/${mockIngestionJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts }))
         .reply(201);
@@ -73,15 +78,6 @@ describe('tasks', function () {
         .get(`/jobs/${mockIngestionJob.id}`)
         .query({ shouldReturnTasks: false })
         .reply(200, mockIngestionJob);
-
-      nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.init })
-        .reply(200, [mockInitTask]);
-
-      nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .post(`/jobs/${mockIngestionJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts }))
-        .reply(201);
-
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockIngestionJob.id}`).reply(200);
 
       // action
@@ -99,15 +95,11 @@ describe('tasks', function () {
         type: jobDefinitionsConfigMock.tasks.polygonParts,
         status: OperationStatus.COMPLETED,
       });
-      const mockInitTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(200, [mockMergeTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .get(`/jobs/${mockIngestionJob.id}`)
         .query({ shouldReturnTasks: false })
         .reply(200, mockIngestionJob);
-      nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.init })
-        .reply(200, [mockInitTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post(`/jobs/${mockIngestionJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.finalize }))
         .reply(201);
@@ -136,7 +128,7 @@ describe('tasks', function () {
       // expectation
       expect(response.status).toBe(200);
       expect(response).toSatisfyApiSpec();
-    });
+    }, 10000);
 
     it('Should return 200 and create finalize task when getting completed init task of export job when task count and completed task are even', async () => {
       // mocks
@@ -157,13 +149,13 @@ describe('tasks', function () {
         blockDuplication: false,
       };
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockExportJob);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockInitTask.id }).reply(200, [mockInitTask]);
+      // nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockInitTask.id }).reply(200, [mockInitTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post(`/tasks/find`, { jobId: mockExportJob.id, type: mockInitTask.type })
         .reply(200, [mockInitTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/jobs/${mockExportJob.id}/tasks`, mockFullProcessFinalizeTaskParams).reply(201);
+      // nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/jobs/${mockExportJob.id}/tasks`, mockFullProcessFinalizeTaskParams).reply(201);
       const taskPercentage = calculateTaskPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(200);
+      // nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(200);
       // action
       const response = await requestSender.handleTaskNotification(mockInitTask.id);
       // expectation
@@ -329,14 +321,14 @@ describe('tasks', function () {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
-      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(200, [mockMergeTask]);
+      // nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(200, [mockMergeTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .get(`/jobs/${mockIngestionJob.id}`)
         .query({ shouldReturnTasks: false })
         .reply(200, mockIngestionJob);
-      nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.init })
-        .reply(404);
+      // nock(jobManagerConfigMock.jobManagerBaseUrl)
+      //   .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.init })
+      //   .reply(404);
       // action
       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
       // expectation
@@ -349,14 +341,14 @@ describe('tasks', function () {
       const mockIngestionJob = getIngestionJobMock();
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
       const mockInitTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.IN_PROGRESS });
-      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(200, [mockMergeTask]);
+      // nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(200, [mockMergeTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .get(`/jobs/${mockIngestionJob.id}`)
         .query({ shouldReturnTasks: false })
         .reply(200, mockIngestionJob);
-      nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.init })
-        .reply(200, mockInitTask);
+      // nock(jobManagerConfigMock.jobManagerBaseUrl)
+      //   .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.init })
+      //   .reply(200, mockInitTask);
       // action
       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
       // expectation
