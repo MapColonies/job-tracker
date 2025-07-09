@@ -11,7 +11,7 @@ export const polygonPartsTaskCreationTestCases: PolygonPartsTaskCreationTestCase
   {
     description: 'Completed merge task with Completed init task',
     getJobMock: getIngestionJobMock,
-    taskType: 'merge',
+    taskType: 'tilesMerging',
   },
   {
     description: 'Init task when completed after merge task',
@@ -21,7 +21,7 @@ export const polygonPartsTaskCreationTestCases: PolygonPartsTaskCreationTestCase
   {
     description: 'Completed merge task with Completed init task',
     getJobMock: getExportJobMock,
-    taskType: 'export',
+    taskType: 'tilesExporting',
   },
   {
     description: 'Init task when completed after merge task',
