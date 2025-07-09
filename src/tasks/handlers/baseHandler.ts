@@ -43,7 +43,7 @@ export abstract class JobHandler {
 
         const taskParameters = taskParameterMapper.get(`${this.job.type}_${nextTaskType}`);
 
-        if (taskParameters != null) {
+        if (taskParameters === null) {
             this.logger.error({ msg: `task parameters for ${this.job.type}_${nextTaskType} do not exist` });
             throw new BadRequestError(`task parameters for ${this.job.type}_${nextTaskType} do not exist`);
         }
@@ -58,19 +58,19 @@ export abstract class JobHandler {
         await this.jobManager.createTaskForJob(this.job.id, createTaskBody);
     }
 
-    private async completeJob(): Promise<void> {
-        this.logger.info({ msg: `Completing job` });
-        await this.jobManager.updateJob(this.job.id, { status: OperationStatus.COMPLETED, reason: JOB_COMPLETED_MESSAGE, percentage: 100 });
-        this.logger.info({ msg: JOB_COMPLETED_MESSAGE });
-    }
-
-    private async handleFailedTask(): Promise<void> {
+    public async handleFailedTask(): Promise<void> {
         if (this.jobDefinitions.suspendingTaskTypes.includes(this.task.type)) {
             await this.suspendJob();
         } else {
             await this.failJob();
         }
     };
+
+    private async completeJob(): Promise<void> {
+        this.logger.info({ msg: `Completing job` });
+        await this.jobManager.updateJob(this.job.id, { status: OperationStatus.COMPLETED, reason: JOB_COMPLETED_MESSAGE, percentage: 100 });
+        this.logger.info({ msg: JOB_COMPLETED_MESSAGE });
+    }
 
     private getNextTaskType(): string | undefined {
         const indexOfCurrentTask = this.tasksFlow.indexOf(this.task.type);
@@ -81,13 +81,13 @@ export abstract class JobHandler {
     private async suspendJob(): Promise<void> {
         const reason = this.task.reason;
         this.logger.info({ msg: `Suspending job: ${this.job.id}`, reason: `Reason: ${reason}` });
-        await this.jobManager.updateJob(this.job.id, { status: OperationStatus.SUSPENDED, reason });
+        await this.jobManager.updateJob(this.job.id, { status: OperationStatus.SUSPENDED });
     }
 
     private async failJob(): Promise<void> {
         const reason = this.task.reason;
         this.logger.info({ msg: `Failing job: ${this.job.id}`, reason: `Reason: ${reason}` });
-        await this.jobManager.updateJob(this.job.id, { status: OperationStatus.FAILED, reason });
+        await this.jobManager.updateJob(this.job.id, { status: OperationStatus.FAILED });
     }
 
     private shouldSkipTaskCreation(taskType: string): boolean {

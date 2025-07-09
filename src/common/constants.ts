@@ -17,9 +17,3 @@ export const SERVICES = {
   QUEUE_CLIENT: Symbol('QueueClient'),
 } satisfies Record<string, symbol>;
 /* eslint-enable @typescript-eslint/naming-convention */
-
-/* eslint-disable @typescript-eslint/naming-convention */
-export const HANDLERS = {
-  INGESTION: config.get<string>('jobDefinitions.jobs.new.type'), EXPORT: config.get<string>('jobDefinitions.jobs.export.type'),
-} satisfies Record<string, string>;
-/* eslint-enable @typescript-eslint/naming-convention */
