@@ -9,7 +9,6 @@ export abstract class JobHandler {
 
     protected readonly jobManager: JobManagerClient;
     protected readonly jobDefinitions: IJobDefinitionsConfig;
-    protected readonly tasksFlow: TaskTypesArray;
     protected readonly creationExcludedTaskTypes: TaskTypesArray;
     protected readonly shouldBlockDuplicationForTypes: TaskTypesArray;
 
@@ -22,7 +21,6 @@ export abstract class JobHandler {
     ) {
         this.jobManager = this.queueClient.jobManagerClient;
         this.jobDefinitions = this.config.get<IJobDefinitionsConfig>('jobDefinitions');
-        this.tasksFlow = this.config.get<TaskTypesArray>('TasksFlow');
         this.creationExcludedTaskTypes = this.config.get<TaskTypesArray>('creationExcludedTaskTypes');
         this.shouldBlockDuplicationForTypes = [this.jobDefinitions.tasks.finalize, this.jobDefinitions.tasks.polygonParts, this.jobDefinitions.tasks.export];
     }
@@ -72,27 +70,23 @@ export abstract class JobHandler {
         this.logger.info({ msg: JOB_COMPLETED_MESSAGE });
     }
 
-    private getNextTaskType(): string | undefined {
-        const indexOfCurrentTask = this.tasksFlow.indexOf(this.task.type);
-        const nextTaskType = this.tasksFlow[indexOfCurrentTask + 1];
-        return nextTaskType;
-    }
-
+    
     private async suspendJob(): Promise<void> {
         const reason = this.task.reason;
         this.logger.info({ msg: `Suspending job: ${this.job.id}`, reason: `Reason: ${reason}` });
         await this.jobManager.updateJob(this.job.id, { status: OperationStatus.SUSPENDED });
     }
-
+    
     private async failJob(): Promise<void> {
         const reason = this.task.reason;
         this.logger.info({ msg: `Failing job: ${this.job.id}`, reason: `Reason: ${reason}` });
         await this.jobManager.updateJob(this.job.id, { status: OperationStatus.FAILED });
     }
-
+    
     private shouldSkipTaskCreation(taskType: string): boolean {
         return (this.creationExcludedTaskTypes.includes(taskType))
     }
-
+    
     public abstract canProceed(): boolean;
+    public abstract getNextTaskType(): string | undefined ;
 }

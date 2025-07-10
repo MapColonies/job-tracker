@@ -5,6 +5,7 @@ import { IConfig, IJobDefinitionsConfig } from "../../common/interfaces";
 import { JobHandler } from "./baseHandler";
 import { IngestionJobHandler } from "./ingestion/ingestionHandler";
 import { ExportJobHandler } from "./export/exportHandler";
+import { ExportFinalizeJobHandler } from "./export/finalizeHandler";
 
 export function initJobHandler(
     jobHandlerType: string,
@@ -21,6 +22,11 @@ export function initJobHandler(
             //CASESEED?
             return new IngestionJobHandler(logger, queueClient, config, job, task)
         case jobDefinitions.jobs.export:
+            switch (task.type) {
+                case jobDefinitions.tasks.finalize:
+                    return new ExportFinalizeJobHandler(logger, queueClient, config, job, task)
+                    break;
+            }
             return new ExportJobHandler(logger, queueClient, config, job, task)
 
         default:

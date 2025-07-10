@@ -61,9 +61,15 @@
       "polygon-parts"
     ]
   },
-  "TasksFlow": [
+  "IngestionTasksFlow": [
     "init",
     "tilesMerging",
+    "polygon-parts",
+    "finalize"
+  ],
+  "ExportTasksFlow": [
+    "init",
+    "tilesExporting",
     "polygon-parts",
     "finalize"
   ],

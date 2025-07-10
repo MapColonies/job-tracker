@@ -6,13 +6,12 @@ import {
 } from "@map-colonies/mc-priority-queue";
 import { injectable, inject } from "tsyringe";
 import { exportFinalizeTaskParamsSchema, ExportFinalizeType } from "@map-colonies/raster-shared";
-import { IConfig, TaskTypesArray } from "../../../common/interfaces";
+import { IConfig } from "../../../common/interfaces";
 import { SERVICES } from "../../../common/constants";
-import { JobHandler } from "../baseHandler";
+import { ExportJobHandler } from "./exportHandler";
 
 @injectable()
-export class ExportJobHandler extends JobHandler {
-    protected readonly exportTasksFlow: TaskTypesArray;
+export class ExportFinalizeJobHandler extends ExportJobHandler {
 
 
     public constructor(
@@ -22,17 +21,13 @@ export class ExportJobHandler extends JobHandler {
         job: IJobResponse<unknown, unknown>, task: ITaskResponse<unknown>
     ) {
         super(logger, queueClient, config, job, task);
-        this.exportTasksFlow = this.config.get<TaskTypesArray>('ExportTasksFlow');
-
-    }
-
-    public getNextTaskType(): string | undefined {
-        const indexOfCurrentTask = this.exportTasksFlow.indexOf(this.task.type);
-        const nextTaskType = this.exportTasksFlow[indexOfCurrentTask + 1];
-        return nextTaskType;
     }
 
     public canProceed(): boolean {
+        const validFinalizeTaskParams = exportFinalizeTaskParamsSchema.parse(this.task.parameters);
+        if (validFinalizeTaskParams.type === ExportFinalizeType.Error_Callback) {
+            return false;
+        }
         return true;
     }
 
