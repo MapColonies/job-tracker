@@ -79,6 +79,9 @@ describe('tasks', function () {
         .query({ shouldReturnTasks: false })
         .reply(200, mockIngestionJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockIngestionJob.id}`).reply(200);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post(`/jobs/${mockIngestionJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts }))
+        .reply(201);
 
       // action
       const response = await requestSender.handleTaskNotification(mockInitTask.id);
@@ -130,7 +133,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     }, 10000);
 
-    it.only('Should return 200 and create finalize task when getting completed init task of export job when task count and completed task are even', async () => {
+    it('Should return 200 and create finalize task when getting completed init task of export job when task count and completed task are even', async () => {
       // mocks
       const mockExportJob = getExportJobMock();
       const mockInitTask = getTaskMock(mockExportJob.id, {
@@ -153,9 +156,9 @@ describe('tasks', function () {
       // nock(jobManagerConfigMock.jobManagerBaseUrl)
       //   .post(`/tasks/find`, { jobId: mockExportJob.id, type: mockInitTask.type })
       //   .reply(200, [mockInitTask]);
-      // nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/jobs/${mockExportJob.id}/tasks`, mockFullProcessFinalizeTaskParams).reply(201);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/jobs/${mockExportJob.id}/tasks`, mockFullProcessFinalizeTaskParams).reply(201);
       const taskPercentage = calculateTaskPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
-      // nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(200);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(200);
       // action
       const response = await requestSender.handleTaskNotification(mockInitTask.id);
       // expectation
@@ -173,9 +176,6 @@ describe('tasks', function () {
 
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockInitTask.id }).reply(200, [mockInitTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .post(`/tasks/find`, { jobId: mockExportJob.id, type: mockInitTask.type })
-        .reply(200, [mockInitTask]);
       const taskPercentage = calculateTaskPercentage(mockExportJob.completedTasks, mockExportJob.taskCount);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(200);
       // action
@@ -183,8 +183,9 @@ describe('tasks', function () {
       // expectation
       expect(response.status).toBe(200);
       expect(response).toSatisfyApiSpec();
-    });
+    }, 10000);
 
+    //ask
     it('Should return 200 and create finalize task when getting failed task of export job', async () => {
       // mocks
       const mockExportJob = getExportJobMock();

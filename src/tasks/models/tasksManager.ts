@@ -46,8 +46,6 @@ export class TasksManager {
         break;
       case OperationStatus.COMPLETED:
         await handler.createNextTask();
-        this.logger.debug({ msg: `Updating job percentage; No subsequence task for taskType ${task.type}` });
-        await this.updateJobPercentage(job.id, calculateTaskPercentage(job.completedTasks, job.taskCount));
         break;
       default:
         throw new IrrelevantOperationStatusError(`Expected to get a 'Completed' or 'Failed' task' but instead got '${task.status}'`);
@@ -65,8 +63,4 @@ export class TasksManager {
     return this.jobManager.getJob(jobId);
   }
 
-  private async updateJobPercentage(jobId: string, desiredPercentage: number): Promise<void> {
-    await this.jobManager.updateJob(jobId, { percentage: desiredPercentage });
-    this.logger.info({ msg: `Updated percentages (${desiredPercentage}) for job: ${jobId}` });
-  }
 }

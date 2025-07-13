@@ -40,7 +40,7 @@ export const getExportJobMock = (override?: Partial<IJobResponse<unknown, unknow
     id: faker.string.uuid(),
     resourceId: 'test',
     version: '1.0',
-    type: 'export',
+    type: 'Export',
     description: '',
     status: OperationStatus.IN_PROGRESS,
     percentage: 100,

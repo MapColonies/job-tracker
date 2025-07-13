@@ -73,7 +73,10 @@
     "polygon-parts",
     "finalize"
   ],
-  "creationExcludedTaskTypes": [
+  "ingestionCreationExcludedTaskTypes": [
     "tilesMerging"
+  ],
+  "exportCreationExcludedTaskTypes": [
+    "tilesExporting"
   ]
 }

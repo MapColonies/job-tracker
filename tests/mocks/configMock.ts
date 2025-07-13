@@ -87,7 +87,7 @@ const registerDefaultConfig = (): void => {
         new: 'Ingestion_New',
         update: 'Ingestion_Update',
         swapUpdate: 'Ingestion_Swap_Update',
-        export: 'export',
+        export: 'Export',
         seed: 'TilesSeeding',
       },
       tasks: {
@@ -100,6 +100,24 @@ const registerDefaultConfig = (): void => {
       },
       suspendingTaskTypes: ['polygon-parts'],
     },
+    ingestionTasksFlow: [
+      "init",
+      "tilesMerging",
+      "polygon-parts",
+      "finalize"
+    ],
+    exportTasksFlow: [
+      "init",
+      "tilesExporting",
+      "polygon-parts",
+      "finalize"
+    ],
+    ingestionCreationExcludedTaskTypes: [
+      "tilesMerging"
+    ],
+    exportCreationExcludedTaskTypes: [
+      "tilesExporting", "polygon-parts"
+    ]
   };
 
   setConfigValues(config);
