@@ -1,5 +1,4 @@
 import { readPackageJsonSync } from '@map-colonies/read-pkg';
-import config from 'config';
 
 export const SERVICE_NAME = readPackageJsonSync().name ?? 'unknown_service';
 export const DEFAULT_SERVER_PORT = 80;
