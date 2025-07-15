@@ -57,27 +57,10 @@
       "finalize": "finalize",
       "seed": "TilesSeeding"
     },
-    "suspendingTaskTypes": [
-      "polygon-parts"
-    ]
+    "suspendingTaskTypes": ["polygon-parts"]
   },
-  "IngestionTasksFlow": [
-    "init",
-    "tilesMerging",
-    "polygon-parts",
-    "finalize",
-    "TilesSeeding"
-  ],
-  "ExportTasksFlow": [
-    "init",
-    "tilesExporting",
-    "polygon-parts",
-    "finalize"
-  ],
-  "ingestionCreationExcludedTaskTypes": [
-    "tilesMerging", "TilesSeeding"
-  ],
-  "exportCreationExcludedTaskTypes": [
-    "tilesExporting"
-  ]
+  "IngestionTasksFlow": ["init", "tilesMerging", "polygon-parts", "finalize", "TilesSeeding"],
+  "ExportTasksFlow": ["init", "tilesExporting", "polygon-parts", "finalize"],
+  "ingestionCreationExcludedTaskTypes": ["tilesMerging", "TilesSeeding"],
+  "exportCreationExcludedTaskTypes": ["tilesExporting"]
 }
