@@ -65,7 +65,8 @@
     "init",
     "tilesMerging",
     "polygon-parts",
-    "finalize"
+    "finalize",
+    "TilesSeeding"
   ],
   "ExportTasksFlow": [
     "init",
@@ -74,7 +75,7 @@
     "finalize"
   ],
   "ingestionCreationExcludedTaskTypes": [
-    "tilesMerging"
+    "tilesMerging", "TilesSeeding"
   ],
   "exportCreationExcludedTaskTypes": [
     "tilesExporting"
