@@ -12,7 +12,6 @@ import { inject, injectable } from 'tsyringe';
 import { SERVICES } from '../../common/constants';
 import { IrrelevantOperationStatusError } from '../../common/errors';
 import { IConfig, IJobDefinitionsConfig } from '../../common/interfaces';
-import { calculateTaskPercentage } from '../../utils/taskUtils';
 import { initJobHandler } from '../handlers/jobHandlersFactory';
 
 @injectable()
@@ -38,7 +37,7 @@ export class TasksManager {
     }
 
     const job = await this.getJob(task.jobId);
-    const handler = initJobHandler(job.type, this.jobDefinitions, this.logger, this.queueClient, this.config, job, task)
+    const handler = initJobHandler(job.type, this.jobDefinitions, this.logger, this.queueClient, this.config, job, task);
 
     switch (task.status) {
       case OperationStatus.FAILED:
@@ -50,8 +49,6 @@ export class TasksManager {
       default:
         throw new IrrelevantOperationStatusError(`Expected to get a 'Completed' or 'Failed' task' but instead got '${task.status}'`);
     }
-
-
   }
 
   private async findTask(body: IFindTaskRequest<unknown>): Promise<ITaskResponse<unknown> | undefined> {
@@ -62,5 +59,4 @@ export class TasksManager {
   private async getJob(jobId: string): Promise<IJobResponse<unknown, unknown>> {
     return this.jobManager.getJob(jobId);
   }
-
 }
