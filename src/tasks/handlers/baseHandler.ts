@@ -103,7 +103,7 @@ export abstract class JobHandler {
   private async suspendJob(): Promise<void> {
     const reason = this.task.reason;
     this.logger.info({ msg: `Suspending job: ${this.job.id}`, reason: `Reason: ${reason}` });
-    await this.jobManager.updateJob(this.job.id, { status: OperationStatus.SUSPENDED });
+    await this.jobManager.updateJob(this.job.id, { status: OperationStatus.SUSPENDED, reason: reason });
   }
 
   private getNextTaskType(): string | undefined {
