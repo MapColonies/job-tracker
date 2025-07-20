@@ -431,10 +431,13 @@ describe('TasksManager', () => {
     });
 
     //should remove?
-    it('Should not update job on a completed error callback export finalize task', async () => {
+    it('Should not update job to completed on a completed error callback export finalize task', async () => {
       // mocks
       const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
       const exportJobMock = getExportJobMock();
+      exportJobMock.failedTasks = 1;
+      exportJobMock.taskCount++;
+      exportJobMock.status = OperationStatus.FAILED;
       const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
       const exportTaskMock = getTaskMock(exportJobMock.id, {
         type: jobDefinitionsConfigMock.tasks.finalize,
@@ -442,13 +445,15 @@ describe('TasksManager', () => {
         reason: 'some error message',
         parameters: mockExportErrorFinalizeTaskParams,
       });
+      const expectedPercentage = calculateTaskPercentage(exportJobMock.completedTasks, exportJobMock.taskCount);
 
       mockFindTasks.mockResolvedValue([exportTaskMock]);
       mockGetJob.mockResolvedValue(exportJobMock);
       // action
       await tasksManager.handleTaskNotification(exportTaskMock.id);
       // expectation
-      expect(mockUpdateJob).not.toHaveBeenCalled();
+      expect(mockUpdateJob).toHaveBeenCalledWith(exportJobMock.id, { percentage: expectedPercentage });
+      expect(expectedPercentage).toBeLessThan(100)
     });
 
     it('Should fail a job on a failed seeding task', async () => {

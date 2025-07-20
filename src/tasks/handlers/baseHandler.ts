@@ -7,7 +7,7 @@ import {
   TaskHandler as QueueClient,
 } from '@map-colonies/mc-priority-queue';
 import { Logger } from '@map-colonies/js-logger';
-import { BadRequestError } from '@map-colonies/error-types';
+import { BadRequestError, ConflictError } from '@map-colonies/error-types';
 import { IConfig, IJobDefinitionsConfig, JobAndTask, TaskTypesArray } from '../../common/interfaces';
 import { JOB_COMPLETED_MESSAGE } from '../../common/constants';
 import { taskParameterMapper } from '../../common/mappers';
@@ -58,8 +58,17 @@ export abstract class JobHandler {
       blockDuplication: this.shouldBlockDuplicationForTypes.includes(nextTaskType),
     };
 
-    this.logger.info({ msg: `Creating ${nextTaskType} task for job: ${this.job.id}` });
-    await this.jobManager.createTaskForJob(this.job.id, createTaskBody);
+
+    try {
+      this.logger.info({ msg: `Creating ${nextTaskType} task for job: ${this.job.id}` });
+      await this.jobManager.createTaskForJob(this.job.id, createTaskBody);
+    } catch (error) {
+      if (error instanceof ConflictError) {
+        this.logger.warn({ msg: `Detected an existing ${nextTaskType} task for job: ${this.job.id} - silently ignoring` });
+        return;
+      }
+      throw error;
+    }
 
     this.logger.debug({ msg: `Updating job percentage; No subsequence task for taskType ${this.task.type}` });
     await this.updateJobPercentage(this.job.id, calculateTaskPercentage(this.job.completedTasks, this.job.taskCount + 1));
