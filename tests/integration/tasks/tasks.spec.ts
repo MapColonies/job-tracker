@@ -152,22 +152,17 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     }, 10000);
 
-    it('Should return 200 and create finalize task when getting completed init task of export job when task count and completed task are even', async () => {
+    it('Should return 200 and create polygonParts task when getting completed init task of export job when task count and completed task are even', async () => {
       // mocks
       const mockExportJob = getExportJobMock();
       const mockInitTask = getTaskMock(mockExportJob.id, {
         type: jobDefinitionsConfigMock.tasks.init,
         status: OperationStatus.COMPLETED,
       });
-      const fullProcessingFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
-        type: ExportFinalizeType.Full_Processing,
-        gpkgModified: false,
-        gpkgUploadedToS3: false,
-        callbacksSent: false,
-      };
+      const exportPolygonPartsTaskParams = {};
       const mockFullProcessFinalizeTaskParams = {
-        parameters: fullProcessingFinalizeTaskParams,
-        type: jobDefinitionsConfigMock.tasks.finalize,
+        parameters: exportPolygonPartsTaskParams,
+        type: jobDefinitionsConfigMock.tasks.polygonParts,
         blockDuplication: false,
       };
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockExportJob);
@@ -183,6 +178,40 @@ describe('tasks', function () {
       // expectation
       expect(response.status).toBe(200);
       expect(response).toSatisfyApiSpec();
+    });
+
+    it('Should return 200 and create finalize task when getting completed polygonParts task of export job when task count and completed task are even', async () => {
+      // mocks
+      const mockExportJob = getExportJobMock();
+      const mockPolygonPartsTask = getTaskMock(mockExportJob.id, {
+        type: jobDefinitionsConfigMock.tasks.polygonParts,
+        status: OperationStatus.COMPLETED,
+      });
+      const fullProcessingFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
+        type: ExportFinalizeType.Full_Processing,
+        gpkgModified: false,
+        gpkgUploadedToS3: false,
+        callbacksSent: false,
+      };
+      const mockFullProcessFinalizeTaskParams = {
+        parameters: fullProcessingFinalizeTaskParams,
+        type: jobDefinitionsConfigMock.tasks.finalize,
+        blockDuplication: false,
+      };
+      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockExportJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockPolygonPartsTask.id }).reply(200, [mockPolygonPartsTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post(`/tasks/find`, { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
+        .reply(200, [mockPolygonPartsTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/jobs/${mockExportJob.id}/tasks`, mockFullProcessFinalizeTaskParams).reply(201);
+      const taskPercentage = calculateTaskPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(200);
+      // action
+      const response = await requestSender.handleTaskNotification(mockPolygonPartsTask.id);
+      // expectation
+      expect(response.status).toBe(200);
+      expect(response).toSatisfyApiSpec();
+
     });
 
     it('Should return 200 when getting completed init task of export job when task count and completed task are not even', async () => {
@@ -285,7 +314,7 @@ describe('tasks', function () {
       // mocks
       const mockExportJob = getExportJobMock();
       const mockExportTask = getTaskMock(mockExportJob.id, {
-        type: jobDefinitionsConfigMock.tasks.export,
+        type: jobDefinitionsConfigMock.tasks.polygonParts,
         status: OperationStatus.COMPLETED,
       });
       const fullProccessingFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
