@@ -20,7 +20,7 @@ export class IngestionJobHandler extends JobHandler {
     task: ITaskResponse<unknown>
   ) {
     super(logger, queueClient, config, job, task);
-    this.tasksFlow = this.config.get<TaskTypesArray>('IngestionTasksFlow');
+    this.tasksFlow = this.config.get<TaskTypesArray>('ingestionTasksFlow');
     this.excludedTypes = this.config.get<TaskTypesArray>('ingestionCreationExcludedTaskTypes');
     this.shouldBlockDuplicationForTypes = [this.jobDefinitions.tasks.finalize, this.jobDefinitions.tasks.polygonParts];
   }

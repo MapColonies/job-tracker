@@ -21,7 +21,7 @@ export class ExportJobHandler extends JobHandler {
     task: ITaskResponse<unknown>
   ) {
     super(logger, queueClient, config, job, task);
-    this.tasksFlow = this.config.get<TaskTypesArray>('ExportTasksFlow');
+    this.tasksFlow = this.config.get<TaskTypesArray>('exportTasksFlow');
     this.excludedTypes = this.config.get<TaskTypesArray>('exportCreationExcludedTaskTypes');
     this.shouldBlockDuplicationForTypes = [this.jobDefinitions.tasks.export];
     this.setValidations();

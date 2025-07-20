@@ -211,7 +211,6 @@ describe('tasks', function () {
       // expectation
       expect(response.status).toBe(200);
       expect(response).toSatisfyApiSpec();
-
     });
 
     it('Should return 200 when getting completed init task of export job when task count and completed task are not even', async () => {
@@ -363,26 +362,6 @@ describe('tasks', function () {
       expect(response.status).toBe(200);
       expect(response).toSatisfyApiSpec();
     });
-
-    //ask shlomi about this test? what should be the behaviour
-    // it.only('Should return 200 when getting completed task whose job have no init task', async () => {
-    //   // mocks
-    //   const mockIngestionJob = getIngestionJobMock();
-    //   const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(200, [mockMergeTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockIngestionJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(200, mockIngestionJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.init })
-    //     .reply(404);
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockMergeTask.id);
-    //   // expectation
-    //   expect(response.status).toBe(200);
-    //   expect(response).toSatisfyApiSpec();
-    // },1000000);
 
     it("Should return 200 when getting completed task who'se job's init task status is in progress", async () => {
       // mocks

@@ -289,7 +289,7 @@ describe('TasksManager', () => {
       // mocks
       const { tasksManager, mockFindTasks, jobDefinitionsConfigMock, mockGetJob } = testContext;
       const ingestionJobMock = getIngestionJobMock();
-      mockGetJob.mockResolvedValueOnce(ingestionJobMock)
+      mockGetJob.mockResolvedValueOnce(ingestionJobMock);
       const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.PENDING });
 
       mockFindTasks.mockResolvedValueOnce([mergeTaskMock]);
@@ -453,7 +453,7 @@ describe('TasksManager', () => {
       await tasksManager.handleTaskNotification(exportTaskMock.id);
       // expectation
       expect(mockUpdateJob).toHaveBeenCalledWith(exportJobMock.id, { percentage: expectedPercentage });
-      expect(expectedPercentage).toBeLessThan(100)
+      expect(expectedPercentage).toBeLessThan(100);
     });
 
     it('Should fail a job on a failed seeding task', async () => {
