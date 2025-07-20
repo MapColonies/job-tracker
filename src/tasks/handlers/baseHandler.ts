@@ -33,45 +33,18 @@ export abstract class JobHandler {
 
   public async createNextTask(): Promise<void> {
     const nextTaskType = this.getNextTaskType();
-    const isLastTask = nextTaskType === undefined;
 
-    if (isLastTask) {
-      if (this.isAllTasksCompleted()) {
-        await this.completeJob();
-      } else {
-        await this.updateJobPercentage(this.job.id, calculateTaskPercentage(this.job.completedTasks, this.job.taskCount));
-      }
+    if (nextTaskType == undefined) {
+      await this.handleNoNextTask();
       return;
     }
 
     if (!(await this.canProceed()) || this.shouldSkipTaskCreation(nextTaskType)) {
-      this.logger.info({ msg: `skipping current task creation for type ${nextTaskType} on job: ${this.job.id}` });
-      await this.updateJobPercentage(this.job.id, calculateTaskPercentage(this.job.completedTasks, this.job.taskCount));
+      await this.handleSkipTask(nextTaskType);
       return;
     }
 
-    const taskParameters = this.getTaskParameters(this.job.type, nextTaskType);
-
-    const createTaskBody: ICreateTaskBody<unknown> = {
-      type: nextTaskType,
-      parameters: taskParameters,
-      blockDuplication: this.shouldBlockDuplicationForTypes.includes(nextTaskType),
-    };
-
-
-    try {
-      this.logger.info({ msg: `Creating ${nextTaskType} task for job: ${this.job.id}` });
-      await this.jobManager.createTaskForJob(this.job.id, createTaskBody);
-    } catch (error) {
-      if (error instanceof ConflictError) {
-        this.logger.warn({ msg: `Detected an existing ${nextTaskType} task for job: ${this.job.id} - silently ignoring` });
-        return;
-      }
-      throw error;
-    }
-
-    this.logger.debug({ msg: `Updating job percentage; No subsequence task for taskType ${this.task.type}` });
-    await this.updateJobPercentage(this.job.id, calculateTaskPercentage(this.job.completedTasks, this.job.taskCount + 1));
+    await this.createNewTask(nextTaskType);
   }
 
   public async handleFailedTask(): Promise<void> {
@@ -91,6 +64,49 @@ export abstract class JobHandler {
   protected async findInitTasks(): Promise<ITaskResponse<unknown>[] | undefined> {
     const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.init });
     return tasks ?? undefined;
+  }
+
+  private async handleNoNextTask(): Promise<void> {
+    const percentage = calculateTaskPercentage(this.job.completedTasks, this.job.taskCount);
+
+    if (this.isAllTasksCompleted()) {
+      this.logger.info({ msg: 'Completing job', jobId: this.job.id });
+      await this.completeJob();
+    } else {
+      this.logger.info({ msg: 'No next task, updating progress', jobId: this.job.id });
+      await this.updateJobPercentage(this.job.id, percentage);
+    }
+  }
+
+  private async handleSkipTask(nextTaskType: string): Promise<void> {
+    this.logger.info({ msg: 'Skipping task creation', jobId: this.job.id, taskType: nextTaskType });
+    const percentage = calculateTaskPercentage(this.job.completedTasks, this.job.taskCount);
+    await this.updateJobPercentage(this.job.id, percentage);
+  }
+
+  private async createNewTask(nextTaskType: string): Promise<void> {
+    const createTaskBody: ICreateTaskBody<unknown> = {
+      type: nextTaskType,
+      parameters: this.getTaskParameters(this.job.type, nextTaskType),
+      blockDuplication: this.shouldBlockDuplicationForTypes.includes(nextTaskType),
+    };
+
+    try {
+      this.logger.info({ msg: 'Creating task', jobId: this.job.id, taskType: nextTaskType });
+      await this.jobManager.createTaskForJob(this.job.id, createTaskBody);
+    } catch (error) {
+      if (error instanceof ConflictError) {
+        this.logger.warn({ msg: 'Task already exists, skipping', jobId: this.job.id, taskType: nextTaskType });
+        return;
+      }
+      throw error;
+    }
+
+    const newTaskCount = this.job.taskCount + 1;
+    const percentage = calculateTaskPercentage(this.job.completedTasks, newTaskCount);
+
+    this.logger.debug({ msg: 'Task created, updating progress', jobId: this.job.id, taskType: nextTaskType });
+    await this.updateJobPercentage(this.job.id, percentage);
   }
 
   private getTaskParameters(jobType: string, taskType: string): unknown {
