@@ -53,7 +53,7 @@ export class ExportJobHandler extends JobHandler {
     await this.failJob();
   };
 
-  private readonly exportValidator = async (): Promise<boolean> => {
+  private readonly exportShouldProceed = async (): Promise<boolean> => {
     const initTasksOfJob = await this.findInitTasks();
     if (initTasksOfJob === undefined) {
       this.logger.warn({
@@ -69,7 +69,7 @@ export class ExportJobHandler extends JobHandler {
     }
   };
 
-  private readonly finalizeValidator = async (): Promise<boolean> => {
+  private readonly finalizeShouldProceed = async (): Promise<boolean> => {
     const validFinalizeTaskParams = exportFinalizeTaskParamsSchema.parse(this.task.parameters);
     if (validFinalizeTaskParams.type === ExportFinalizeType.Error_Callback) {
       return Promise.resolve(false);
@@ -80,11 +80,11 @@ export class ExportJobHandler extends JobHandler {
   private setValidations(): void {
     switch (this.task.type) {
       case this.jobDefinitions.tasks.finalize:
-        this.canProceed = this.finalizeValidator;
+        this.canProceed = this.finalizeShouldProceed;
         this.handleFailedTask = super.handleFailedTask;
         break;
       default:
-        this.canProceed = this.exportValidator;
+        this.canProceed = this.exportShouldProceed;
         this.handleFailedTask = this.handleFailedExportTask;
         break;
     }
