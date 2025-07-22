@@ -100,10 +100,12 @@ const registerDefaultConfig = (): void => {
       },
       suspendingTaskTypes: ['polygon-parts'],
     },
-    ingestionTasksFlow: ['init', 'tilesMerging', 'polygon-parts', 'finalize', 'TilesSeeding'],
-    exportTasksFlow: ['init', 'tilesExporting', 'polygon-parts', 'finalize'],
-    ingestionCreationExcludedTaskTypes: ['tilesMerging', 'TilesSeeding'],
-    exportCreationExcludedTaskTypes: ['tilesExporting'],
+    taskFlowManager: {
+      ingestionTasksFlow: ['init', 'tilesMerging', 'polygon-parts', 'finalize', 'TilesSeeding'],
+      exportTasksFlow: ['init', 'tilesExporting', 'polygon-parts', 'finalize'],
+      ingestionCreationExcludedTaskTypes: ['tilesMerging', 'TilesSeeding'],
+      exportCreationExcludedTaskTypes: ['tilesExporting'],
+    },
   };
 
   setConfigValues(config);

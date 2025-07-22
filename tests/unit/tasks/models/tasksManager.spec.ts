@@ -391,7 +391,7 @@ describe('TasksManager', () => {
     it('Should create next task when export finalize FullProcessing completed', async () => {
       // mocks
       const { tasksManager, mockFindTasks, mockCreateTaskForJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
-      setValue('exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);
+      setValue('taskFlowManager.exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);
       init();
       const mockReason = 'finalize task failed';
       const job = getExportJobMock();
@@ -423,7 +423,7 @@ describe('TasksManager', () => {
     it('Should fail export job when export finalize ErrorCallback completed', async () => {
       // mocks
       const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
-      setValue('exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);
+      setValue('taskFlowManager.exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);
       init();
       const job = getExportJobMock({ failedTasks: 1, taskCount: 6 });
       const mockExportErrorCallbackTaskParams: ExportFinalizeErrorCallbackParams = {

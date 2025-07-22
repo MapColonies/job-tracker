@@ -417,7 +417,7 @@ describe('tasks', function () {
     it('Should return 200 complete job and and crete following task', async () => {
       // mocks
       const mockExportJob = getExportJobMock();
-      setValue('exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);
+      setValue('taskFlowManager.exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);
       init();
       const mockExportErrorCallbackTaskParams: ExportFinalizeFullProcessingParams = {
         type: ExportFinalizeType.Full_Processing,
