@@ -394,7 +394,6 @@ describe('tasks', function () {
       const mockExportErrorCallbackTaskParams: ExportFinalizeErrorCallbackParams = {
         type: ExportFinalizeType.Error_Callback,
         callbacksSent: false
-
       };
       const mockFinalizeTask = getTaskMock(mockExportJob.id, {
         type: jobDefinitionsConfigMock.tasks.finalize,
@@ -416,7 +415,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 complete job and while checking export validation on finalize', async () => {
+    it('Should return 200 complete job and and crete following task', async () => {
       // mocks
       const mockExportJob = getExportJobMock();
       setValue('exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts'])
