@@ -388,12 +388,11 @@ describe('TasksManager', () => {
       expect(mockUpdateJob).toHaveBeenCalledWith(job.id, { status: OperationStatus.COMPLETED, reason: finalizeTaskMock.reason, percentage: 100 });
     });
 
-
     it('Should create next task when export finalize FullProcessing completed', async () => {
       // mocks
       const { tasksManager, mockFindTasks, mockCreateTaskForJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
-      setValue('exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts'])
-      init()
+      setValue('exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);
+      init();
       const mockReason = 'finalize task failed';
       const job = getExportJobMock();
       const mockExportFullProcessingFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
@@ -406,7 +405,7 @@ describe('TasksManager', () => {
         type: jobDefinitionsConfigMock.tasks.finalize,
         status: OperationStatus.COMPLETED,
         reason: mockReason,
-        parameters: mockExportFullProcessingFinalizeTaskParams
+        parameters: mockExportFullProcessingFinalizeTaskParams,
       });
 
       mockFindTasks.mockResolvedValue([finalizeTaskMock]);
@@ -414,23 +413,27 @@ describe('TasksManager', () => {
 
       await tasksManager.handleTaskNotification(finalizeTaskMock.id);
 
-      expect(mockCreateTaskForJob).toHaveBeenCalledWith(job.id, { type: jobDefinitionsConfigMock.tasks.polygonParts, parameters: {}, blockDuplication: false });
+      expect(mockCreateTaskForJob).toHaveBeenCalledWith(job.id, {
+        type: jobDefinitionsConfigMock.tasks.polygonParts,
+        parameters: {},
+        blockDuplication: false,
+      });
     });
 
     it('Should fail export job when export finalize ErrorCallback completed', async () => {
       // mocks
       const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
-      setValue('exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts'])
-      init()
-      const job = getExportJobMock({failedTasks: 1, taskCount: 6});
+      setValue('exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);
+      init();
+      const job = getExportJobMock({ failedTasks: 1, taskCount: 6 });
       const mockExportErrorCallbackTaskParams: ExportFinalizeErrorCallbackParams = {
         type: ExportFinalizeType.Error_Callback,
-        callbacksSent: false
+        callbacksSent: false,
       };
       const finalizeTaskMock = getTaskMock(job.id, {
         type: jobDefinitionsConfigMock.tasks.finalize,
         status: OperationStatus.COMPLETED,
-        parameters: mockExportErrorCallbackTaskParams
+        parameters: mockExportErrorCallbackTaskParams,
       });
 
       mockFindTasks.mockResolvedValue([finalizeTaskMock]);
@@ -438,7 +441,7 @@ describe('TasksManager', () => {
 
       await tasksManager.handleTaskNotification(finalizeTaskMock.id);
 
-      expect(mockUpdateJob).toHaveBeenCalledWith(job.id, {'percentage': calculateTaskPercentage(job.completedTasks, job.taskCount)});
+      expect(mockUpdateJob).toHaveBeenCalledWith(job.id, { percentage: calculateTaskPercentage(job.completedTasks, job.taskCount) });
     });
 
     it('Should fail a job on a failed export task', async () => {

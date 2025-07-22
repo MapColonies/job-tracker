@@ -85,7 +85,7 @@ export abstract class JobHandler {
 
   protected shouldSkipTaskCreation(taskType: string): boolean {
     return this.excludedTypes.includes(taskType);
-  };
+  }
 
   private async handleNoNextTask(): Promise<void> {
     const percentage = calculateTaskPercentage(this.job.completedTasks, this.job.taskCount);

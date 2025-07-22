@@ -5,7 +5,6 @@ import { ExportFinalizeErrorCallbackParams, exportFinalizeTaskParamsSchema, Expo
 import { IConfig, TaskTypesArray } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
 import { JobHandler } from '../baseHandler';
-import { isInitialWorkflowCompleted } from '../utils';
 
 @injectable()
 export class ExportJobHandler extends JobHandler {

@@ -245,7 +245,9 @@ describe('tasks', function () {
 
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockExportingTask.id }).reply(200, [mockExportingTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init }).reply(200, [mockExportingTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
+        .reply(200, [mockExportingTask]);
       const taskPercentage = calculateTaskPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(200);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
@@ -264,10 +266,7 @@ describe('tasks', function () {
       const mockExportJob = getExportJobMock();
       const mockMergeTask = getTaskMock(mockExportJob.id, { type: jobDefinitionsConfigMock.tasks.export, status: OperationStatus.COMPLETED });
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(200, [mockMergeTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .get(`/jobs/${mockExportJob.id}`)
-        .query({ shouldReturnTasks: false })
-        .reply(200, mockExportJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post(`/jobs/${mockExportJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts }))
         .reply(201);
@@ -281,7 +280,7 @@ describe('tasks', function () {
       // expectation
       expect(response.status).toBe(200);
       expect(response).toSatisfyApiSpec();
-    },1000000);
+    }, 1000000);
 
     it('Should return 200 and create finalize task when getting failed task of export job', async () => {
       // mocks
@@ -393,7 +392,7 @@ describe('tasks', function () {
       const mockExportJob = getExportJobMock({ failedTasks: 1, taskCount: 6, status: OperationStatus.FAILED });
       const mockExportErrorCallbackTaskParams: ExportFinalizeErrorCallbackParams = {
         type: ExportFinalizeType.Error_Callback,
-        callbacksSent: false
+        callbacksSent: false,
       };
       const mockFinalizeTask = getTaskMock(mockExportJob.id, {
         type: jobDefinitionsConfigMock.tasks.finalize,
@@ -418,8 +417,8 @@ describe('tasks', function () {
     it('Should return 200 complete job and and crete following task', async () => {
       // mocks
       const mockExportJob = getExportJobMock();
-      setValue('exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts'])
-      init()
+      setValue('exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);
+      init();
       const mockExportErrorCallbackTaskParams: ExportFinalizeFullProcessingParams = {
         type: ExportFinalizeType.Full_Processing,
         gpkgModified: true,
@@ -435,7 +434,7 @@ describe('tasks', function () {
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(200, [mockFinalizeTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .post(`/jobs/${mockExportJob.id}/tasks`, ({ type: jobDefinitionsConfigMock.tasks.polygonParts, parameters: {}, blockDuplication: false }))
+        .post(`/jobs/${mockExportJob.id}/tasks`, { type: jobDefinitionsConfigMock.tasks.polygonParts, parameters: {}, blockDuplication: false })
         .reply(200);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .put(`/jobs/${mockExportJob.id}`, { percentage: calculateTaskPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1) })
@@ -455,7 +454,8 @@ describe('tasks', function () {
       const mockExportFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
         gpkgModified: false,
         gpkgUploadedToS3: true,
-        callbacksSent: true, type: ExportFinalizeType.Full_Processing
+        callbacksSent: true,
+        type: ExportFinalizeType.Full_Processing,
       };
       const mockFinalizeTask = getTaskMock(mockExportJob.id, {
         type: jobDefinitionsConfigMock.tasks.finalize,
