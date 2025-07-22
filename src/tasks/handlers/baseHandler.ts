@@ -79,7 +79,15 @@ export abstract class JobHandler {
       });
       return Promise.resolve(true);
     } else {
-      return Promise.resolve(isInitialWorkflowCompleted(this.job, initTasksOfJob));
+      const isPassed = isInitialWorkflowCompleted(this.job, initTasksOfJob);
+      this.logger.info({
+        msg: `Validation of init tasks completed for job ${this.job.id}`,
+        jobId: this.job.id, 
+        taskId: this.task.id,
+        taskType: this.task.type,
+        isPassed: isPassed,
+      });
+      return Promise.resolve(isPassed);
     }
   }
 

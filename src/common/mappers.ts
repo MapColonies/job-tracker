@@ -29,6 +29,8 @@ export const taskParameterMapper = new Map<JobAndTask, unknown>([
     } satisfies IngestionSwapUpdateFinalizeTaskParams,
   ],
   ['Ingestion_New_polygon-parts', {}],
+  ['Ingestion_Update_polygon-parts', {}],
+  ['Ingestion_Swap_Update_polygon-parts', {}],
   ['Export_polygon-parts', {}],
   [
     'Export_finalize',
