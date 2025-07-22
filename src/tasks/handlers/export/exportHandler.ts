@@ -33,10 +33,6 @@ export class ExportJobHandler extends JobHandler {
   };
   public canProceed = async (): Promise<boolean> => Promise.resolve(true);
 
-  protected shouldSkipTaskCreation(taskType: string): boolean {
-    return this.excludedTypes.includes(taskType);
-  }
-
   private readonly handleFailedExportTask = async (): Promise<void> => {
     this.logger.info({ msg: `Handling Export Failure with jobId: ${this.task.jobId}, and reason: ${this.task.reason}` });
     const taskParameters: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
@@ -51,22 +47,6 @@ export class ExportJobHandler extends JobHandler {
     this.logger.info({ msg: `Created ${taskType} task for job: ${this.task.jobId}` });
 
     await this.failJob();
-  };
-
-  private readonly exportShouldProceed = async (): Promise<boolean> => {
-    const initTasksOfJob = await this.findInitTasks();
-    if (initTasksOfJob === undefined) {
-      this.logger.warn({
-        msg: `Skipping init tasks completed validation of job ${this.job.id} , init tasks were not found`,
-        jobId: this.job.id,
-        taskId: this.task.id,
-        taskType: this.task.type,
-        jobType: this.job.type,
-      });
-      return true;
-    } else {
-      return isInitialWorkflowCompleted(this.job, initTasksOfJob);
-    }
   };
 
   private readonly finalizeShouldProceed = async (): Promise<boolean> => {
@@ -84,7 +64,7 @@ export class ExportJobHandler extends JobHandler {
         this.handleFailedTask = super.handleFailedTask;
         break;
       default:
-        this.canProceed = this.exportShouldProceed;
+        this.canProceed = super.canProceed;
         this.handleFailedTask = this.handleFailedExportTask;
         break;
     }

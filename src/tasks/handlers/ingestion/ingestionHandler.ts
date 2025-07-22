@@ -3,7 +3,6 @@ import { IJobResponse, ITaskResponse, TaskHandler as QueueClient } from '@map-co
 import { injectable, inject } from 'tsyringe';
 import { IConfig, TaskTypesArray } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
-import { isInitialWorkflowCompleted } from '../utils';
 import { JobHandler } from '../baseHandler';
 
 @injectable()
@@ -23,25 +22,5 @@ export class IngestionJobHandler extends JobHandler {
     this.tasksFlow = this.config.get<TaskTypesArray>('ingestionTasksFlow');
     this.excludedTypes = this.config.get<TaskTypesArray>('ingestionCreationExcludedTaskTypes');
     this.shouldBlockDuplicationForTypes = [this.jobDefinitions.tasks.finalize, this.jobDefinitions.tasks.polygonParts];
-  }
-
-  public async canProceed(): Promise<boolean> {
-    const initTaskOfJob = await this.findInitTasks();
-    if (initTaskOfJob === undefined) {
-      this.logger.warn({
-        msg: `Skipping init tasks completed validation of job ${this.job.id} , init tasks were not found`,
-        jobId: this.job.id,
-        taskId: this.task.id,
-        taskType: this.task.type,
-        jobType: this.job.type,
-      });
-      return true;
-    } else {
-      return isInitialWorkflowCompleted(this.job, initTaskOfJob);
-    }
-  }
-
-  protected shouldSkipTaskCreation(taskType: string): boolean {
-    return this.excludedTypes.includes(taskType);
   }
 }

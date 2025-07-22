@@ -12,6 +12,7 @@ import { IConfig, IJobDefinitionsConfig, JobAndTask, TaskTypesArray } from '../.
 import { JOB_COMPLETED_MESSAGE } from '../../common/constants';
 import { taskParameterMapper } from '../../common/mappers';
 import { calculateTaskPercentage } from '../../utils/taskUtils';
+import { isInitialWorkflowCompleted } from './utils';
 
 export abstract class JobHandler {
   protected readonly jobManager: JobManagerClient;
@@ -65,6 +66,26 @@ export abstract class JobHandler {
     const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.init });
     return tasks ?? undefined;
   }
+
+  protected async canProceed(): Promise<boolean> {
+    const initTasksOfJob = await this.findInitTasks();
+    if (initTasksOfJob === undefined) {
+      this.logger.warn({
+        msg: `Skipping init tasks completed validation of job ${this.job.id} , init tasks were not found`,
+        jobId: this.job.id,
+        taskId: this.task.id,
+        taskType: this.task.type,
+        jobType: this.job.type,
+      });
+      return Promise.resolve(true);
+    } else {
+      return Promise.resolve(isInitialWorkflowCompleted(this.job, initTasksOfJob));
+    }
+  }
+
+  protected shouldSkipTaskCreation(taskType: string): boolean {
+    return this.excludedTypes.includes(taskType);
+  };
 
   private async handleNoNextTask(): Promise<void> {
     const percentage = calculateTaskPercentage(this.job.completedTasks, this.job.taskCount);
@@ -148,7 +169,4 @@ export abstract class JobHandler {
   private isAllTasksCompleted(): boolean {
     return this.job.completedTasks === this.job.taskCount;
   }
-
-  public abstract canProceed(): Promise<boolean>;
-  protected abstract shouldSkipTaskCreation(taskType: string): boolean;
 }
