@@ -82,7 +82,7 @@ export abstract class JobHandler {
       const isPassed = isInitialWorkflowCompleted(this.job, initTasksOfJob);
       this.logger.info({
         msg: `Validation of init tasks completed for job ${this.job.id}`,
-        jobId: this.job.id, 
+        jobId: this.job.id,
         taskId: this.task.id,
         taskType: this.task.type,
         isPassed: isPassed,
