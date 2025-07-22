@@ -102,10 +102,23 @@ jobDefinitions:
       type: ''
 
 taskFlowManager:
-  ingestionTasksFlow: ['init', 'tilesMerging', 'polygon-parts', 'finalize', 'TilesSeeding']
-  exportTasksFlow: ['init', 'tilesExporting', 'polygon-parts', 'finalize']
-  ingestionCreationExcludedTaskTypes: ['tilesMerging', 'TilesSeeding']
-  exportCreationExcludedTaskTypes: ['tilesExporting']
+  ingestionTasksFlow:
+    - init
+    - tilesMerging
+    - polygon-parts
+    - finalize
+    - TilesSeeding
+  exportTasksFlow:
+    - init
+    - tilesExporting
+    - polygon-parts
+    - finalize
+  ingestionCreationExcludedTaskTypes:
+    - tilesMerging
+    - TilesSeeding
+  exportCreationExcludedTaskTypes:
+    - tilesExporting
+
 
 env:
   port: 80
