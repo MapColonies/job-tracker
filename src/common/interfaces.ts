@@ -1,6 +1,3 @@
-import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
-import { JobHandler } from '../tasks/handlers/baseHandler';
-
 type ValueOf<T> = T[keyof T];
 type JobType = ValueOf<IJobDefinitionsConfig['jobs']>;
 type TaskType = ValueOf<IJobDefinitionsConfig['tasks']>;
@@ -52,8 +49,4 @@ export interface IJobDefinitionsConfig {
 
 export interface TaskNotificationRequest {
   taskId: string;
-}
-
-export interface IJobHandlerFactory {
-  createHandler: (job: IJobResponse<unknown, unknown>, task: ITaskResponse<unknown>) => JobHandler;
 }
