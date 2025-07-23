@@ -44,7 +44,7 @@ export class TasksManager {
         await handler.handleFailedTask();
         break;
       case OperationStatus.COMPLETED:
-        await handler.createNextTask();
+        await handler.handleCompletedNotification();
         break;
       default:
         throw new IrrelevantOperationStatusError(`Expected to get a 'Completed' or 'Failed' task' but instead got '${task.status}'`);

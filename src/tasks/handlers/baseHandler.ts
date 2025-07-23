@@ -32,7 +32,7 @@ export abstract class JobHandler {
     this.jobDefinitions = this.config.get<IJobDefinitionsConfig>('jobDefinitions');
   }
 
-  public async createNextTask(): Promise<void> {
+  public async handleCompletedNotification(): Promise<void> {
     const nextTaskType = this.getNextTaskType();
 
     if (nextTaskType == undefined) {
@@ -131,6 +131,10 @@ export abstract class JobHandler {
       throw error;
     }
 
+    await this.addNewTaskForJob(nextTaskType);
+  }
+
+  private async addNewTaskForJob(nextTaskType: string): Promise<void> {
     const newTaskCount = this.job.taskCount + 1;
     const percentage = calculateTaskPercentage(this.job.completedTasks, newTaskCount);
 
@@ -166,6 +170,7 @@ export abstract class JobHandler {
     while (this.excludedTypes.includes(this.tasksFlow[nextTaskTypeIndex])) {
       nextTaskTypeIndex++;
     }
+    
     return this.tasksFlow[nextTaskTypeIndex];
   }
 
