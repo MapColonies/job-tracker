@@ -297,9 +297,17 @@ describe('tasks', function () {
         blockDuplication: false,
       };
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockExportJob);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`).reply(200);
+      //nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`).reply(200);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockExportTask.id }).reply(200, [mockExportTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/jobs/${mockExportJob.id}/tasks`, mockExportErrorFinalizeTaskParams).reply(201);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .put(`/jobs/${mockExportJob.id}`, {
+          percentage: calculateTaskPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1),
+        })
+        .reply(200);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .put(`/jobs/${mockExportJob.id}`, { status: OperationStatus.FAILED, reason: mockExportTask.reason })
+        .reply(200);
       // action
       const response = await requestSender.handleTaskNotification(mockExportTask.id);
       // expectation

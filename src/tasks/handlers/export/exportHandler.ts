@@ -44,6 +44,7 @@ export class ExportJobHandler extends JobHandler {
 
     await this.jobManager.createTaskForJob(this.task.jobId, createTaskBody);
     this.logger.info({ msg: `Created ${taskType} task for job: ${this.task.jobId}` });
+    await this.updateJobForHavingNewTask(taskType);
 
     await this.failJob();
   };

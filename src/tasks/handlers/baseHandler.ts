@@ -56,6 +56,14 @@ export abstract class JobHandler {
     }
   }
 
+  protected async updateJobForHavingNewTask(nextTaskType: string): Promise<void> {
+    const newTaskCount = this.job.taskCount + 1;
+    const percentage = calculateTaskPercentage(this.job.completedTasks, newTaskCount);
+
+    this.logger.debug({ msg: 'Task created, updating progress', jobId: this.job.id, taskType: nextTaskType });
+    await this.updateJobPercentage(this.job.id, percentage);
+  }
+
   protected async failJob(): Promise<void> {
     const reason = this.task.reason;
     this.logger.info({ msg: `Failing job: ${this.job.id}`, reason: `Reason: ${reason}` });
@@ -131,15 +139,7 @@ export abstract class JobHandler {
       throw error;
     }
 
-    await this.addNewTaskForJob(nextTaskType);
-  }
-
-  private async addNewTaskForJob(nextTaskType: string): Promise<void> {
-    const newTaskCount = this.job.taskCount + 1;
-    const percentage = calculateTaskPercentage(this.job.completedTasks, newTaskCount);
-
-    this.logger.debug({ msg: 'Task created, updating progress', jobId: this.job.id, taskType: nextTaskType });
-    await this.updateJobPercentage(this.job.id, percentage);
+    await this.updateJobForHavingNewTask(nextTaskType);
   }
 
   private getTaskParameters(jobType: string, taskType: string): unknown {
@@ -170,7 +170,7 @@ export abstract class JobHandler {
     while (this.excludedTypes.includes(this.tasksFlow[nextTaskTypeIndex])) {
       nextTaskTypeIndex++;
     }
-    
+
     return this.tasksFlow[nextTaskTypeIndex];
   }
 
