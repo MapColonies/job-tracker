@@ -1,5 +1,5 @@
 import { Logger } from '@map-colonies/js-logger';
-import { ICreateTaskBody, IJobResponse, ITaskResponse, JobManagerClient, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import { ICreateTaskBody, IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
 import { injectable, inject } from 'tsyringe';
 import { ExportFinalizeErrorCallbackParams, exportFinalizeTaskParamsSchema, ExportFinalizeType } from '@map-colonies/raster-shared';
 import { IConfig, TaskTypeArray } from '../../../common/interfaces';

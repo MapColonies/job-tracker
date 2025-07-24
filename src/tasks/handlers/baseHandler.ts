@@ -1,11 +1,4 @@
-import {
-  ICreateTaskBody,
-  IJobResponse,
-  ITaskResponse,
-  JobManagerClient,
-  OperationStatus,
-  TaskHandler as QueueClient,
-} from '@map-colonies/mc-priority-queue';
+import { ICreateTaskBody, IJobResponse, ITaskResponse, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { Logger } from '@map-colonies/js-logger';
 import { BadRequestError, ConflictError } from '@map-colonies/error-types';
 import { IConfig, IJobDefinitionsConfig, JobAndTask, TaskTypeArray } from '../../common/interfaces';

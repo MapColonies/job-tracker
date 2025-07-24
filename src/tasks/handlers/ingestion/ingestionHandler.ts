@@ -1,5 +1,5 @@
 import { Logger } from '@map-colonies/js-logger';
-import { IJobResponse, ITaskResponse, JobManagerClient, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
 import { injectable, inject } from 'tsyringe';
 import { IConfig, TaskTypeArray } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
