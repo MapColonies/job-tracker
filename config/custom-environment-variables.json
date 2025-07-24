@@ -77,5 +77,11 @@
       "seed": "JOB_DEFINITIONS_TASK_SEED"
     },
     "suspendingTaskTypes": "JOB_DEFINITIONS_SUSPENDING_TASKS"
+  },
+  "taskFlowManager": {
+    "ingestionTasksFlow": "INGESTION_TASKS_FLOW",
+    "exportTasksFlow": "EXPORT_TASKS_FLOW",
+    "ingestionCreationExcludedTaskTypes": "INGESTION_CREATION_EXCLUDED_TASK_TYPES",
+    "exportCreationExcludedTaskTypes": "EXPORT_CREATION_EXCLUDED_TASK_TYPES"
   }
 }

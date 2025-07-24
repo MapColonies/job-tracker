@@ -6,7 +6,7 @@ import {
 import { ExportFinalizeType, ExportFinalizeFullProcessingParams } from '@map-colonies/raster-shared';
 import { JobAndTask } from './interfaces';
 
-export const taskParameterMapper = new Map<JobAndTask, unknown>([
+export const taskParametersMapper = new Map<JobAndTask, Record<PropertyKey, unknown>>([
   [
     'Ingestion_New_finalize',
     {

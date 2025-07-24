@@ -640,10 +640,6 @@ describe('tasks', function () {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.PENDING });
-      nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .get(`/jobs/${mockIngestionJob.id}`)
-        .query({ shouldReturnTasks: false })
-        .reply(200, mockIngestionJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(200, [mockMergeTask]);
       // action
       const response = await requestSender.handleTaskNotification(mockMergeTask.id);

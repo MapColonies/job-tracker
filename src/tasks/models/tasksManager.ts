@@ -12,7 +12,7 @@ import { inject, injectable } from 'tsyringe';
 import { SERVICES } from '../../common/constants';
 import { IrrelevantOperationStatusError } from '../../common/errors';
 import { IConfig, IJobDefinitionsConfig } from '../../common/interfaces';
-import { initJobHandler } from '../handlers/jobHandlersFactory';
+import { jobHandlerFactory } from '../handlers/jobHandlersFactory';
 
 @injectable()
 export class TasksManager {
@@ -36,18 +36,18 @@ export class TasksManager {
       throw new NotFoundError(`Task ${taskId} not found`);
     }
 
-    const job = await this.getJob(task.jobId);
-    const handler = initJobHandler(job.type, this.jobDefinitions, this.logger, this.queueClient, this.config, job, task);
+    // Early terminate if status is not COMPLETED or FAILED
+    if (task.status !== OperationStatus.FAILED && task.status !== OperationStatus.COMPLETED) {
+      throw new IrrelevantOperationStatusError(`Expected to get a 'Completed' or 'Failed' task' but instead got '${task.status}'`);
+    }
 
-    switch (task.status) {
-      case OperationStatus.FAILED:
-        await handler.handleFailedTask();
-        break;
-      case OperationStatus.COMPLETED:
-        await handler.handleCompletedNotification();
-        break;
-      default:
-        throw new IrrelevantOperationStatusError(`Expected to get a 'Completed' or 'Failed' task' but instead got '${task.status}'`);
+    const job = await this.getJob(task.jobId);
+    const handler = jobHandlerFactory(job.type, this.jobDefinitions, this.logger, this.queueClient, this.config, job, task);
+
+    if (task.status === OperationStatus.FAILED) {
+      await handler.handleFailedTask();
+    } else {
+      await handler.handleCompletedNotification();
     }
   }
 

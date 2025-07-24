@@ -8,27 +8,26 @@ import {
 } from '@map-colonies/mc-priority-queue';
 import { Logger } from '@map-colonies/js-logger';
 import { BadRequestError, ConflictError } from '@map-colonies/error-types';
-import { IConfig, IJobDefinitionsConfig, JobAndTask, TaskTypesArray } from '../../common/interfaces';
+import { IConfig, IJobDefinitionsConfig, JobAndTask, TaskTypeArray } from '../../common/interfaces';
 import { JOB_COMPLETED_MESSAGE } from '../../common/constants';
-import { taskParameterMapper } from '../../common/mappers';
+import { taskParametersMapper } from '../../common/mappers';
 import { calculateTaskPercentage } from '../../utils/taskUtils';
-import { isInitialWorkflowCompleted } from './utils';
 
-export abstract class JobHandler {
+export abstract class BaseHandler {
   protected readonly jobManager: JobManagerClient;
   protected readonly jobDefinitions: IJobDefinitionsConfig;
-  protected abstract readonly shouldBlockDuplicationForTypes: TaskTypesArray;
-  protected abstract readonly tasksFlow: TaskTypesArray;
-  protected abstract readonly excludedTypes: TaskTypesArray;
+  protected abstract readonly shouldBlockDuplicationForTypes: TaskTypeArray;
+  protected abstract readonly tasksFlow: TaskTypeArray;
+  protected abstract readonly excludedTypes: TaskTypeArray;
 
   protected constructor(
     protected readonly logger: Logger,
-    protected readonly queueClient: QueueClient,
+    protected readonly jobManagerClient: JobManagerClient,
     protected readonly config: IConfig,
     protected readonly job: IJobResponse<unknown, unknown>,
     protected readonly task: ITaskResponse<unknown>
   ) {
-    this.jobManager = this.queueClient.jobManagerClient;
+    this.jobManager = jobManagerClient;
     this.jobDefinitions = this.config.get<IJobDefinitionsConfig>('jobDefinitions');
   }
 
@@ -85,9 +84,9 @@ export abstract class JobHandler {
         taskType: this.task.type,
         jobType: this.job.type,
       });
-      return Promise.resolve(true);
+      return true;
     } else {
-      const isPassed = isInitialWorkflowCompleted(this.job, initTasksOfJob);
+      const isPassed = this.isInitialWorkflowCompleted(initTasksOfJob);
       this.logger.info({
         msg: `Validation of init tasks completed for job ${this.job.id}`,
         jobId: this.job.id,
@@ -95,7 +94,7 @@ export abstract class JobHandler {
         taskType: this.task.type,
         isPassed: isPassed,
       });
-      return Promise.resolve(isPassed);
+      return isPassed;
     }
   }
 
@@ -144,7 +143,7 @@ export abstract class JobHandler {
 
   private getTaskParameters(jobType: string, taskType: string): unknown {
     const key: JobAndTask = `${jobType}_${taskType}`;
-    const parameters = taskParameterMapper.get(key);
+    const parameters = taskParametersMapper.get(key);
     if (parameters === undefined) {
       this.logger.error({ msg: `task parameters for ${key} do not exist` });
       throw new BadRequestError(`task parameters for ${key} do not exist`);
@@ -181,5 +180,9 @@ export abstract class JobHandler {
 
   private isAllTasksCompleted(): boolean {
     return this.job.completedTasks === this.job.taskCount;
+  }
+
+  private isInitialWorkflowCompleted(initTasks: ITaskResponse<unknown>[]): boolean {
+    return this.job.completedTasks === this.job.taskCount && initTasks.every((task) => task.status === OperationStatus.COMPLETED);
   }
 }
