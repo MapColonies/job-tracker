@@ -3,7 +3,7 @@ import { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-
 import { injectable, inject } from 'tsyringe';
 import { IConfig, TaskTypeArray } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
-import { BaseHandler } from '../baseHandler';
+import { BaseHandler } from '../baseJobHandler';
 
 @injectable()
 export class IngestionJobHandler extends BaseHandler {

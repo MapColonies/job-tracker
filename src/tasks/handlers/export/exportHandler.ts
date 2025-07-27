@@ -4,13 +4,17 @@ import { injectable, inject } from 'tsyringe';
 import { ExportFinalizeErrorCallbackParams, exportFinalizeTaskParamsSchema, ExportFinalizeType } from '@map-colonies/raster-shared';
 import { IConfig, TaskTypeArray } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
-import { BaseHandler } from '../baseHandler';
+import { BaseHandler } from '../baseJobHandler';
+import { ITaskHandler } from '../interfaces/ITaskHandler';
+import { FinalizeExportTaskHandler } from './taskHandlers/finalizeExportTaskHandler';
+import { BaseExportTaskHandler } from './taskHandlers/baseExportTaskHandler';
 
 @injectable()
 export class ExportJobHandler extends BaseHandler {
   protected tasksFlow: TaskTypeArray;
   protected excludedTypes: TaskTypeArray;
   protected shouldBlockDuplicationForTypes: TaskTypeArray;
+  private taskHandler: ITaskHandler;
 
   public constructor(
     @inject(SERVICES.LOGGER) logger: Logger,
@@ -23,7 +27,7 @@ export class ExportJobHandler extends BaseHandler {
     this.tasksFlow = this.config.get<TaskTypeArray>('taskFlowManager.exportTasksFlow');
     this.excludedTypes = this.config.get<TaskTypeArray>('taskFlowManager.exportCreationExcludedTaskTypes');
     this.shouldBlockDuplicationForTypes = [this.jobDefinitions.tasks.export];
-    this.setValidations();
+    this.taskHandler = this.getTaskHandler();
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -49,24 +53,12 @@ export class ExportJobHandler extends BaseHandler {
     await this.failJob();
   };
 
-  private readonly finalizeShouldProceed = async (): Promise<boolean> => {
-    const validFinalizeTaskParams = exportFinalizeTaskParamsSchema.parse(this.task.parameters);
-    if (validFinalizeTaskParams.type === ExportFinalizeType.Error_Callback) {
-      return Promise.resolve(false);
-    }
-    return Promise.resolve(true);
-  };
-
-  private setValidations(): void {
+  private getTaskHandler(): ITaskHandler {
     switch (this.task.type) {
       case this.jobDefinitions.tasks.finalize:
-        this.canProceed = this.finalizeShouldProceed;
-        this.handleFailedTask = super.handleFailedTask;
-        break;
+        return this.taskHandler = new FinalizeExportTaskHandler(this.logger, this.config, this.jobManager, this.job, this.task);
       default:
-        this.canProceed = super.canProceed;
-        this.handleFailedTask = this.handleFailedExportTask;
-        break;
+        return this.taskHandler = new BaseExportTaskHandler(this.logger, this.config, this.jobManager, this.job, this.task);
     }
   }
 }

@@ -2,7 +2,7 @@ import { BadRequestError } from '@map-colonies/error-types';
 import { Logger } from '@map-colonies/js-logger';
 import { IJobResponse, ITaskResponse, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { IConfig, IJobDefinitionsConfig } from '../../common/interfaces';
-import { BaseHandler } from './baseHandler';
+import { BaseHandler } from './baseJobHandler';
 import { IngestionJobHandler } from './ingestion/ingestionHandler';
 import { ExportJobHandler } from './export/exportHandler';
 

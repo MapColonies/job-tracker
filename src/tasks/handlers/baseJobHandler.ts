@@ -5,8 +5,9 @@ import { IConfig, IJobDefinitionsConfig, JobAndTask, TaskTypeArray } from '../..
 import { JOB_COMPLETED_MESSAGE } from '../../common/constants';
 import { taskParametersMapper } from '../../common/mappers';
 import { calculateTaskPercentage } from '../../utils/taskUtils';
+import { JobHandlerService } from './services/JobHandlerService';
 
-export abstract class BaseHandler {
+export abstract class BaseHandler extends JobHandlerService {
   protected readonly jobManager: JobManagerClient;
   protected readonly jobDefinitions: IJobDefinitionsConfig;
   protected abstract readonly shouldBlockDuplicationForTypes: TaskTypeArray;
@@ -20,6 +21,7 @@ export abstract class BaseHandler {
     protected readonly job: IJobResponse<unknown, unknown>,
     protected readonly task: ITaskResponse<unknown>
   ) {
+    super(logger, jobManagerClient);
     this.jobManager = jobManagerClient;
     this.jobDefinitions = this.config.get<IJobDefinitionsConfig>('jobDefinitions');
   }
@@ -62,12 +64,12 @@ export abstract class BaseHandler {
     await this.jobManager.updateJob(this.job.id, { status: OperationStatus.FAILED, reason: reason });
   }
 
-  protected async findInitTasks(): Promise<ITaskResponse<unknown>[] | undefined> {
+  public async findInitTasks(): Promise<ITaskResponse<unknown>[] | undefined> {
     const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.init });
     return tasks ?? undefined;
   }
 
-  protected async canProceed(): Promise<boolean> {
+  public async canProceed(): Promise<boolean> {
     const initTasksOfJob = await this.findInitTasks();
     if (initTasksOfJob === undefined) {
       this.logger.warn({
@@ -91,7 +93,7 @@ export abstract class BaseHandler {
     }
   }
 
-  protected shouldSkipTaskCreation(taskType: string): boolean {
+  public shouldSkipTaskCreation(taskType: string): boolean {
     return this.excludedTypes.includes(taskType);
   }
 
@@ -156,7 +158,7 @@ export abstract class BaseHandler {
     await this.jobManager.updateJob(this.job.id, { status: OperationStatus.SUSPENDED, reason: reason });
   }
 
-  private getNextTaskType(): string | undefined {
+  public getNextTaskType(): string | undefined {
     const indexOfCurrentTask = this.tasksFlow.indexOf(this.task.type);
     let nextTaskTypeIndex = indexOfCurrentTask + 1;
     while (this.excludedTypes.includes(this.tasksFlow[nextTaskTypeIndex])) {
