@@ -441,6 +441,13 @@ describe('tasks', function () {
 
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(200, [mockFinalizeTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockExportJob);
+
+      // Mock the init tasks lookup that baseCanProceed performs
+      const mockInitTask = getTaskMock(mockExportJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
+        .reply(200, [mockInitTask]);
+
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post(`/jobs/${mockExportJob.id}/tasks`, { type: jobDefinitionsConfigMock.tasks.polygonParts, parameters: {}, blockDuplication: false })
         .reply(200);
