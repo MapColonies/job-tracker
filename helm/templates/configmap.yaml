@@ -40,8 +40,8 @@ data:
   JOB_DEFINITIONS_TASK_FINALIZE: {{ $jobDefinitions.tasks.finalize.type | quote }}
   JOB_DEFINITIONS_TASK_SEED: {{ $jobDefinitions.tasks.seed.type | quote }}
   JOB_DEFINITIONS_SUSPENDING_TASKS: {{ $suspendingTaskTypes | toYaml | nindent 4 }}
-  INGESTION_TASKS_FLOW: '{{ .Values.taskFlowManager.ingestionTasksFlow | toJson }}'
-  EXPORT_TASKS_FLOW: '{{ .Values.taskFlowManager.exportTasksFlow | toJson }}'
-  INGESTION_CREATION_EXCLUDED_TASK_TYPES: '{{ .Values.taskFlowManager.ingestionCreationExcludedTaskTypes | toJson }}'
-  EXPORT_CREATION_EXCLUDED_TASK_TYPES: '{{ .Values.taskFlowManager.exportCreationExcludedTaskTypes | toJson }}'
+  INGESTION_TASKS_FLOW: {{ .Values.taskFlowManager.ingestionTasksFlow | toYaml | nindent 4 }}
+  EXPORT_TASKS_FLOW: {{ .Values.taskFlowManager.exportTasksFlow | toYaml | nindent 4 }}
+  INGESTION_CREATION_EXCLUDED_TASK_TYPES: {{ .Values.taskFlowManager.ingestionCreationExcludedTaskTypes | toYaml | nindent 4 }}
+  EXPORT_CREATION_EXCLUDED_TASK_TYPES: {{ .Values.taskFlowManager.exportCreationExcludedTaskTypes | toYaml | nindent 4 }}
 {{- end }}
