@@ -69,9 +69,6 @@ Start the server
 |`HTTP_RETRY_ATTEMPTS`               |How many retries should the service make if a request fails.              |5                            |
 |`HTTP_RETRY_DELAY`                  |The delay between each http retry if a request fails.                     |exponential                  |
 |`HTTP_RETRY_RESET_TIMEOUT`          |Defines if the timeout should be reset between retries                    |true                         |
-|`TELEMETRY_SERVICE_NAME`            |Name of the telemetry service.	                                        |(not set)                    |
-|`TELEMETRY_HOST_NAME`               |Hostname for the telemetry service.                                       |(not set)                    |
-|`TELEMETRY_SERVICE_VERSION`         |Version of the telemetry service.	                                        |(not set)                    |
 |`LOG_LEVEL`                         |Logging level for the application (e.g., info, debug, warn, error, fatal).|info                         |
 |`LOG_PRETTY_PRINT_ENABLED`          |Enable or disable pretty printing for logs (boolean).                     |false                        |
 |`TELEMETRY_TRACING_ENABLED`         |Enable or disable tracing (boolean).	                                    |(not set)                    |
