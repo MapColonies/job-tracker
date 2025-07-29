@@ -4,41 +4,43 @@ import {
   IngestionSwapUpdateFinalizeTaskParams,
 } from '@map-colonies/mc-model-types';
 import { ExportFinalizeType, ExportFinalizeFullProcessingParams } from '@map-colonies/raster-shared';
-import { JobAndTask } from './interfaces';
+import { JobAndTask, IJobDefinitionsConfig } from './interfaces';
 
-export const taskParametersMapper = new Map<JobAndTask, Record<PropertyKey, unknown>>([
-  [
-    'Ingestion_New_finalize',
-    {
-      insertedToCatalog: false,
-      insertedToGeoServer: false,
-      insertedToMapproxy: false,
-    } satisfies IngestionNewFinalizeTaskParams,
-  ],
-  ['Ingestion_New_polygon-parts', {}],
-  ['Ingestion_Update_polygon-parts', {}],
-  [
-    'Ingestion_Update_finalize',
-    {
-      updatedInCatalog: false,
-    } satisfies IngestionUpdateFinalizeTaskParams,
-  ],
-  [
-    'Ingestion_Swap_Update_finalize',
-    {
-      updatedInCatalog: false,
-      updatedInMapproxy: false,
-    } satisfies IngestionSwapUpdateFinalizeTaskParams,
-  ],
-  ['Ingestion_Swap_Update_polygon-parts', {}],
-  ['Export_polygon-parts', {}],
-  [
-    'Export_finalize',
-    {
-      type: ExportFinalizeType.Full_Processing,
-      gpkgModified: false,
-      gpkgUploadedToS3: false,
-      callbacksSent: false,
-    } satisfies ExportFinalizeFullProcessingParams,
-  ],
-]);
+export const createTaskParametersMapper = (jobDefinitions: IJobDefinitionsConfig): Map<JobAndTask, Record<PropertyKey, unknown>> => {
+  return new Map<JobAndTask, Record<PropertyKey, unknown>>([
+    [
+      `${jobDefinitions.jobs.new}_${jobDefinitions.tasks.finalize}`,
+      {
+        insertedToCatalog: false,
+        insertedToGeoServer: false,
+        insertedToMapproxy: false,
+      } satisfies IngestionNewFinalizeTaskParams,
+    ],
+    [`${jobDefinitions.jobs.new}_${jobDefinitions.tasks.polygonParts}`, {}],
+    [`${jobDefinitions.jobs.update}_${jobDefinitions.tasks.polygonParts}`, {}],
+    [
+      `${jobDefinitions.jobs.update}_${jobDefinitions.tasks.finalize}`,
+      {
+        updatedInCatalog: false,
+      } satisfies IngestionUpdateFinalizeTaskParams,
+    ],
+    [
+      `${jobDefinitions.jobs.swapUpdate}_${jobDefinitions.tasks.finalize}`,
+      {
+        updatedInCatalog: false,
+        updatedInMapproxy: false,
+      } satisfies IngestionSwapUpdateFinalizeTaskParams,
+    ],
+    [`${jobDefinitions.jobs.swapUpdate}_${jobDefinitions.tasks.polygonParts}`, {}],
+    [`${jobDefinitions.jobs.export}_${jobDefinitions.tasks.polygonParts}`, {}],
+    [
+      `${jobDefinitions.jobs.export}_${jobDefinitions.tasks.finalize}`,
+      {
+        type: ExportFinalizeType.Full_Processing,
+        gpkgModified: false,
+        gpkgUploadedToS3: false,
+        callbacksSent: false,
+      } satisfies ExportFinalizeFullProcessingParams,
+    ],
+  ]);
+};

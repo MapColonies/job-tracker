@@ -3,7 +3,7 @@ import { Logger } from '@map-colonies/js-logger';
 import { BadRequestError, ConflictError } from '@map-colonies/error-types';
 import { IConfig, IJobDefinitionsConfig, JobAndTask, TaskTypeArray } from '../../common/interfaces';
 import { JOB_COMPLETED_MESSAGE } from '../../common/constants';
-import { taskParametersMapper } from '../../common/mappers';
+import { createTaskParametersMapper } from '../../common/mappers';
 import { calculateTaskPercentage } from '../../utils/taskUtils';
 
 export abstract class BaseHandler {
@@ -136,6 +136,7 @@ export abstract class BaseHandler {
 
   private getTaskParameters(jobType: string, taskType: string): unknown {
     const key: JobAndTask = `${jobType}_${taskType}`;
+    const taskParametersMapper = createTaskParametersMapper(this.jobDefinitions);
     const parameters = taskParametersMapper.get(key);
     if (parameters === undefined) {
       this.logger.error({ msg: `task parameters for ${key} do not exist` });
