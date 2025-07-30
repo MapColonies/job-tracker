@@ -9,51 +9,51 @@ import { createTaskParametersMapper } from '../../common/mappers';
  * This class is designed to be composed with job handlers to provide task-level functionality
  */
 export class WorkflowTaskOperations {
-    protected readonly jobDefinitions: IJobDefinitionsConfig;
+  protected readonly jobDefinitions: IJobDefinitionsConfig;
 
-    public constructor(
-        protected readonly logger: Logger,
-        protected readonly config: IConfig,
-        protected readonly jobManager: JobManagerClient,
-        protected readonly job: IJobResponse<unknown, unknown>,
-        protected readonly task: ITaskResponse<unknown>,
-        protected readonly tasksFlow: TaskTypeArray,
-        protected readonly excludedTypes: TaskTypeArray
-    ) {
-        this.jobDefinitions = this.config.get<IJobDefinitionsConfig>('jobDefinitions');
+  public constructor(
+    protected readonly logger: Logger,
+    protected readonly config: IConfig,
+    protected readonly jobManager: JobManagerClient,
+    protected readonly job: IJobResponse<unknown, unknown>,
+    protected readonly task: ITaskResponse<unknown>,
+    protected readonly tasksFlow: TaskTypeArray,
+    protected readonly excludedTypes: TaskTypeArray
+  ) {
+    this.jobDefinitions = this.config.get<IJobDefinitionsConfig>('jobDefinitions');
+  }
+
+  public getTaskParameters(jobType: string, taskType: string): unknown {
+    const key: JobAndTask = `${jobType}_${taskType}`;
+    const taskParametersMapper = createTaskParametersMapper(this.jobDefinitions);
+    const parameters = taskParametersMapper.get(key);
+    if (parameters === undefined) {
+      this.logger.error({ msg: `task parameters for ${key} do not exist` });
+      throw new BadRequestError(`task parameters for ${key} do not exist`);
+    }
+    return parameters;
+  }
+
+  public getNextTaskType(): string | undefined {
+    const indexOfCurrentTask = this.tasksFlow.indexOf(this.task.type);
+    let nextTaskTypeIndex = indexOfCurrentTask + 1;
+    while (this.excludedTypes.includes(this.tasksFlow[nextTaskTypeIndex])) {
+      nextTaskTypeIndex++;
     }
 
-    public getTaskParameters(jobType: string, taskType: string): unknown {
-        const key: JobAndTask = `${jobType}_${taskType}`;
-        const taskParametersMapper = createTaskParametersMapper(this.jobDefinitions);
-        const parameters = taskParametersMapper.get(key);
-        if (parameters === undefined) {
-            this.logger.error({ msg: `task parameters for ${key} do not exist` });
-            throw new BadRequestError(`task parameters for ${key} do not exist`);
-        }
-        return parameters;
-    }
+    return this.tasksFlow[nextTaskTypeIndex];
+  }
 
-    public getNextTaskType(): string | undefined {
-        const indexOfCurrentTask = this.tasksFlow.indexOf(this.task.type);
-        let nextTaskTypeIndex = indexOfCurrentTask + 1;
-        while (this.excludedTypes.includes(this.tasksFlow[nextTaskTypeIndex])) {
-            nextTaskTypeIndex++;
-        }
+  public shouldSkipTaskCreation(taskType: string): boolean {
+    return this.excludedTypes.includes(taskType);
+  }
 
-        return this.tasksFlow[nextTaskTypeIndex];
-    }
+  public async findInitTasks(): Promise<ITaskResponse<unknown>[] | undefined> {
+    const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.init });
+    return tasks ?? undefined;
+  }
 
-    public shouldSkipTaskCreation(taskType: string): boolean {
-        return this.excludedTypes.includes(taskType);
-    }
-
-    public async findInitTasks(): Promise<ITaskResponse<unknown>[] | undefined> {
-        const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.init });
-        return tasks ?? undefined;
-    }
-
-    public isInitialWorkflowCompleted(initTasks: ITaskResponse<unknown>[]): boolean {
-        return this.job.completedTasks === this.job.taskCount && initTasks.every((task) => task.status === OperationStatus.COMPLETED);
-    }
+  public isInitialWorkflowCompleted(initTasks: ITaskResponse<unknown>[]): boolean {
+    return this.job.completedTasks === this.job.taskCount && initTasks.every((task) => task.status === OperationStatus.COMPLETED);
+  }
 }
