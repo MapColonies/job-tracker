@@ -22,5 +22,8 @@ export class IngestionJobHandler extends WorkflowJobHandler {
     this.tasksFlow = this.config.get<TaskTypeArray>('taskFlowManager.ingestionTasksFlow');
     this.excludedTypes = this.config.get<TaskTypeArray>('taskFlowManager.ingestionCreationExcludedTaskTypes');
     this.shouldBlockDuplicationForTypes = [this.jobDefinitions.tasks.finalize, this.jobDefinitions.tasks.polygonParts];
+
+    // Initialize task operations after setting up the flow properties
+    this.initializeTaskOperations();
   }
 }

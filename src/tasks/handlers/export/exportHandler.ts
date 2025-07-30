@@ -22,6 +22,9 @@ export class ExportJobHandler extends WorkflowJobHandler {
     this.tasksFlow = this.config.get<TaskTypeArray>('taskFlowManager.exportTasksFlow');
     this.excludedTypes = this.config.get<TaskTypeArray>('taskFlowManager.exportCreationExcludedTaskTypes');
     this.shouldBlockDuplicationForTypes = [this.jobDefinitions.tasks.export];
+
+    // Initialize task operations after setting up the flow properties
+    this.initializeTaskOperations();
   }
 
   public async handleFailedTask(): Promise<void> {
@@ -33,6 +36,8 @@ export class ExportJobHandler extends WorkflowJobHandler {
         blockDuplication: false,
       };
       await this.jobManager.createTaskForJob(this.job.id, createTaskBody);
+      // Update job progress after creating the task
+      await this.updateJobForHavingNewTask(this.jobDefinitions.tasks.finalize);
       // Also fail the job
       await this.failJob(this.task.reason);
     } else {

@@ -22,13 +22,10 @@ export function jobHandlerFactory(
     case jobDefinitions.jobs.update:
     case jobDefinitions.jobs.swapUpdate:
     case jobDefinitions.jobs.seed: {
-      const handler = new IngestionJobHandler(logger, config, jobManagerClient, job, task);
-      return handler as WorkflowJobHandler;
+      return new IngestionJobHandler(logger, config, jobManagerClient, job, task);
     }
     case jobDefinitions.jobs.export: {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-      const handler = new ExportJobHandler(logger, config, jobManagerClient, job, task);
-      return handler as WorkflowJobHandler;
+      return new ExportJobHandler(logger, config, jobManagerClient, job, task);
     }
     default:
       throw new BadRequestError(`${jobHandlerType} job type is invalid`);
