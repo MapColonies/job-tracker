@@ -5,13 +5,7 @@ import { WorkflowJobHandler } from '../../../../src/tasks/handlers/workflowJobHa
 import { IConfig, TaskTypeArray } from '../../../../src/common/interfaces';
 import { getExportJobMock, getTaskMock } from '../../../mocks/JobMocks';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
-import {
-  JOB_TYPES,
-  TASK_TYPES,
-  TASK_FLOWS,
-  EXCLUDED_TASK_TYPES,
-  BLOCK_DUPLICATION_TYPES,
-} from '../../../helpers/testConstants';
+import { JOB_TYPES, TASK_TYPES, TASK_FLOWS, EXCLUDED_TASK_TYPES, BLOCK_DUPLICATION_TYPES } from '../../../helpers/testConstants';
 
 // Concrete implementation for testing
 class TestWorkflowJobHandler extends WorkflowJobHandler {
