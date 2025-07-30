@@ -1,26 +1,32 @@
-import { ICreateTaskBody, IJobResponse, ITaskResponse, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { Logger } from '@map-colonies/js-logger';
 import { BadRequestError, ConflictError } from '@map-colonies/error-types';
-import { IConfig, IJobDefinitionsConfig, JobAndTask, TaskTypeArray } from '../../common/interfaces';
-import { JOB_COMPLETED_MESSAGE } from '../../common/constants';
-import { createTaskParametersMapper } from '../../common/mappers';
+import { IJobResponse, ITaskResponse, JobManagerClient, OperationStatus, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
+import { IConfig, IJobDefinitionsConfig, TaskTypeArray, JobAndTask } from '../../common/interfaces';
 import { calculateTaskPercentage } from '../../utils/taskUtils';
+import { createTaskParametersMapper } from '../../common/mappers';
+import { BaseJobHandler } from './baseJobHandler';
 
-export abstract class BaseHandler {
-  protected readonly jobManager: JobManagerClient;
+/**
+ * Base class for workflow-enabled job handlers that handles task flow logic
+ */
+export abstract class WorkflowJobHandler extends BaseJobHandler {
+  protected readonly config: IConfig;
   protected readonly jobDefinitions: IJobDefinitionsConfig;
-  protected abstract readonly shouldBlockDuplicationForTypes: TaskTypeArray;
+  protected readonly task: ITaskResponse<unknown>;
   protected abstract readonly tasksFlow: TaskTypeArray;
   protected abstract readonly excludedTypes: TaskTypeArray;
+  protected abstract readonly shouldBlockDuplicationForTypes: TaskTypeArray;
 
   protected constructor(
-    protected readonly logger: Logger,
-    protected readonly jobManagerClient: JobManagerClient,
-    protected readonly config: IConfig,
-    protected readonly job: IJobResponse<unknown, unknown>,
-    protected readonly task: ITaskResponse<unknown>
+    logger: Logger,
+    config: IConfig,
+    jobManager: JobManagerClient,
+    job: IJobResponse<unknown, unknown>,
+    task: ITaskResponse<unknown>
   ) {
-    this.jobManager = jobManagerClient;
+    super(logger, jobManager, job);
+    this.config = config;
+    this.task = task;
     this.jobDefinitions = this.config.get<IJobDefinitionsConfig>('jobDefinitions');
   }
 
@@ -42,29 +48,10 @@ export abstract class BaseHandler {
 
   public async handleFailedTask(): Promise<void> {
     if (this.jobDefinitions.suspendingTaskTypes.includes(this.task.type)) {
-      await this.suspendJob();
+      await this.suspendJob(this.task.reason);
     } else {
-      await this.failJob();
+      await this.failJob(this.task.reason);
     }
-  }
-
-  protected async updateJobForHavingNewTask(nextTaskType: string): Promise<void> {
-    const newTaskCount = this.job.taskCount + 1;
-    const percentage = calculateTaskPercentage(this.job.completedTasks, newTaskCount);
-
-    this.logger.debug({ msg: 'Task created, updating progress', jobId: this.job.id, taskType: nextTaskType });
-    await this.updateJobPercentage(this.job.id, percentage);
-  }
-
-  protected async failJob(): Promise<void> {
-    const reason = this.task.reason;
-    this.logger.info({ msg: `Failing job: ${this.job.id}`, reason: `Reason: ${reason}` });
-    await this.jobManager.updateJob(this.job.id, { status: OperationStatus.FAILED, reason: reason });
-  }
-
-  protected async findInitTasks(): Promise<ITaskResponse<unknown>[] | undefined> {
-    const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.init });
-    return tasks ?? undefined;
   }
 
   protected async canProceed(): Promise<boolean> {
@@ -95,6 +82,11 @@ export abstract class BaseHandler {
     return this.excludedTypes.includes(taskType);
   }
 
+  private async findInitTasks(): Promise<ITaskResponse<unknown>[] | undefined> {
+    const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.init });
+    return tasks ?? undefined;
+  }
+
   private async handleNoNextTask(): Promise<void> {
     const percentage = calculateTaskPercentage(this.job.completedTasks, this.job.taskCount);
 
@@ -103,14 +95,14 @@ export abstract class BaseHandler {
       await this.completeJob();
     } else {
       this.logger.info({ msg: 'No next task, updating progress', jobId: this.job.id });
-      await this.updateJobPercentage(this.job.id, percentage);
+      await this.updateJobProgress(percentage);
     }
   }
 
   private async handleSkipTask(nextTaskType: string): Promise<void> {
     this.logger.info({ msg: 'Skipping task creation', jobId: this.job.id, taskType: nextTaskType });
     const percentage = calculateTaskPercentage(this.job.completedTasks, this.job.taskCount);
-    await this.updateJobPercentage(this.job.id, percentage);
+    await this.updateJobProgress(percentage);
   }
 
   private async createNewTask(nextTaskType: string): Promise<void> {
@@ -145,18 +137,6 @@ export abstract class BaseHandler {
     return parameters;
   }
 
-  private async completeJob(): Promise<void> {
-    this.logger.info({ msg: `Completing job` });
-    await this.jobManager.updateJob(this.job.id, { status: OperationStatus.COMPLETED, reason: JOB_COMPLETED_MESSAGE, percentage: 100 });
-    this.logger.info({ msg: JOB_COMPLETED_MESSAGE });
-  }
-
-  private async suspendJob(): Promise<void> {
-    const reason = this.task.reason;
-    this.logger.info({ msg: `Suspending job: ${this.job.id}`, reason: `Reason: ${reason}` });
-    await this.jobManager.updateJob(this.job.id, { status: OperationStatus.SUSPENDED, reason: reason });
-  }
-
   private getNextTaskType(): string | undefined {
     const indexOfCurrentTask = this.tasksFlow.indexOf(this.task.type);
     let nextTaskTypeIndex = indexOfCurrentTask + 1;
@@ -165,15 +145,6 @@ export abstract class BaseHandler {
     }
 
     return this.tasksFlow[nextTaskTypeIndex];
-  }
-
-  private async updateJobPercentage(jobId: string, desiredPercentage: number): Promise<void> {
-    await this.jobManager.updateJob(jobId, { percentage: desiredPercentage });
-    this.logger.info({ msg: `Updated percentages (${desiredPercentage}) for job: ${jobId}` });
-  }
-
-  private isAllTasksCompleted(): boolean {
-    return this.job.completedTasks === this.job.taskCount;
   }
 
   private isInitialWorkflowCompleted(initTasks: ITaskResponse<unknown>[]): boolean {

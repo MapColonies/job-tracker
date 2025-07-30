@@ -2,13 +2,9 @@ import { Logger } from '@map-colonies/js-logger';
 import { ICreateTaskBody, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
 import { ExportFinalizeErrorCallbackParams, exportFinalizeTaskParamsSchema, ExportFinalizeType } from '@map-colonies/raster-shared';
 import { IJobDefinitionsConfig, TaskTypeArray } from '../../../common/interfaces';
+import { ITaskValidationStrategy } from '../interfaces';
 
-export interface IValidationStrategy {
-  canProceed: () => Promise<boolean>;
-  handleFailedTask: () => Promise<void>;
-}
-
-export class FinalizeValidationStrategy implements IValidationStrategy {
+export class FinalizeValidationStrategy implements ITaskValidationStrategy {
   public constructor(
     private readonly task: ITaskResponse<unknown>,
     private readonly baseCanProceed: () => Promise<boolean>,
@@ -28,7 +24,7 @@ export class FinalizeValidationStrategy implements IValidationStrategy {
   }
 }
 
-export class DefaultValidationStrategy implements IValidationStrategy {
+export class DefaultValidationStrategy implements ITaskValidationStrategy {
   private readonly jobDefinitions: IJobDefinitionsConfig;
   private readonly shouldBlockDuplicationForTypes: TaskTypeArray;
 
