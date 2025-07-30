@@ -3,14 +3,13 @@ import { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-
 import { injectable, inject } from 'tsyringe';
 import { IConfig, TaskTypeArray } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
-import { BaseHandler } from '../baseHandler';
-import { IValidationStrategy, FinalizeValidationStrategy, DefaultValidationStrategy } from './validationStrategies';
+import { WorkflowJobHandler } from '../workflowJobHandler';
 
 @injectable()
-export class ExportJobHandler extends BaseHandler {
-  protected tasksFlow: TaskTypeArray;
-  protected excludedTypes: TaskTypeArray;
-  protected shouldBlockDuplicationForTypes: TaskTypeArray;
+export class ExportJobHandler extends WorkflowJobHandler {
+  protected readonly tasksFlow: TaskTypeArray;
+  protected readonly excludedTypes: TaskTypeArray;
+  protected readonly shouldBlockDuplicationForTypes: TaskTypeArray;
 
   public constructor(
     @inject(SERVICES.LOGGER) logger: Logger,
@@ -19,32 +18,36 @@ export class ExportJobHandler extends BaseHandler {
     job: IJobResponse<unknown, unknown>,
     task: ITaskResponse<unknown>
   ) {
-    super(logger, jobManagerClient, config, job, task);
+    super(logger, config, jobManagerClient, job, task);
     this.tasksFlow = this.config.get<TaskTypeArray>('taskFlowManager.exportTasksFlow');
     this.excludedTypes = this.config.get<TaskTypeArray>('taskFlowManager.exportCreationExcludedTaskTypes');
     this.shouldBlockDuplicationForTypes = [this.jobDefinitions.tasks.export];
 
-    // Create validation strategy as a helper to set up method bindings
-    const validationStrategy = this.createValidationStrategy();
-    this.canProceed = async (): Promise<boolean> => validationStrategy.canProceed();
-    this.handleFailedTask = async (): Promise<void> => validationStrategy.handleFailedTask();
+    // Initialize task operations after setting up the flow properties
+    this.initializeTaskOperations();
   }
 
-  private createValidationStrategy(): IValidationStrategy {
-    switch (this.task.type) {
-      case this.jobDefinitions.tasks.finalize:
-        return new FinalizeValidationStrategy(this.task, super.canProceed.bind(this), super.handleFailedTask.bind(this));
-      default:
-        return new DefaultValidationStrategy(
-          this.logger,
-          this.jobManager,
-          this.task,
-          super.canProceed.bind(this),
-          this.updateJobForHavingNewTask.bind(this),
-          this.failJob.bind(this),
-          this.shouldBlockDuplicationForTypes,
-          this.jobDefinitions
-        );
+  public async handleFailedTask(): Promise<void> {
+    // For export tasks, create a finalize error callback task and fail the job
+    if (this.task.type === this.jobDefinitions.tasks.export) {
+      const createTaskBody = {
+        parameters: { callbacksSent: false, type: 'ErrorCallback' },
+        type: this.jobDefinitions.tasks.finalize,
+        blockDuplication: false,
+      };
+      await this.jobManager.createTaskForJob(this.job.id, createTaskBody);
+      // Update job progress after creating the task
+      await this.updateJobForHavingNewTask(this.jobDefinitions.tasks.finalize);
+      // Also fail the job
+      await this.failJob(this.task.reason);
+    } else {
+      // For other task types, use the default implementation
+      return super.handleFailedTask();
     }
+  }
+
+  protected async canProceed(): Promise<boolean> {
+    // For now, use the default implementation from the parent class
+    return super.canProceed();
   }
 }

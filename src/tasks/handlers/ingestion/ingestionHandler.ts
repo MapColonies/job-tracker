@@ -3,13 +3,13 @@ import { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-
 import { injectable, inject } from 'tsyringe';
 import { IConfig, TaskTypeArray } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
-import { BaseHandler } from '../baseHandler';
+import { WorkflowJobHandler } from '../workflowJobHandler';
 
 @injectable()
-export class IngestionJobHandler extends BaseHandler {
-  protected tasksFlow: TaskTypeArray;
-  protected excludedTypes: TaskTypeArray;
-  protected shouldBlockDuplicationForTypes: TaskTypeArray;
+export class IngestionJobHandler extends WorkflowJobHandler {
+  protected readonly tasksFlow: TaskTypeArray;
+  protected readonly excludedTypes: TaskTypeArray;
+  protected readonly shouldBlockDuplicationForTypes: TaskTypeArray;
 
   public constructor(
     @inject(SERVICES.LOGGER) logger: Logger,
@@ -18,9 +18,12 @@ export class IngestionJobHandler extends BaseHandler {
     job: IJobResponse<unknown, unknown>,
     task: ITaskResponse<unknown>
   ) {
-    super(logger, jobManagerClient, config, job, task);
+    super(logger, config, jobManagerClient, job, task);
     this.tasksFlow = this.config.get<TaskTypeArray>('taskFlowManager.ingestionTasksFlow');
     this.excludedTypes = this.config.get<TaskTypeArray>('taskFlowManager.ingestionCreationExcludedTaskTypes');
     this.shouldBlockDuplicationForTypes = [this.jobDefinitions.tasks.finalize, this.jobDefinitions.tasks.polygonParts];
+
+    // Initialize task operations after setting up the flow properties
+    this.initializeTaskOperations();
   }
 }
