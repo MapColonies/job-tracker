@@ -28,6 +28,7 @@ export abstract class WorkflowJobHandler extends BaseJobHandler {
     super(logger, jobManager, job);
     this.config = config;
     this.task = task;
+
     this.jobDefinitions = this.config.get<IJobDefinitionsConfig>('jobDefinitions');
   }
 

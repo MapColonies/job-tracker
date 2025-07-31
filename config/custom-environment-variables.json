@@ -73,12 +73,27 @@
       "finalize": "JOB_DEFINITIONS_TASK_FINALIZE",
       "seed": "JOB_DEFINITIONS_TASK_SEED"
     },
-    "suspendingTaskTypes": "JOB_DEFINITIONS_SUSPENDING_TASKS"
+    "suspendingTaskTypes": {
+      "__name": "JOB_DEFINITIONS_SUSPENDING_TASKS",
+      "__format": "json"
+    }
   },
   "taskFlowManager": {
-    "ingestionTasksFlow": "INGESTION_TASKS_FLOW",
-    "exportTasksFlow": "EXPORT_TASKS_FLOW",
-    "ingestionCreationExcludedTaskTypes": "INGESTION_CREATION_EXCLUDED_TASK_TYPES",
-    "exportCreationExcludedTaskTypes": "EXPORT_CREATION_EXCLUDED_TASK_TYPES"
+    "ingestionTasksFlow": {
+      "__name": "INGESTION_TASKS_FLOW",
+      "__format": "json"
+    },
+    "exportTasksFlow": {
+      "__name": "EXPORT_TASKS_FLOW",
+      "__format": "json"
+    },
+    "ingestionCreationExcludedTaskTypes": {
+      "__name": "INGESTION_CREATION_EXCLUDED_TASK_TYPES",
+      "__format": "json"
+    },
+    "exportCreationExcludedTaskTypes": {
+      "__name": "EXPORT_CREATION_EXCLUDED_TASK_TYPES",
+      "__format": "json"
+    }
   }
 }
