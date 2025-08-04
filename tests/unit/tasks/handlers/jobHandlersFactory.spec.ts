@@ -4,7 +4,7 @@ import { TaskHandler as QueueClient, IJobResponse } from '@map-colonies/mc-prior
 import { registerDefaultConfig, clear as clearConfig } from '../../../mocks/configMock';
 import { configMock } from '../../../mocks/configMock';
 import { getExportJobMock, getIngestionJobMock, getTaskMock } from '../../../mocks/JobMocks';
-import { jobHandlerFactory } from '../../../../src/tasks/handlers/jobHandlersFactory';
+import { jobHandlerFactory } from '../../../../src/tasks/handlers/jobHandlerFactory';
 import { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { JOB_TYPES } from '../../../helpers/testConstants';
 

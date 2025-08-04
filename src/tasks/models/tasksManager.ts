@@ -12,7 +12,7 @@ import { inject, injectable } from 'tsyringe';
 import { SERVICES } from '../../common/constants';
 import { IrrelevantOperationStatusError } from '../../common/errors';
 import { IConfig, IJobDefinitionsConfig } from '../../common/interfaces';
-import { jobHandlerFactory } from '../handlers/jobHandlersFactory';
+import { jobHandlerFactory } from '../handlers/jobHandlerFactory';
 
 @injectable()
 export class TasksManager {
