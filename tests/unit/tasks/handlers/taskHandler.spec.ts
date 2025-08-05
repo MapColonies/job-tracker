@@ -20,9 +20,6 @@ const createMockJobManager = (): jest.Mocked<JobManagerClient> =>
   findTasks: jest.fn(),
 } as unknown as jest.Mocked<JobManagerClient>);
 
-const createTestTask = (jobId: string, taskType: string, overrides?: Partial<ITaskResponse<unknown>>): ITaskResponse<unknown> =>
-  getTaskMock(jobId, { type: taskType, status: OperationStatus.COMPLETED, ...overrides });
-
 describe('WorkflowTaskOperations', () => {
   let operations: TaskWorker;
   let mockLogger: jest.Mocked<Logger>;
@@ -92,11 +89,7 @@ describe('WorkflowTaskOperations', () => {
       // When & Then: should throw BadRequestError
       expect(() => {
         operations.getTaskParameters(invalidJobType, invalidTaskType);
-      }).toThrow(BadRequestError);
-
-      expect(() => {
-        operations.getTaskParameters(invalidJobType, invalidTaskType);
-      }).toThrow('task parameters for InvalidJob_InvalidTask do not exist');
+      }).toThrow(new BadRequestError('task parameters for InvalidJob_InvalidTask do not exist'));
     });
   });
 
@@ -127,7 +120,7 @@ describe('WorkflowTaskOperations', () => {
       // Given: custom flow with multiple excluded types
       const customTaskFlow: TaskTypes = [jobDefinitionsConfig.tasks.init, jobDefinitionsConfig.tasks.export, jobDefinitionsConfig.tasks.polygonParts, jobDefinitionsConfig.tasks.finalize];
       const customExcludedTypes: TaskTypes = [jobDefinitionsConfig.tasks.export, jobDefinitionsConfig.tasks.polygonParts];
-      const customTask = createTestTask(mockJob.id, jobDefinitionsConfig.tasks.init);
+      const customTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED });
 
       const customOperations = new TaskWorker(
         mockLogger,
@@ -174,7 +167,7 @@ describe('WorkflowTaskOperations', () => {
   describe('getInitTasks', () => {
     it('should return init tasks when found', async () => {
       // Given: init tasks exist
-      const mockInitTask = createTestTask(mockJob.id, jobDefinitionsConfig.tasks.init);
+      const mockInitTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED });
       mockJobManager.findTasks.mockResolvedValue([mockInitTask]);
 
       // When: finding init tasks
@@ -206,8 +199,8 @@ describe('WorkflowTaskOperations', () => {
       mockJob.completedTasks = 10;
       mockJob.taskCount = 10;
       const completedInitTasks = [
-        createTestTask(mockJob.id, jobDefinitionsConfig.tasks.init, { status: OperationStatus.COMPLETED }),
-        createTestTask(mockJob.id, jobDefinitionsConfig.tasks.init, { status: OperationStatus.COMPLETED }),
+        getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED }),
+        getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED }),
       ];
 
       // When: checking if initial workflow is completed
@@ -221,7 +214,7 @@ describe('WorkflowTaskOperations', () => {
       // Given: not all tasks completed
       mockJob.completedTasks = 5;
       mockJob.taskCount = 10;
-      const completedInitTasks = [createTestTask(mockJob.id, jobDefinitionsConfig.tasks.init, { status: OperationStatus.COMPLETED })];
+      const completedInitTasks = [getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED })];
 
       // When: checking if initial workflow is completed
       const result = operations.isInitialWorkflowCompleted(completedInitTasks);
@@ -234,7 +227,7 @@ describe('WorkflowTaskOperations', () => {
       // Given: all tasks completed but init tasks not completed
       mockJob.completedTasks = 10;
       mockJob.taskCount = 10;
-      const incompleteInitTasks = [createTestTask(mockJob.id, jobDefinitionsConfig.tasks.init, { status: OperationStatus.IN_PROGRESS })];
+      const incompleteInitTasks = [getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.IN_PROGRESS })];
 
       // When: checking if initial workflow is completed
       const result = operations.isInitialWorkflowCompleted(incompleteInitTasks);

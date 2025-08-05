@@ -61,9 +61,6 @@ const createTestJob = (overrides?: Partial<IJobResponse<unknown, unknown>>): IJo
   });
 };
 
-const createTestTask = (jobId: string, taskType: string, overrides?: Partial<ITaskResponse<unknown>>): ITaskResponse<unknown> =>
-  getTaskMock(jobId, { type: taskType, status: OperationStatus.COMPLETED, ...overrides });
-
 describe('WorkflowJobHandler', () => {
   let handler: TestJobHandler;
   let mockLogger: jest.Mocked<Logger>;
@@ -85,7 +82,7 @@ describe('WorkflowJobHandler', () => {
     mockLogger = createMockLogger();
     mockJobManager = createMockJobManager();
     mockJob = createTestJob();
-    mockTask = createTestTask(mockJob.id, jobDefinitionsConfig.tasks.init);
+    mockTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED });
 
     handler = new TestJobHandler(
       mockLogger,

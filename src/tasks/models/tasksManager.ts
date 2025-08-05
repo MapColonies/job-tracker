@@ -41,7 +41,7 @@ export class TasksManager {
       throw new IrrelevantOperationStatusError(`Expected to get a 'Completed' or 'Failed' task' but instead got '${task.status}'`);
     }
 
-    const job = await this.getJob(task.jobId);
+    const job = await this.jobManager.getJob(task.jobId);
     const handler = getJobHandler(job.type, this.jobDefinitions, this.logger, this.queueClient, this.config, job, task);
 
     if (task.status === OperationStatus.FAILED) {
@@ -54,9 +54,5 @@ export class TasksManager {
   private async findTask(body: IFindTaskRequest<unknown>): Promise<ITaskResponse<unknown> | undefined> {
     const task = await this.jobManager.findTasks(body);
     return task?.[0];
-  }
-
-  private async getJob(jobId: string): Promise<IJobResponse<unknown, unknown>> {
-    return this.jobManager.getJob(jobId);
   }
 }
