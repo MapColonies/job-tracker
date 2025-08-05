@@ -1,7 +1,7 @@
 import { Logger } from '@map-colonies/js-logger';
 import { IJobResponse, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { JOB_COMPLETED_MESSAGE } from '../../common/constants';
-import { calculateTaskPercentage } from '../../utils/taskUtils';
+import { calculateJobPercentage } from '../../utils/jobUtils';
 import { IJobHandler } from './interfaces';
 
 /**
@@ -12,7 +12,7 @@ export abstract class BaseJobHandler implements IJobHandler {
     protected readonly logger: Logger,
     protected readonly jobManager: JobManagerClient,
     protected readonly job: IJobResponse<unknown, unknown>
-  ) {}
+  ) { }
 
   public completeJob = async (): Promise<void> => {
     this.logger.info({ msg: `Completing job`, jobId: this.job.id });
@@ -21,7 +21,6 @@ export abstract class BaseJobHandler implements IJobHandler {
       reason: JOB_COMPLETED_MESSAGE,
       percentage: 100,
     });
-    this.logger.info({ msg: JOB_COMPLETED_MESSAGE, jobId: this.job.id });
   };
 
   public failJob = async (reason?: string): Promise<void> => {
@@ -43,17 +42,17 @@ export abstract class BaseJobHandler implements IJobHandler {
   };
 
   public updateJobProgress = async (percentage: number): Promise<void> => {
-    await this.jobManager.updateJob(this.job.id, { percentage });
     this.logger.info({
-      msg: `Updated progress (${percentage}%) for job: ${this.job.id}`,
+      msg: `Updated job percentage with (${percentage}%) for job: ${this.job.id}`,
       jobId: this.job.id,
       percentage,
     });
+    await this.jobManager.updateJob(this.job.id, { percentage });
   };
 
   public updateJobForHavingNewTask = async (taskType: string): Promise<void> => {
     const newTaskCount = this.job.taskCount + 1;
-    const percentage = calculateTaskPercentage(this.job.completedTasks, newTaskCount);
+    const percentage = calculateJobPercentage(this.job.completedTasks, newTaskCount);
 
     this.logger.debug({
       msg: 'Task created, updating progress',

@@ -2,7 +2,6 @@ import { Logger } from '@map-colonies/js-logger';
 import { ConflictError } from '@map-colonies/error-types';
 import { IJobResponse, ITaskResponse, JobManagerClient, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
 import { IConfig, IJobDefinitionsConfig, TaskTypes } from '../../common/interfaces';
-import { calculateTaskPercentage } from '../../utils/taskUtils';
 import { BaseJobHandler } from './baseJobHandler';
 import { WorkflowTaskOperations } from './taskHandler';
 
@@ -80,20 +79,20 @@ export abstract class WorkflowJobHandler extends BaseJobHandler {
       });
       return true;
     } else {
-      const isPassed = this.taskOperations?.isInitialWorkflowCompleted(initTasksOfJob) ?? false;
+      const isInitialWorkflowCompleted = this.taskOperations?.isInitialWorkflowCompleted(initTasksOfJob) ?? false;
       this.logger.info({
         msg: `Validation of init tasks completed for job ${this.job.id}`,
         jobId: this.job.id,
         taskId: this.task.id,
         taskType: this.task.type,
-        isPassed: isPassed,
+        isInitialWorkflowCompleted: isInitialWorkflowCompleted,
       });
-      return isPassed;
+      return isInitialWorkflowCompleted;
     }
   }
 
   private async handleNoNextTask(): Promise<void> {
-    const percentage = calculateTaskPercentage(this.job.completedTasks, this.job.taskCount);
+    const percentage = this.calculateJobPercentage(this.job.completedTasks, this.job.taskCount);
 
     if (this.isAllTasksCompleted()) {
       this.logger.info({ msg: 'Completing job', jobId: this.job.id });
@@ -106,7 +105,7 @@ export abstract class WorkflowJobHandler extends BaseJobHandler {
 
   private async handleSkipTask(nextTaskType: string): Promise<void> {
     this.logger.info({ msg: 'Skipping task creation', jobId: this.job.id, taskType: nextTaskType });
-    const percentage = calculateTaskPercentage(this.job.completedTasks, this.job.taskCount);
+    const percentage = this.calculateJobPercentage(this.job.completedTasks, this.job.taskCount);
     await this.updateJobProgress(percentage);
   }
 

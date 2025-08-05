@@ -5,7 +5,7 @@ import { registerDefaultConfig, clear as clearConfig, setValue, init } from '../
 import { JOB_COMPLETED_MESSAGE } from '../../../../src/common/constants';
 import { getExportJobMock, getIngestionJobMock, getSeedingJobMock, getTaskMock } from '../../../mocks/JobMocks';
 import { IrrelevantOperationStatusError } from '../../../../src/common/errors';
-import { calculateTaskPercentage } from '../../../../src/utils/taskUtils';
+import { calculateJobPercentage } from '../../../../src/utils/jobUtils';
 import { setupTasksManagerTest, TasksModelTestContext } from './tasksManagerSetup';
 
 describe('TasksManager', () => {
@@ -441,7 +441,7 @@ describe('TasksManager', () => {
 
       await tasksManager.handleTaskNotification(finalizeTaskMock.id);
 
-      expect(mockUpdateJob).toHaveBeenCalledWith(job.id, { percentage: calculateTaskPercentage(job.completedTasks, job.taskCount) });
+      expect(mockUpdateJob).toHaveBeenCalledWith(job.id, { percentage: calculateJobPercentage(job.completedTasks, job.taskCount) });
     });
 
     it('Should fail a job on a failed export task', async () => {
@@ -501,7 +501,7 @@ describe('TasksManager', () => {
         reason: 'some error message',
         parameters: mockExportErrorFinalizeTaskParams,
       });
-      const expectedPercentage = calculateTaskPercentage(exportJobMock.completedTasks, exportJobMock.taskCount);
+      const expectedPercentage = calculateJobPercentage(exportJobMock.completedTasks, exportJobMock.taskCount);
 
       mockFindTasks.mockResolvedValue([exportTaskMock]);
       mockGetJob.mockResolvedValue(exportJobMock);
@@ -535,7 +535,7 @@ describe('TasksManager', () => {
       const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockUpdateJob } = testContext;
       const seedingJob = getSeedingJobMock({ taskCount: 6, completedTasks: 4 });
       const seedTaskMock = getTaskMock(seedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
-      const desiredPercentage = calculateTaskPercentage(seedingJob.completedTasks, seedingJob.taskCount);
+      const desiredPercentage = calculateJobPercentage(seedingJob.completedTasks, seedingJob.taskCount);
 
       mockFindTasks.mockResolvedValue([seedTaskMock]);
       mockGetJob.mockResolvedValue(seedingJob);
