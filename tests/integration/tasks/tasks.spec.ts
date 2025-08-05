@@ -10,7 +10,7 @@ import { configMock, init, setValue } from '../../mocks/configMock';
 import { getApp } from '../../../src/app';
 import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../src/common/interfaces';
 import { getExportJobMock, getIngestionJobMock, getSeedingJobMock, getTaskMock } from '../../mocks/JobMocks';
-import { calculateTaskPercentage } from '../../../src/utils/taskUtils';
+import { calculateJobPercentage } from '../../../src/utils/jobUtils';
 import { JOB_COMPLETED_MESSAGE, SERVICES } from '../../../src/common/constants';
 import { registerExternalValues } from '../../../src/containerConfig';
 import { TasksRequestSender } from './helpers/requestSender';
@@ -171,7 +171,7 @@ describe('tasks', function () {
         .post(`/tasks/find`, { jobId: mockExportJob.id, type: mockInitTask.type })
         .reply(200, [mockInitTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/jobs/${mockExportJob.id}/tasks`, mockFullProcessFinalizeTaskParams).reply(201);
-      const taskPercentage = calculateTaskPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
+      const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(200);
       // action
       const response = await requestSender.handleTaskNotification(mockInitTask.id);
@@ -204,7 +204,7 @@ describe('tasks', function () {
         .post(`/tasks/find`, { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
         .reply(200, [mockPolygonPartsTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/jobs/${mockExportJob.id}/tasks`, mockFullProcessFinalizeTaskParams).reply(201);
-      const taskPercentage = calculateTaskPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
+      const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(200);
       // action
       const response = await requestSender.handleTaskNotification(mockPolygonPartsTask.id);
@@ -226,7 +226,7 @@ describe('tasks', function () {
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post(`/tasks/find`, { jobId: mockExportJob.id, type: mockInitTask.type })
         .reply(200, [mockInitTask]);
-      const taskPercentage = calculateTaskPercentage(mockExportJob.completedTasks, mockExportJob.taskCount);
+      const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(200);
       // action
       const response = await requestSender.handleTaskNotification(mockInitTask.id);
@@ -248,7 +248,7 @@ describe('tasks', function () {
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post('/tasks/find', { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
         .reply(200, [mockExportingTask]);
-      const taskPercentage = calculateTaskPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
+      const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(200);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post(`/jobs/${mockExportJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts }))
@@ -270,7 +270,7 @@ describe('tasks', function () {
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post(`/jobs/${mockExportJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts }))
         .reply(201);
-      const taskPercentage = calculateTaskPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
+      const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(200);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post('/tasks/find', { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
@@ -302,7 +302,7 @@ describe('tasks', function () {
       nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/jobs/${mockExportJob.id}/tasks`, mockExportErrorFinalizeTaskParams).reply(201);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .put(`/jobs/${mockExportJob.id}`, {
-          percentage: calculateTaskPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1),
+          percentage: calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1),
         })
         .reply(200);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
@@ -411,7 +411,7 @@ describe('tasks', function () {
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(200, [mockFinalizeTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .put(`/jobs/${mockExportJob.id}`, { percentage: calculateTaskPercentage(mockExportJob.completedTasks, mockExportJob.taskCount) })
+        .put(`/jobs/${mockExportJob.id}`, { percentage: calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount) })
         .reply(200);
 
       // action
@@ -452,7 +452,7 @@ describe('tasks', function () {
         .post(`/jobs/${mockExportJob.id}/tasks`, { type: jobDefinitionsConfigMock.tasks.polygonParts, parameters: {}, blockDuplication: false })
         .reply(200);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .put(`/jobs/${mockExportJob.id}`, { percentage: calculateTaskPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1) })
+        .put(`/jobs/${mockExportJob.id}`, { percentage: calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1) })
         .reply(200);
 
       // action
@@ -516,7 +516,7 @@ describe('tasks', function () {
         .reply(200, [mockInitTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockExportTask.id }).reply(200, [mockExportTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/jobs/${mockExportJob.id}/tasks`, mockTaskParameters).reply(201);
-      const taskPercentage = calculateTaskPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
+      const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(200);
       // action
       const response = await requestSender.handleTaskNotification(mockExportTask.id);
@@ -559,7 +559,7 @@ describe('tasks', function () {
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.init })
         .reply(200, [mockInitTask]);
-      const taskPercentage = calculateTaskPercentage(mockIngestionJob.completedTasks, mockIngestionJob.taskCount);
+      const taskPercentage = calculateJobPercentage(mockIngestionJob.completedTasks, mockIngestionJob.taskCount);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockIngestionJob.id}`, { percentage: taskPercentage }).reply(200);
       // action
       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
@@ -574,7 +574,7 @@ describe('tasks', function () {
       const mockSeedTask = getTaskMock(mockSeedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockSeedTask.id }).reply(200, [mockSeedTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockSeedingJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockSeedingJob);
-      const taskPercentage = calculateTaskPercentage(mockSeedingJob.completedTasks, mockSeedingJob.taskCount);
+      const taskPercentage = calculateJobPercentage(mockSeedingJob.completedTasks, mockSeedingJob.taskCount);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockSeedingJob.id}`, { percentage: taskPercentage }).reply(200);
       // action
       const response = await requestSender.handleTaskNotification(mockSeedTask.id);

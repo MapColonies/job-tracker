@@ -1,15 +1,15 @@
-import { calculateTaskPercentage } from '../../../src/utils/taskUtils';
+import { calculateJobPercentage } from '../../../src/utils/jobUtils';
 
-describe('calculateTaskPercentage', () => {
-  const calculateTaskPercentageParams = {
+describe('calculateJobPercentage', () => {
+  const calculateJobPercentageParams = {
     completedTasks: 26,
     totalTasks: 30,
     shouldReturn: 86,
   };
 
   it('should return the percentages rounded down, when provided with completed tasks and total tasks', () => {
-    const newPercentages = calculateTaskPercentage(calculateTaskPercentageParams.completedTasks, calculateTaskPercentageParams.totalTasks);
+    const newPercentages = calculateJobPercentage(calculateJobPercentageParams.completedTasks, calculateJobPercentageParams.totalTasks);
 
-    expect(newPercentages).toBe(calculateTaskPercentageParams.shouldReturn);
+    expect(newPercentages).toBe(calculateJobPercentageParams.shouldReturn);
   });
 });
