@@ -6,7 +6,6 @@ import { configMock } from '../../../mocks/configMock';
 import { getExportJobMock, getIngestionJobMock, getTaskMock } from '../../../mocks/JobMocks';
 import { getJobHandler } from '../../../../src/tasks/handlers/jobHandlerFactory';
 import { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
-import { JOB_TYPES } from '../../../helpers/testConstants';
 
 // Test helper functions
 const createTestLogger = () => jsLogger({ enabled: false });
@@ -26,10 +25,10 @@ const createIngestionJobTestCase = (jobType: string, jobDefinition: string): Tes
   expectedHandlerName: 'IngestionJobHandler',
 });
 
-const createExportJobTestCase = (): TestCase => ({
+const createExportJobTestCase = (jobDefinitionsConfig: IJobDefinitionsConfig): TestCase => ({
   name: 'export',
-  jobType: JOB_TYPES.export,
-  mockJob: getExportJobMock({ type: JOB_TYPES.export }),
+  jobType: jobDefinitionsConfig.jobs.export,
+  mockJob: getExportJobMock({ type: jobDefinitionsConfig.jobs.export }),
   expectedHandlerName: 'ExportJobHandler',
 });
 
@@ -108,7 +107,7 @@ describe('jobHandlerFactory', () => {
   describe('Export job handlers', () => {
     it('should create ExportJobHandler for export job type', () => {
       // Given: export job and task
-      const exportTestCase = createExportJobTestCase();
+      const exportTestCase = createExportJobTestCase(jobDefinitionsConfig);
       const mockTask = getTaskMock(exportTestCase.mockJob.id);
       const mockQueueClient = createMockQueueClient();
 

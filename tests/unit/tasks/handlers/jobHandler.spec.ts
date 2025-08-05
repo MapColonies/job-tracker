@@ -2,25 +2,30 @@ import { ConflictError } from '@map-colonies/error-types';
 import { Logger } from '@map-colonies/js-logger';
 import { JobManagerClient, OperationStatus, IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import { JobHandler } from '../../../../src/tasks/handlers/jobHandler';
-import { IConfig, TaskTypes } from '../../../../src/common/interfaces';
+import { IConfig, TaskTypes, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { getExportJobMock, getTaskMock } from '../../../mocks/JobMocks';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
-import { JOB_TYPES, TASK_TYPES, TASK_FLOWS, EXCLUDED_TASK_TYPES, BLOCK_DUPLICATION_TYPES } from '../../../helpers/testConstants';
 
 // Concrete implementation for testing
-class TestWorkflowJobHandler extends JobHandler {
-  protected readonly tasksFlow: TaskTypes = TASK_FLOWS.export as unknown as TaskTypes;
-  protected readonly excludedTypes: TaskTypes = EXCLUDED_TASK_TYPES.export as unknown as TaskTypes;
-  protected readonly shouldBlockDuplicationForTypes: TaskTypes = BLOCK_DUPLICATION_TYPES as unknown as TaskTypes;
+class TestJobHandler extends JobHandler {
+  protected readonly tasksFlow: TaskTypes;
+  protected readonly excludedTypes: TaskTypes;
+  protected readonly shouldBlockDuplicationForTypes: TaskTypes;
 
   public constructor(
     logger: Logger,
     config: IConfig,
     jobManager: JobManagerClient,
     job: IJobResponse<unknown, unknown>,
-    task: ITaskResponse<unknown>
+    task: ITaskResponse<unknown>,
+    tasksFlow: TaskTypes,
+    excludedTypes: TaskTypes,
+    blockDuplicationTypes: TaskTypes
   ) {
     super(logger, config, jobManager, job, task);
+    this.tasksFlow = tasksFlow;
+    this.excludedTypes = excludedTypes;
+    this.shouldBlockDuplicationForTypes = blockDuplicationTypes;
     this.initializeTaskOperations();
   }
 
@@ -46,35 +51,52 @@ const createMockJobManager = (): jest.Mocked<JobManagerClient> =>
   findTasks: jest.fn(),
 } as unknown as jest.Mocked<JobManagerClient>);
 
-const createTestJob = (overrides?: Partial<IJobResponse<unknown, unknown>>): IJobResponse<unknown, unknown> =>
-  getExportJobMock({
-    type: JOB_TYPES.export,
+const createTestJob = (overrides?: Partial<IJobResponse<unknown, unknown>>): IJobResponse<unknown, unknown> => {
+  const jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
+  return getExportJobMock({
+    type: jobDefinitionsConfig.jobs.export,
     completedTasks: 5,
     taskCount: 10,
     ...overrides,
   });
+};
 
 const createTestTask = (jobId: string, taskType: string, overrides?: Partial<ITaskResponse<unknown>>): ITaskResponse<unknown> =>
   getTaskMock(jobId, { type: taskType, status: OperationStatus.COMPLETED, ...overrides });
 
 describe('WorkflowJobHandler', () => {
-  let handler: TestWorkflowJobHandler;
+  let handler: TestJobHandler;
   let mockLogger: jest.Mocked<Logger>;
   let mockJobManager: jest.Mocked<JobManagerClient>;
   let mockJob: IJobResponse<unknown, unknown>;
   let mockTask: ITaskResponse<unknown>;
   let mockConfig: IConfig;
+  let jobDefinitionsConfig: IJobDefinitionsConfig;
+  let taskFlowConfig: { exportTasksFlow: string[]; exportCreationExcludedTaskTypes: string[] };
 
   beforeEach(() => {
     registerDefaultConfig();
     mockConfig = configMock;
 
+    // Extract config values
+    jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
+    taskFlowConfig = configMock.get<{ exportTasksFlow: string[]; exportCreationExcludedTaskTypes: string[] }>('taskFlowManager');
+
     mockLogger = createMockLogger();
     mockJobManager = createMockJobManager();
     mockJob = createTestJob();
-    mockTask = createTestTask(mockJob.id, TASK_TYPES.init);
+    mockTask = createTestTask(mockJob.id, jobDefinitionsConfig.tasks.init);
 
-    handler = new TestWorkflowJobHandler(mockLogger, mockConfig, mockJobManager, mockJob, mockTask);
+    handler = new TestJobHandler(
+      mockLogger,
+      mockConfig,
+      mockJobManager,
+      mockJob,
+      mockTask,
+      taskFlowConfig.exportTasksFlow as unknown as TaskTypes,
+      taskFlowConfig.exportCreationExcludedTaskTypes as unknown as TaskTypes,
+      ['init'] as unknown as TaskTypes // block duplication types
+    );
   });
 
   afterEach(() => {
@@ -85,7 +107,7 @@ describe('WorkflowJobHandler', () => {
   describe('handleFailedTask', () => {
     it('should suspend job when task type is in suspending types', async () => {
       // Given: task type is in suspending types
-      mockTask.type = TASK_TYPES.polygonParts;
+      mockTask.type = jobDefinitionsConfig.tasks.polygonParts;
       mockTask.reason = 'Task failed reason';
       jest.spyOn(handler, 'suspendJob').mockResolvedValue();
 
@@ -98,7 +120,7 @@ describe('WorkflowJobHandler', () => {
 
     it('should fail job when task type is not in suspending types', async () => {
       // Given: task type is not in suspending types
-      mockTask.type = TASK_TYPES.init;
+      mockTask.type = jobDefinitionsConfig.tasks.init;
       mockTask.reason = 'Task failed reason';
       jest.spyOn(handler, 'failJob').mockResolvedValue();
 
@@ -113,7 +135,7 @@ describe('WorkflowJobHandler', () => {
   describe('handleCompletedNotification', () => {
     it('should complete job when no next task and all tasks completed', async () => {
       // Given: last task in flow and all tasks completed
-      mockTask.type = TASK_TYPES.finalize;
+      mockTask.type = jobDefinitionsConfig.tasks.finalize;
       mockJob.completedTasks = 10;
       mockJob.taskCount = 10;
       jest.spyOn(handler, 'completeJob').mockResolvedValue();
@@ -127,7 +149,7 @@ describe('WorkflowJobHandler', () => {
 
     it('should update progress when no next task but not all tasks completed', async () => {
       // Given: last task in flow but not all tasks completed
-      mockTask.type = TASK_TYPES.finalize;
+      mockTask.type = jobDefinitionsConfig.tasks.finalize;
       mockJob.completedTasks = 5;
       mockJob.taskCount = 10;
       jest.spyOn(handler, 'updateJobProgress').mockResolvedValue();
@@ -141,7 +163,7 @@ describe('WorkflowJobHandler', () => {
 
     it('should skip task creation when cannot proceed', async () => {
       // Given: task in progress prevents proceeding
-      mockTask.type = TASK_TYPES.init;
+      mockTask.type = jobDefinitionsConfig.tasks.init;
       mockJobManager.findTasks.mockResolvedValue([{ ...getTaskMock(mockJob.id), status: OperationStatus.IN_PROGRESS }]);
 
       jest.spyOn(handler, 'updateJobProgress').mockResolvedValue();
@@ -155,7 +177,7 @@ describe('WorkflowJobHandler', () => {
 
     it('should skip task creation when task should be skipped', async () => {
       // Given: task creation should be skipped
-      mockTask.type = TASK_TYPES.init;
+      mockTask.type = jobDefinitionsConfig.tasks.init;
       mockJobManager.findTasks.mockResolvedValue([{ ...getTaskMock(mockJob.id), status: OperationStatus.COMPLETED }]);
 
       jest.spyOn(handler, 'updateJobProgress').mockResolvedValue();
@@ -169,7 +191,7 @@ describe('WorkflowJobHandler', () => {
 
     it('should create new task when conditions are met', async () => {
       // Given: conditions met for creating next task
-      mockTask.type = TASK_TYPES.init;
+      mockTask.type = jobDefinitionsConfig.tasks.init;
       mockJob.completedTasks = 10;
       mockJob.taskCount = 10;
 
@@ -184,7 +206,7 @@ describe('WorkflowJobHandler', () => {
       expect(mockJobManager.createTaskForJob).toHaveBeenCalledWith(
         mockJob.id,
         expect.objectContaining({
-          type: TASK_TYPES.polygonParts, // Should skip tilesExporting (excluded)
+          type: jobDefinitionsConfig.tasks.polygonParts, // Should skip tilesExporting (excluded)
           blockDuplication: false, // polygon-parts is not in shouldBlockDuplicationForTypes
         })
       );
@@ -193,7 +215,7 @@ describe('WorkflowJobHandler', () => {
 
     it('should handle ConflictError when creating task', async () => {
       // Given: task creation conflict
-      mockTask.type = TASK_TYPES.init;
+      mockTask.type = jobDefinitionsConfig.tasks.init;
       mockJob.completedTasks = 10;
       mockJob.taskCount = 10;
 
@@ -206,7 +228,7 @@ describe('WorkflowJobHandler', () => {
 
     it('should throw non-ConflictError when creating task', async () => {
       // Given: unexpected error during task creation
-      mockTask.type = TASK_TYPES.init;
+      mockTask.type = jobDefinitionsConfig.tasks.init;
       mockJob.completedTasks = 10;
       mockJob.taskCount = 10;
 

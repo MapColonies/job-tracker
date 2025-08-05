@@ -2,10 +2,9 @@ import { BadRequestError } from '@map-colonies/error-types';
 import { Logger } from '@map-colonies/js-logger';
 import { JobManagerClient, OperationStatus, IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import { TaskWorker } from '../../../../src/tasks/handlers/taskHandler';
-import { IConfig, TaskTypes } from '../../../../src/common/interfaces';
+import { IConfig, TaskTypes, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { getExportJobMock, getTaskMock } from '../../../mocks/JobMocks';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
-import { JOB_TYPES, TASK_TYPES, TASK_FLOWS, EXCLUDED_TASK_TYPES } from '../../../helpers/testConstants';
 
 // Test helper functions
 const createMockLogger = (): jest.Mocked<Logger> =>
@@ -21,9 +20,6 @@ const createMockJobManager = (): jest.Mocked<JobManagerClient> =>
   findTasks: jest.fn(),
 } as unknown as jest.Mocked<JobManagerClient>);
 
-const createTestJob = (overrides?: Partial<IJobResponse<unknown, unknown>>): IJobResponse<unknown, unknown> =>
-  getExportJobMock({ type: JOB_TYPES.export, ...overrides });
-
 const createTestTask = (jobId: string, taskType: string, overrides?: Partial<ITaskResponse<unknown>>): ITaskResponse<unknown> =>
   getTaskMock(jobId, { type: taskType, status: OperationStatus.COMPLETED, ...overrides });
 
@@ -34,15 +30,24 @@ describe('WorkflowTaskOperations', () => {
   let mockJob: IJobResponse<unknown, unknown>;
   let mockTask: ITaskResponse<unknown>;
   let mockConfig: IConfig;
+  let jobDefinitionsConfig: IJobDefinitionsConfig;
+  let taskFlowConfig: { exportTasksFlow: string[]; exportCreationExcludedTaskTypes: string[] };
 
   beforeEach(() => {
     registerDefaultConfig();
     mockConfig = configMock;
 
+    // Extract config values once per test
+    jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
+    taskFlowConfig = configMock.get<{
+      exportTasksFlow: string[];
+      exportCreationExcludedTaskTypes: string[];
+    }>('taskFlowManager');
+
     mockLogger = createMockLogger();
     mockJobManager = createMockJobManager();
-    mockJob = createTestJob();
-    mockTask = createTestTask(mockJob.id, TASK_TYPES.init);
+    mockJob = getExportJobMock({ type: jobDefinitionsConfig.jobs.export });
+    mockTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED });
 
     operations = new TaskWorker(
       mockLogger,
@@ -50,8 +55,8 @@ describe('WorkflowTaskOperations', () => {
       mockJobManager,
       mockJob,
       mockTask,
-      TASK_FLOWS.export as unknown as TaskTypes,
-      EXCLUDED_TASK_TYPES.export as unknown as TaskTypes
+      taskFlowConfig.exportTasksFlow as unknown as TaskTypes,
+      taskFlowConfig.exportCreationExcludedTaskTypes as unknown as TaskTypes
     );
   });
 
@@ -63,8 +68,8 @@ describe('WorkflowTaskOperations', () => {
   describe('getTaskParameters', () => {
     it('should return task parameters for valid job and task type', () => {
       // Given: valid job type and task type combination
-      const jobType = JOB_TYPES.export;
-      const taskType = TASK_TYPES.finalize;
+      const jobType = jobDefinitionsConfig.jobs.export;
+      const taskType = jobDefinitionsConfig.tasks.finalize;
 
       // When: getting task parameters
       const result = operations.getTaskParameters(jobType, taskType);
@@ -98,18 +103,18 @@ describe('WorkflowTaskOperations', () => {
   describe('getNextTaskType', () => {
     it('should return next task type when current task is in flow', () => {
       // Given: current task is first in flow
-      mockTask.type = TASK_TYPES.init;
+      mockTask.type = jobDefinitionsConfig.tasks.init;
 
       // When: getting next task type
       const result = operations.getNextTaskType();
 
       // Then: should skip excluded tilesExporting and return polygon-parts
-      expect(result).toBe(TASK_TYPES.polygonParts);
+      expect(result).toBe(jobDefinitionsConfig.tasks.polygonParts);
     });
 
     it('should return undefined when current task is the last in flow', () => {
       // Given: current task is last in flow
-      mockTask.type = TASK_TYPES.finalize;
+      mockTask.type = jobDefinitionsConfig.tasks.finalize;
 
       // When: getting next task type
       const result = operations.getNextTaskType();
@@ -120,9 +125,9 @@ describe('WorkflowTaskOperations', () => {
 
     it('should skip excluded types and find next valid task', () => {
       // Given: custom flow with multiple excluded types
-      const customTaskFlow: TaskTypes = [TASK_TYPES.init, TASK_TYPES.export, TASK_TYPES.polygonParts, TASK_TYPES.finalize];
-      const customExcludedTypes: TaskTypes = [TASK_TYPES.export, TASK_TYPES.polygonParts];
-      const customTask = createTestTask(mockJob.id, TASK_TYPES.init);
+      const customTaskFlow: TaskTypes = [jobDefinitionsConfig.tasks.init, jobDefinitionsConfig.tasks.export, jobDefinitionsConfig.tasks.polygonParts, jobDefinitionsConfig.tasks.finalize];
+      const customExcludedTypes: TaskTypes = [jobDefinitionsConfig.tasks.export, jobDefinitionsConfig.tasks.polygonParts];
+      const customTask = createTestTask(mockJob.id, jobDefinitionsConfig.tasks.init);
 
       const customOperations = new TaskWorker(
         mockLogger,
@@ -138,14 +143,14 @@ describe('WorkflowTaskOperations', () => {
       const result = customOperations.getNextTaskType();
 
       // Then: should skip excluded types and return finalize
-      expect(result).toBe(TASK_TYPES.finalize);
+      expect(result).toBe(jobDefinitionsConfig.tasks.finalize);
     });
   });
 
   describe('shouldSkipTaskCreation', () => {
     it('should return true for excluded task types', () => {
       // Given: task type is in excluded types
-      const excludedTaskType = TASK_TYPES.export;
+      const excludedTaskType = jobDefinitionsConfig.tasks.export;
 
       // When: checking if task creation should be skipped
       const result = operations.shouldSkipTaskCreation(excludedTaskType);
@@ -156,7 +161,7 @@ describe('WorkflowTaskOperations', () => {
 
     it('should return false for non-excluded task types', () => {
       // Given: task type is not in excluded types
-      const nonExcludedTaskType = TASK_TYPES.init;
+      const nonExcludedTaskType = jobDefinitionsConfig.tasks.init;
 
       // When: checking if task creation should be skipped
       const result = operations.shouldSkipTaskCreation(nonExcludedTaskType);
@@ -169,7 +174,7 @@ describe('WorkflowTaskOperations', () => {
   describe('getInitTasks', () => {
     it('should return init tasks when found', async () => {
       // Given: init tasks exist
-      const mockInitTask = createTestTask(mockJob.id, TASK_TYPES.init);
+      const mockInitTask = createTestTask(mockJob.id, jobDefinitionsConfig.tasks.init);
       mockJobManager.findTasks.mockResolvedValue([mockInitTask]);
 
       // When: finding init tasks
@@ -179,7 +184,7 @@ describe('WorkflowTaskOperations', () => {
       expect(result).toEqual([mockInitTask]);
       expect(mockJobManager.findTasks).toHaveBeenCalledWith({
         jobId: mockJob.id,
-        type: TASK_TYPES.init,
+        type: jobDefinitionsConfig.tasks.init,
       });
     });
 
@@ -201,8 +206,8 @@ describe('WorkflowTaskOperations', () => {
       mockJob.completedTasks = 10;
       mockJob.taskCount = 10;
       const completedInitTasks = [
-        createTestTask(mockJob.id, TASK_TYPES.init, { status: OperationStatus.COMPLETED }),
-        createTestTask(mockJob.id, TASK_TYPES.init, { status: OperationStatus.COMPLETED }),
+        createTestTask(mockJob.id, jobDefinitionsConfig.tasks.init, { status: OperationStatus.COMPLETED }),
+        createTestTask(mockJob.id, jobDefinitionsConfig.tasks.init, { status: OperationStatus.COMPLETED }),
       ];
 
       // When: checking if initial workflow is completed
@@ -216,7 +221,7 @@ describe('WorkflowTaskOperations', () => {
       // Given: not all tasks completed
       mockJob.completedTasks = 5;
       mockJob.taskCount = 10;
-      const completedInitTasks = [createTestTask(mockJob.id, TASK_TYPES.init, { status: OperationStatus.COMPLETED })];
+      const completedInitTasks = [createTestTask(mockJob.id, jobDefinitionsConfig.tasks.init, { status: OperationStatus.COMPLETED })];
 
       // When: checking if initial workflow is completed
       const result = operations.isInitialWorkflowCompleted(completedInitTasks);
@@ -229,7 +234,7 @@ describe('WorkflowTaskOperations', () => {
       // Given: all tasks completed but init tasks not completed
       mockJob.completedTasks = 10;
       mockJob.taskCount = 10;
-      const incompleteInitTasks = [createTestTask(mockJob.id, TASK_TYPES.init, { status: OperationStatus.IN_PROGRESS })];
+      const incompleteInitTasks = [createTestTask(mockJob.id, jobDefinitionsConfig.tasks.init, { status: OperationStatus.IN_PROGRESS })];
 
       // When: checking if initial workflow is completed
       const result = operations.isInitialWorkflowCompleted(incompleteInitTasks);
