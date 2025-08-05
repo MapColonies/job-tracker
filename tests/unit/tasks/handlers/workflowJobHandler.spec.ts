@@ -2,16 +2,16 @@ import { ConflictError } from '@map-colonies/error-types';
 import { Logger } from '@map-colonies/js-logger';
 import { JobManagerClient, OperationStatus, IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import { WorkflowJobHandler } from '../../../../src/tasks/handlers/workflowJobHandler';
-import { IConfig, TaskTypeArray } from '../../../../src/common/interfaces';
+import { IConfig, TaskTypes } from '../../../../src/common/interfaces';
 import { getExportJobMock, getTaskMock } from '../../../mocks/JobMocks';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
 import { JOB_TYPES, TASK_TYPES, TASK_FLOWS, EXCLUDED_TASK_TYPES, BLOCK_DUPLICATION_TYPES } from '../../../helpers/testConstants';
 
 // Concrete implementation for testing
 class TestWorkflowJobHandler extends WorkflowJobHandler {
-  protected readonly tasksFlow: TaskTypeArray = TASK_FLOWS.export as unknown as TaskTypeArray;
-  protected readonly excludedTypes: TaskTypeArray = EXCLUDED_TASK_TYPES.export as unknown as TaskTypeArray;
-  protected readonly shouldBlockDuplicationForTypes: TaskTypeArray = BLOCK_DUPLICATION_TYPES as unknown as TaskTypeArray;
+  protected readonly tasksFlow: TaskTypes = TASK_FLOWS.export as unknown as TaskTypes;
+  protected readonly excludedTypes: TaskTypes = EXCLUDED_TASK_TYPES.export as unknown as TaskTypes;
+  protected readonly shouldBlockDuplicationForTypes: TaskTypes = BLOCK_DUPLICATION_TYPES as unknown as TaskTypes;
 
   public constructor(
     logger: Logger,
@@ -32,19 +32,19 @@ class TestWorkflowJobHandler extends WorkflowJobHandler {
 
 // Test helper functions
 const createMockLogger = (): jest.Mocked<Logger> =>
-  ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  } as unknown as jest.Mocked<Logger>);
+({
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+} as unknown as jest.Mocked<Logger>);
 
 const createMockJobManager = (): jest.Mocked<JobManagerClient> =>
-  ({
-    updateJob: jest.fn(),
-    createTaskForJob: jest.fn(),
-    findTasks: jest.fn(),
-  } as unknown as jest.Mocked<JobManagerClient>);
+({
+  updateJob: jest.fn(),
+  createTaskForJob: jest.fn(),
+  findTasks: jest.fn(),
+} as unknown as jest.Mocked<JobManagerClient>);
 
 const createTestJob = (overrides?: Partial<IJobResponse<unknown, unknown>>): IJobResponse<unknown, unknown> =>
   getExportJobMock({

@@ -1,15 +1,15 @@
 import { Logger } from '@map-colonies/js-logger';
 import { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
 import { injectable, inject } from 'tsyringe';
-import { IConfig, TaskTypeArray } from '../../../common/interfaces';
+import { IConfig, TaskTypes } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
 import { WorkflowJobHandler } from '../workflowJobHandler';
 
 @injectable()
 export class ExportJobHandler extends WorkflowJobHandler {
-  protected readonly tasksFlow: TaskTypeArray;
-  protected readonly excludedTypes: TaskTypeArray;
-  protected readonly shouldBlockDuplicationForTypes: TaskTypeArray;
+  protected readonly tasksFlow: TaskTypes;
+  protected readonly excludedTypes: TaskTypes;
+  protected readonly shouldBlockDuplicationForTypes: TaskTypes;
 
   public constructor(
     @inject(SERVICES.LOGGER) logger: Logger,
@@ -19,8 +19,8 @@ export class ExportJobHandler extends WorkflowJobHandler {
     task: ITaskResponse<unknown>
   ) {
     super(logger, config, jobManagerClient, job, task);
-    this.tasksFlow = this.config.get<TaskTypeArray>('taskFlowManager.exportTasksFlow');
-    this.excludedTypes = this.config.get<TaskTypeArray>('taskFlowManager.exportCreationExcludedTaskTypes');
+    this.tasksFlow = this.config.get<TaskTypes>('taskFlowManager.exportTasksFlow');
+    this.excludedTypes = this.config.get<TaskTypes>('taskFlowManager.exportCreationExcludedTaskTypes');
     this.shouldBlockDuplicationForTypes = [this.jobDefinitions.tasks.export];
 
     // Initialize task operations after setting up the flow properties

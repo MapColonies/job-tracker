@@ -1,7 +1,7 @@
 import { Logger } from '@map-colonies/js-logger';
 import { ConflictError } from '@map-colonies/error-types';
 import { IJobResponse, ITaskResponse, JobManagerClient, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
-import { IConfig, IJobDefinitionsConfig, TaskTypeArray } from '../../common/interfaces';
+import { IConfig, IJobDefinitionsConfig, TaskTypes } from '../../common/interfaces';
 import { calculateTaskPercentage } from '../../utils/taskUtils';
 import { BaseJobHandler } from './baseJobHandler';
 import { WorkflowTaskOperations } from './workflowTaskHandler';
@@ -14,9 +14,9 @@ export abstract class WorkflowJobHandler extends BaseJobHandler {
   protected readonly jobDefinitions: IJobDefinitionsConfig;
   protected readonly task: ITaskResponse<unknown>;
   protected taskOperations?: WorkflowTaskOperations;
-  protected abstract readonly tasksFlow: TaskTypeArray;
-  protected abstract readonly excludedTypes: TaskTypeArray;
-  protected abstract readonly shouldBlockDuplicationForTypes: TaskTypeArray;
+  protected abstract readonly tasksFlow: TaskTypes;
+  protected abstract readonly excludedTypes: TaskTypes;
+  protected abstract readonly shouldBlockDuplicationForTypes: TaskTypes;
 
   protected constructor(
     logger: Logger,

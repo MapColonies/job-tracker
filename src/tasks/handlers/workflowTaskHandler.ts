@@ -1,7 +1,7 @@
 import { BadRequestError } from '@map-colonies/error-types';
 import { Logger } from '@map-colonies/js-logger';
 import { IJobResponse, ITaskResponse, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
-import { IConfig, IJobDefinitionsConfig, JobAndTask, TaskTypeArray } from '../../common/interfaces';
+import { IConfig, IJobDefinitionsConfig, JobAndTask, TaskTypes } from '../../common/interfaces';
 import { createTaskParametersMapper } from '../../common/mappers';
 
 /**
@@ -17,8 +17,8 @@ export class WorkflowTaskOperations {
     protected readonly jobManager: JobManagerClient,
     protected readonly job: IJobResponse<unknown, unknown>,
     protected readonly task: ITaskResponse<unknown>,
-    protected readonly tasksFlow: TaskTypeArray,
-    protected readonly excludedTypes: TaskTypeArray
+    protected readonly tasksFlow: TaskTypes,
+    protected readonly excludedTypes: TaskTypes
   ) {
     this.jobDefinitions = this.config.get<IJobDefinitionsConfig>('jobDefinitions');
   }

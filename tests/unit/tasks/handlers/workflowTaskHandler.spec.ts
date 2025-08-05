@@ -2,24 +2,24 @@ import { BadRequestError } from '@map-colonies/error-types';
 import { Logger } from '@map-colonies/js-logger';
 import { JobManagerClient, OperationStatus, IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import { WorkflowTaskOperations } from '../../../../src/tasks/handlers/workflowTaskHandler';
-import { IConfig, TaskTypeArray } from '../../../../src/common/interfaces';
+import { IConfig, TaskTypes } from '../../../../src/common/interfaces';
 import { getExportJobMock, getTaskMock } from '../../../mocks/JobMocks';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
 import { JOB_TYPES, TASK_TYPES, TASK_FLOWS, EXCLUDED_TASK_TYPES } from '../../../helpers/testConstants';
 
 // Test helper functions
 const createMockLogger = (): jest.Mocked<Logger> =>
-  ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  } as unknown as jest.Mocked<Logger>);
+({
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+} as unknown as jest.Mocked<Logger>);
 
 const createMockJobManager = (): jest.Mocked<JobManagerClient> =>
-  ({
-    findTasks: jest.fn(),
-  } as unknown as jest.Mocked<JobManagerClient>);
+({
+  findTasks: jest.fn(),
+} as unknown as jest.Mocked<JobManagerClient>);
 
 const createTestJob = (overrides?: Partial<IJobResponse<unknown, unknown>>): IJobResponse<unknown, unknown> =>
   getExportJobMock({ type: JOB_TYPES.export, ...overrides });
@@ -50,8 +50,8 @@ describe('WorkflowTaskOperations', () => {
       mockJobManager,
       mockJob,
       mockTask,
-      TASK_FLOWS.export as unknown as TaskTypeArray,
-      EXCLUDED_TASK_TYPES.export as unknown as TaskTypeArray
+      TASK_FLOWS.export as unknown as TaskTypes,
+      EXCLUDED_TASK_TYPES.export as unknown as TaskTypes
     );
   });
 
@@ -120,8 +120,8 @@ describe('WorkflowTaskOperations', () => {
 
     it('should skip excluded types and find next valid task', () => {
       // Given: custom flow with multiple excluded types
-      const customTaskFlow: TaskTypeArray = [TASK_TYPES.init, TASK_TYPES.export, TASK_TYPES.polygonParts, TASK_TYPES.finalize];
-      const customExcludedTypes: TaskTypeArray = [TASK_TYPES.export, TASK_TYPES.polygonParts];
+      const customTaskFlow: TaskTypes = [TASK_TYPES.init, TASK_TYPES.export, TASK_TYPES.polygonParts, TASK_TYPES.finalize];
+      const customExcludedTypes: TaskTypes = [TASK_TYPES.export, TASK_TYPES.polygonParts];
       const customTask = createTestTask(mockJob.id, TASK_TYPES.init);
 
       const customOperations = new WorkflowTaskOperations(
