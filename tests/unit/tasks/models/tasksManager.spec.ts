@@ -287,9 +287,8 @@ describe('TasksManager', () => {
 
     it("Should throw IrrelevantOperationStatusError if the given task's status is neither 'Completed' nor 'Failed'", async () => {
       // mocks
-      const { tasksManager, mockFindTasks, jobDefinitionsConfigMock, mockGetJob } = testContext;
+      const { tasksManager, mockFindTasks, jobDefinitionsConfigMock } = testContext;
       const ingestionJobMock = getIngestionJobMock();
-      mockGetJob.mockResolvedValueOnce(ingestionJobMock);
       const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.PENDING });
 
       mockFindTasks.mockResolvedValueOnce([mergeTaskMock]);
@@ -420,7 +419,7 @@ describe('TasksManager', () => {
       });
     });
 
-    it('Should fail export job when export finalize ErrorCallback completed', async () => {
+    it('Should update job percentage when export finalize ErrorCallback completed', async () => {
       // mocks
       const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
       setValue('taskFlowManager.exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);
@@ -510,6 +509,11 @@ describe('TasksManager', () => {
       // expectation
       expect(mockUpdateJob).toHaveBeenCalledWith(exportJobMock.id, { percentage: expectedPercentage });
       expect(expectedPercentage).toBeLessThan(100);
+      // Explicitly verify the job is NOT updated to completed status
+      expect(mockUpdateJob).not.toHaveBeenCalledWith(exportJobMock.id, {
+        status: OperationStatus.COMPLETED,
+        percentage: 100
+      });
     });
 
     it('Should fail a job on a failed seeding task', async () => {
