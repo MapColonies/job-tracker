@@ -3,16 +3,16 @@ import { ConflictError } from '@map-colonies/error-types';
 import { IJobResponse, ITaskResponse, JobManagerClient, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
 import { IConfig, IJobDefinitionsConfig, TaskTypes } from '../../common/interfaces';
 import { BaseJobHandler } from './baseJobHandler';
-import { WorkflowTaskOperations } from './taskHandler';
+import { TaskWorker } from './taskHandler';
 
 /**
  * Base class for workflow-enabled job handlers that handles task flow logic
  */
-export abstract class WorkflowJobHandler extends BaseJobHandler {
+export abstract class JobHandler extends BaseJobHandler {
   protected readonly config: IConfig;
   protected readonly jobDefinitions: IJobDefinitionsConfig;
   protected readonly task: ITaskResponse<unknown>;
-  protected taskOperations?: WorkflowTaskOperations;
+  protected taskWorker?: TaskWorker;
   protected abstract readonly tasksFlow: TaskTypes;
   protected abstract readonly excludedTypes: TaskTypes;
   protected abstract readonly shouldBlockDuplicationForTypes: TaskTypes;
@@ -32,14 +32,14 @@ export abstract class WorkflowJobHandler extends BaseJobHandler {
   }
 
   public async handleCompletedNotification(): Promise<void> {
-    const nextTaskType = this.taskOperations?.getNextTaskType();
+    const nextTaskType = this.taskWorker?.getNextTaskType();
 
     if (nextTaskType == undefined) {
       await this.handleNoNextTask();
       return;
     }
 
-    if (!(await this.canProceed()) || (this.taskOperations?.shouldSkipTaskCreation(nextTaskType) ?? false)) {
+    if (!(await this.canProceed()) || (this.taskWorker?.shouldSkipTaskCreation(nextTaskType) ?? false)) {
       await this.handleSkipTask(nextTaskType);
       return;
     }
@@ -56,7 +56,7 @@ export abstract class WorkflowJobHandler extends BaseJobHandler {
   }
 
   protected initializeTaskOperations(): void {
-    this.taskOperations = new WorkflowTaskOperations(
+    this.taskWorker = new TaskWorker(
       this.logger,
       this.config,
       this.jobManager,
@@ -68,8 +68,8 @@ export abstract class WorkflowJobHandler extends BaseJobHandler {
   }
 
   protected async canProceed(): Promise<boolean> {
-    const initTasksOfJob = await this.taskOperations?.findInitTasks();
-    if (initTasksOfJob === undefined) {
+    const initTasksOfJob = await this.taskWorker?.getInitTasks();
+    if (initTasksOfJob === undefined || initTasksOfJob.length === 0) {
       this.logger.warn({
         msg: `Skipping init tasks completed validation of job ${this.job.id} , init tasks were not found`,
         jobId: this.job.id,
@@ -79,9 +79,9 @@ export abstract class WorkflowJobHandler extends BaseJobHandler {
       });
       return true;
     } else {
-      const isInitialWorkflowCompleted = this.taskOperations?.isInitialWorkflowCompleted(initTasksOfJob) ?? false;
+      const isInitialWorkflowCompleted = this.taskWorker?.isInitialWorkflowCompleted(initTasksOfJob) ?? false;
       this.logger.info({
-        msg: `Validation of init tasks completed for job ${this.job.id}`,
+        msg: `checking if init tasks completed for job ${this.job.id}`,
         jobId: this.job.id,
         taskId: this.task.id,
         taskType: this.task.type,
@@ -110,7 +110,7 @@ export abstract class WorkflowJobHandler extends BaseJobHandler {
   private async createNewTask(nextTaskType: string): Promise<void> {
     const createTaskBody: ICreateTaskBody<unknown> = {
       type: nextTaskType,
-      parameters: this.taskOperations?.getTaskParameters(this.job.type, nextTaskType),
+      parameters: this.taskWorker?.getTaskParameters(this.job.type, nextTaskType),
       blockDuplication: this.shouldBlockDuplicationForTypes.includes(nextTaskType),
     };
 

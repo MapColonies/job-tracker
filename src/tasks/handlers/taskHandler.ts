@@ -8,7 +8,7 @@ import { createTaskParametersMapper } from '../../common/mappers';
  * Utility class for workflow-specific task operations
  * This class is designed to be composed with job handlers to provide task-level functionality
  */
-export class WorkflowTaskOperations {
+export class TaskWorker {
   protected readonly jobDefinitions: IJobDefinitionsConfig;
 
   public constructor(
@@ -37,7 +37,7 @@ export class WorkflowTaskOperations {
   public getNextTaskType(): string | undefined {
     const indexOfCurrentTask = this.tasksFlow.indexOf(this.task.type);
     let nextTaskTypeIndex = indexOfCurrentTask + 1;
-    while (this.excludedTypes.includes(this.tasksFlow[nextTaskTypeIndex])) {
+    while (this.shouldSkipTaskCreation(this.tasksFlow[nextTaskTypeIndex])) {
       nextTaskTypeIndex++;
     }
 
@@ -48,7 +48,7 @@ export class WorkflowTaskOperations {
     return this.excludedTypes.includes(taskType);
   }
 
-  public async findInitTasks(): Promise<ITaskResponse<unknown>[] | undefined> {
+  public async getInitTasks(): Promise<ITaskResponse<unknown>[] | undefined> {
     const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.init });
     return tasks ?? undefined;
   }

@@ -3,10 +3,10 @@ import { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-
 import { injectable, inject } from 'tsyringe';
 import { IConfig, TaskTypes } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
-import { WorkflowJobHandler } from '../jobHandler';
+import { JobHandler } from '../jobHandler';
 
 @injectable()
-export class IngestionJobHandler extends WorkflowJobHandler {
+export class IngestionJobHandler extends JobHandler {
   protected readonly tasksFlow: TaskTypes;
   protected readonly excludedTypes: TaskTypes;
   protected readonly shouldBlockDuplicationForTypes: TaskTypes;

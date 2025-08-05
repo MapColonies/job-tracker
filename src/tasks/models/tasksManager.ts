@@ -12,7 +12,7 @@ import { inject, injectable } from 'tsyringe';
 import { SERVICES } from '../../common/constants';
 import { IrrelevantOperationStatusError } from '../../common/errors';
 import { IConfig, IJobDefinitionsConfig } from '../../common/interfaces';
-import { jobHandlerFactory } from '../handlers/jobHandlerFactory';
+import { getJobHandler } from '../handlers/jobHandlerFactory';
 
 @injectable()
 export class TasksManager {
@@ -42,7 +42,7 @@ export class TasksManager {
     }
 
     const job = await this.getJob(task.jobId);
-    const handler = jobHandlerFactory(job.type, this.jobDefinitions, this.logger, this.queueClient, this.config, job, task);
+    const handler = getJobHandler(job.type, this.jobDefinitions, this.logger, this.queueClient, this.config, job, task);
 
     if (task.status === OperationStatus.FAILED) {
       await handler.handleFailedTask();

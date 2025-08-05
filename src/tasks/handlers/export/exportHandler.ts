@@ -3,10 +3,10 @@ import { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-
 import { injectable, inject } from 'tsyringe';
 import { IConfig, TaskTypes } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
-import { WorkflowJobHandler } from '../jobHandler';
+import { JobHandler } from '../jobHandler';
 
 @injectable()
-export class ExportJobHandler extends WorkflowJobHandler {
+export class ExportJobHandler extends JobHandler {
   protected readonly tasksFlow: TaskTypes;
   protected readonly excludedTypes: TaskTypes;
   protected readonly shouldBlockDuplicationForTypes: TaskTypes;
@@ -45,10 +45,5 @@ export class ExportJobHandler extends WorkflowJobHandler {
       // For other task types, use the default implementation
       return super.handleFailedTask();
     }
-  }
-
-  protected async canProceed(): Promise<boolean> {
-    // For now, use the default implementation from the parent class
-    return super.canProceed();
   }
 }

@@ -1,7 +1,7 @@
 import { BadRequestError } from '@map-colonies/error-types';
 import { Logger } from '@map-colonies/js-logger';
 import { JobManagerClient, OperationStatus, IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
-import { WorkflowTaskOperations } from '../../../../src/tasks/handlers/taskHandler';
+import { TaskWorker } from '../../../../src/tasks/handlers/taskHandler';
 import { IConfig, TaskTypes } from '../../../../src/common/interfaces';
 import { getExportJobMock, getTaskMock } from '../../../mocks/JobMocks';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
@@ -28,7 +28,7 @@ const createTestTask = (jobId: string, taskType: string, overrides?: Partial<ITa
   getTaskMock(jobId, { type: taskType, status: OperationStatus.COMPLETED, ...overrides });
 
 describe('WorkflowTaskOperations', () => {
-  let operations: WorkflowTaskOperations;
+  let operations: TaskWorker;
   let mockLogger: jest.Mocked<Logger>;
   let mockJobManager: jest.Mocked<JobManagerClient>;
   let mockJob: IJobResponse<unknown, unknown>;
@@ -44,7 +44,7 @@ describe('WorkflowTaskOperations', () => {
     mockJob = createTestJob();
     mockTask = createTestTask(mockJob.id, TASK_TYPES.init);
 
-    operations = new WorkflowTaskOperations(
+    operations = new TaskWorker(
       mockLogger,
       mockConfig,
       mockJobManager,
@@ -124,7 +124,7 @@ describe('WorkflowTaskOperations', () => {
       const customExcludedTypes: TaskTypes = [TASK_TYPES.export, TASK_TYPES.polygonParts];
       const customTask = createTestTask(mockJob.id, TASK_TYPES.init);
 
-      const customOperations = new WorkflowTaskOperations(
+      const customOperations = new TaskWorker(
         mockLogger,
         mockConfig,
         mockJobManager,
@@ -166,14 +166,14 @@ describe('WorkflowTaskOperations', () => {
     });
   });
 
-  describe('findInitTasks', () => {
+  describe('getInitTasks', () => {
     it('should return init tasks when found', async () => {
       // Given: init tasks exist
       const mockInitTask = createTestTask(mockJob.id, TASK_TYPES.init);
       mockJobManager.findTasks.mockResolvedValue([mockInitTask]);
 
       // When: finding init tasks
-      const result = await operations.findInitTasks();
+      const result = await operations.getInitTasks();
 
       // Then: should return init tasks and call job manager with correct parameters
       expect(result).toEqual([mockInitTask]);
@@ -188,7 +188,7 @@ describe('WorkflowTaskOperations', () => {
       mockJobManager.findTasks.mockResolvedValue(null);
 
       // When: finding init tasks
-      const result = await operations.findInitTasks();
+      const result = await operations.getInitTasks();
 
       // Then: should return undefined
       expect(result).toBeUndefined();

@@ -4,7 +4,7 @@ import { TaskHandler as QueueClient, IJobResponse } from '@map-colonies/mc-prior
 import { registerDefaultConfig, clear as clearConfig } from '../../../mocks/configMock';
 import { configMock } from '../../../mocks/configMock';
 import { getExportJobMock, getIngestionJobMock, getTaskMock } from '../../../mocks/JobMocks';
-import { jobHandlerFactory } from '../../../../src/tasks/handlers/jobHandlerFactory';
+import { getJobHandler } from '../../../../src/tasks/handlers/jobHandlerFactory';
 import { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { JOB_TYPES } from '../../../helpers/testConstants';
 
@@ -55,7 +55,7 @@ describe('jobHandlerFactory', () => {
       const mockQueueClient = createMockQueueClient();
 
       // When: creating handler for new job type
-      const handler = jobHandlerFactory(testCase.jobType, jobDefinitionsConfig, logger, mockQueueClient, configMock, testCase.mockJob, mockTask);
+      const handler = getJobHandler(testCase.jobType, jobDefinitionsConfig, logger, mockQueueClient, configMock, testCase.mockJob, mockTask);
 
       // Then: should create IngestionJobHandler
       expect(handler).toBeDefined();
@@ -69,7 +69,7 @@ describe('jobHandlerFactory', () => {
       const mockQueueClient = createMockQueueClient();
 
       // When: creating handler for update job type
-      const handler = jobHandlerFactory(testCase.jobType, jobDefinitionsConfig, logger, mockQueueClient, configMock, testCase.mockJob, mockTask);
+      const handler = getJobHandler(testCase.jobType, jobDefinitionsConfig, logger, mockQueueClient, configMock, testCase.mockJob, mockTask);
 
       // Then: should create IngestionJobHandler
       expect(handler).toBeDefined();
@@ -83,7 +83,7 @@ describe('jobHandlerFactory', () => {
       const mockQueueClient = createMockQueueClient();
 
       // When: creating handler for swapUpdate job type
-      const handler = jobHandlerFactory(testCase.jobType, jobDefinitionsConfig, logger, mockQueueClient, configMock, testCase.mockJob, mockTask);
+      const handler = getJobHandler(testCase.jobType, jobDefinitionsConfig, logger, mockQueueClient, configMock, testCase.mockJob, mockTask);
 
       // Then: should create IngestionJobHandler
       expect(handler).toBeDefined();
@@ -97,7 +97,7 @@ describe('jobHandlerFactory', () => {
       const mockQueueClient = createMockQueueClient();
 
       // When: creating handler for seed job type
-      const handler = jobHandlerFactory(testCase.jobType, jobDefinitionsConfig, logger, mockQueueClient, configMock, testCase.mockJob, mockTask);
+      const handler = getJobHandler(testCase.jobType, jobDefinitionsConfig, logger, mockQueueClient, configMock, testCase.mockJob, mockTask);
 
       // Then: should create IngestionJobHandler
       expect(handler).toBeDefined();
@@ -113,7 +113,7 @@ describe('jobHandlerFactory', () => {
       const mockQueueClient = createMockQueueClient();
 
       // When: creating handler for export job type
-      const handler = jobHandlerFactory(
+      const handler = getJobHandler(
         exportTestCase.jobType,
         jobDefinitionsConfig,
         logger,
@@ -139,11 +139,11 @@ describe('jobHandlerFactory', () => {
 
       // When & Then: should throw BadRequestError for invalid job type
       expect(() => {
-        jobHandlerFactory(invalidJobType, jobDefinitionsConfig, logger, mockQueueClient, configMock, mockJob, mockTask);
+        getJobHandler(invalidJobType, jobDefinitionsConfig, logger, mockQueueClient, configMock, mockJob, mockTask);
       }).toThrow(BadRequestError);
 
       expect(() => {
-        jobHandlerFactory(invalidJobType, jobDefinitionsConfig, logger, mockQueueClient, configMock, mockJob, mockTask);
+        getJobHandler(invalidJobType, jobDefinitionsConfig, logger, mockQueueClient, configMock, mockJob, mockTask);
       }).toThrow(`${invalidJobType} job type is invalid`);
     });
   });

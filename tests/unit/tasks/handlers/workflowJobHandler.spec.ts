@@ -1,14 +1,14 @@
 import { ConflictError } from '@map-colonies/error-types';
 import { Logger } from '@map-colonies/js-logger';
 import { JobManagerClient, OperationStatus, IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
-import { WorkflowJobHandler } from '../../../../src/tasks/handlers/jobHandler';
+import { JobHandler } from '../../../../src/tasks/handlers/jobHandler';
 import { IConfig, TaskTypes } from '../../../../src/common/interfaces';
 import { getExportJobMock, getTaskMock } from '../../../mocks/JobMocks';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
 import { JOB_TYPES, TASK_TYPES, TASK_FLOWS, EXCLUDED_TASK_TYPES, BLOCK_DUPLICATION_TYPES } from '../../../helpers/testConstants';
 
 // Concrete implementation for testing
-class TestWorkflowJobHandler extends WorkflowJobHandler {
+class TestWorkflowJobHandler extends JobHandler {
   protected readonly tasksFlow: TaskTypes = TASK_FLOWS.export as unknown as TaskTypes;
   protected readonly excludedTypes: TaskTypes = EXCLUDED_TASK_TYPES.export as unknown as TaskTypes;
   protected readonly shouldBlockDuplicationForTypes: TaskTypes = BLOCK_DUPLICATION_TYPES as unknown as TaskTypes;
