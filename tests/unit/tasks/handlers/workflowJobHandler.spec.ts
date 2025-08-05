@@ -175,7 +175,7 @@ describe('WorkflowJobHandler', () => {
 
       mockJobManager.findTasks.mockResolvedValue([{ ...getTaskMock(mockJob.id), status: OperationStatus.COMPLETED }]);
 
-      jest.spyOn(handler, 'updateJobForHavingNewTask').mockResolvedValue();
+      jest.spyOn(handler, 'updateJobProgress').mockResolvedValue();
 
       // When: handling completed notification
       await handler.handleCompletedNotification();
@@ -188,7 +188,7 @@ describe('WorkflowJobHandler', () => {
           blockDuplication: false, // polygon-parts is not in shouldBlockDuplicationForTypes
         })
       );
-      expect(handler.updateJobForHavingNewTask).toHaveBeenCalledWith(TASK_TYPES.polygonParts);
+      expect(handler.updateJobProgress).toHaveBeenCalledWith();
     });
 
     it('should handle ConflictError when creating task', async () => {

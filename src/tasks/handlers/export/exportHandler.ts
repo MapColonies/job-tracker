@@ -37,7 +37,8 @@ export class ExportJobHandler extends WorkflowJobHandler {
       };
       await this.jobManager.createTaskForJob(this.job.id, createTaskBody);
       // Update job progress after creating the task
-      await this.updateJobForHavingNewTask(this.jobDefinitions.tasks.finalize);
+      this.job.taskCount++;
+      await this.updateJobProgress();
       // Also fail the job
       await this.failJob(this.task.reason);
     } else {

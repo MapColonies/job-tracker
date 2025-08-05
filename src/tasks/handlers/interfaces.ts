@@ -20,12 +20,7 @@ export interface IJobHandler {
   /**
    * Update job progress percentage
    */
-  updateJobProgress: (percentage: number) => Promise<void>;
-
-  /**
-   * Update job progress after a new task is created
-   */
-  updateJobForHavingNewTask: (taskType: string) => Promise<void>;
+  updateJobProgress: () => Promise<void>;
 
   /**
    * Check if all tasks in the job are completed

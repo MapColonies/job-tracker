@@ -11,7 +11,7 @@ import { getApp } from '../../../src/app';
 import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../src/common/interfaces';
 import { getExportJobMock, getIngestionJobMock, getSeedingJobMock, getTaskMock } from '../../mocks/JobMocks';
 import { calculateJobPercentage } from '../../../src/utils/jobUtils';
-import { JOB_COMPLETED_MESSAGE, SERVICES } from '../../../src/common/constants';
+import { SERVICES } from '../../../src/common/constants';
 import { registerExternalValues } from '../../../src/containerConfig';
 import { TasksRequestSender } from './helpers/requestSender';
 import { getTestContainerConfig, resetContainer } from './helpers/containerConfig';
@@ -422,7 +422,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 complete job and and crete following task', async () => {
+    it('Should return 200 complete job and and create following task', async () => {
       // mocks
       const mockExportJob = getExportJobMock();
       setValue('taskFlowManager.exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);

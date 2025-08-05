@@ -39,26 +39,14 @@ export abstract class BaseJobHandler implements IJobHandler {
     });
   };
 
-  public updateJobProgress = async (percentage: number): Promise<void> => {
+  public updateJobProgress = async (): Promise<void> => {
+    const actualPercentage = calculateJobPercentage(this.job.completedTasks, this.job.taskCount);
     this.logger.info({
-      msg: `Updated job percentage with (${percentage}%) for job: ${this.job.id}`,
+      msg: `Updated job percentage with (${actualPercentage}%) for job: ${this.job.id}`,
       jobId: this.job.id,
-      percentage,
+      percentage: actualPercentage,
     });
-    await this.jobManager.updateJob(this.job.id, { percentage });
-  };
-
-  public updateJobForHavingNewTask = async (taskType: string): Promise<void> => {
-    const newTaskCount = this.job.taskCount + 1;
-    const percentage = calculateJobPercentage(this.job.completedTasks, newTaskCount);
-
-    this.logger.debug({
-      msg: 'Task created, updating progress',
-      jobId: this.job.id,
-      taskType,
-      percentage,
-    });
-    await this.updateJobProgress(percentage);
+    await this.jobManager.updateJob(this.job.id, { percentage: actualPercentage });
   };
 
   public isAllTasksCompleted = (): boolean => {
