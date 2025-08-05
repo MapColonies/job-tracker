@@ -1,6 +1,5 @@
 import { Logger } from '@map-colonies/js-logger';
 import { IJobResponse, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
-import { JOB_COMPLETED_MESSAGE } from '../../common/constants';
 import { calculateJobPercentage } from '../../utils/jobUtils';
 import { IJobHandler } from './interfaces';
 
@@ -23,8 +22,8 @@ export abstract class BaseJobHandler implements IJobHandler {
   };
 
   public failJob = async (reason?: string): Promise<void> => {
-    const jobReason = reason ?? 'Job failed';
-    this.logger.info({ msg: `Failing job: ${this.job.id}`, reason: jobReason });
+    const jobReason = reason ?? 'Job failed for unknown reason';
+    this.logger.warn({ msg: `Failing job: ${this.job.id}`, jobId: this.job.id, reason: jobReason });
     await this.jobManager.updateJob(this.job.id, {
       status: OperationStatus.FAILED,
       reason: jobReason,
@@ -32,8 +31,8 @@ export abstract class BaseJobHandler implements IJobHandler {
   };
 
   public suspendJob = async (reason?: string): Promise<void> => {
-    const jobReason = reason ?? 'Job suspended';
-    this.logger.info({ msg: `Suspending job: ${this.job.id}`, reason: jobReason });
+    const jobReason = reason ?? 'Job suspended for unknown reason';
+    this.logger.warn({ msg: `Suspending job: ${this.job.id}`, jobId: this.job.id, reason: jobReason });
     await this.jobManager.updateJob(this.job.id, {
       status: OperationStatus.SUSPENDED,
       reason: jobReason,
