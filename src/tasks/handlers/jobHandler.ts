@@ -4,6 +4,7 @@ import { IJobResponse, ITaskResponse, JobManagerClient, ICreateTaskBody } from '
 import { IConfig, IJobDefinitionsConfig, TaskTypes } from '../../common/interfaces';
 import { BaseJobHandler } from './baseJobHandler';
 import { WorkflowTaskOperations } from './taskHandler';
+import { calculateJobPercentage } from '../../utils/jobUtils';
 
 /**
  * Base class for workflow-enabled job handlers that handles task flow logic
@@ -92,7 +93,7 @@ export abstract class WorkflowJobHandler extends BaseJobHandler {
   }
 
   private async handleNoNextTask(): Promise<void> {
-    const percentage = this.calculateJobPercentage(this.job.completedTasks, this.job.taskCount);
+    const percentage = calculateJobPercentage(this.job.completedTasks, this.job.taskCount);
 
     if (this.isAllTasksCompleted()) {
       this.logger.info({ msg: 'Completing job', jobId: this.job.id });
@@ -105,7 +106,7 @@ export abstract class WorkflowJobHandler extends BaseJobHandler {
 
   private async handleSkipTask(nextTaskType: string): Promise<void> {
     this.logger.info({ msg: 'Skipping task creation', jobId: this.job.id, taskType: nextTaskType });
-    const percentage = this.calculateJobPercentage(this.job.completedTasks, this.job.taskCount);
+    const percentage = calculateJobPercentage(this.job.completedTasks, this.job.taskCount);
     await this.updateJobProgress(percentage);
   }
 
