@@ -56,15 +56,7 @@ export abstract class JobHandler extends BaseJobHandler {
   }
 
   protected initializeTaskOperations(): void {
-    this.taskWorker = new TaskWorker(
-      this.logger,
-      this.config,
-      this.jobManager,
-      this.job,
-      this.task,
-      this.tasksFlow,
-      this.excludedTypes
-    );
+    this.taskWorker = new TaskWorker(this.logger, this.config, this.jobManager, this.job, this.task, this.tasksFlow, this.excludedTypes);
   }
 
   protected async canProceed(): Promise<boolean> {
@@ -92,7 +84,6 @@ export abstract class JobHandler extends BaseJobHandler {
   }
 
   private async handleNoNextTask(): Promise<void> {
-
     if (this.isAllTasksCompleted()) {
       this.logger.info({ msg: 'Completing job', jobId: this.job.id });
       await this.completeJob();

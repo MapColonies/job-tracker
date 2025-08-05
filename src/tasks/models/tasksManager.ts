@@ -1,13 +1,6 @@
 import { NotFoundError } from '@map-colonies/error-types';
 import { Logger } from '@map-colonies/js-logger';
-import {
-  IFindTaskRequest,
-  IJobResponse,
-  ITaskResponse,
-  JobManagerClient,
-  OperationStatus,
-  TaskHandler as QueueClient,
-} from '@map-colonies/mc-priority-queue';
+import { IFindTaskRequest, ITaskResponse, JobManagerClient, OperationStatus, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { inject, injectable } from 'tsyringe';
 import { SERVICES } from '../../common/constants';
 import { IrrelevantOperationStatusError } from '../../common/errors';

@@ -8,17 +8,17 @@ import { registerDefaultConfig, clear as clearConfig, configMock } from '../../.
 
 // Test helper functions
 const createMockLogger = (): jest.Mocked<Logger> =>
-({
-  info: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-  debug: jest.fn(),
-} as unknown as jest.Mocked<Logger>);
+  ({
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+  } as unknown as jest.Mocked<Logger>);
 
 const createMockJobManager = (): jest.Mocked<JobManagerClient> =>
-({
-  findTasks: jest.fn(),
-} as unknown as jest.Mocked<JobManagerClient>);
+  ({
+    findTasks: jest.fn(),
+  } as unknown as jest.Mocked<JobManagerClient>);
 
 describe('WorkflowTaskOperations', () => {
   let operations: TaskWorker;
@@ -118,25 +118,48 @@ describe('WorkflowTaskOperations', () => {
 
     it('should skip excluded types and find next valid task', () => {
       // Given: custom flow with multiple excluded types
-      const customTaskFlow: TaskTypes = [jobDefinitionsConfig.tasks.init, jobDefinitionsConfig.tasks.export, jobDefinitionsConfig.tasks.polygonParts, jobDefinitionsConfig.tasks.finalize];
+      const customTaskFlow: TaskTypes = [
+        jobDefinitionsConfig.tasks.init,
+        jobDefinitionsConfig.tasks.export,
+        jobDefinitionsConfig.tasks.polygonParts,
+        jobDefinitionsConfig.tasks.finalize,
+      ];
       const customExcludedTypes: TaskTypes = [jobDefinitionsConfig.tasks.export, jobDefinitionsConfig.tasks.polygonParts];
       const customTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED });
 
-      const customOperations = new TaskWorker(
-        mockLogger,
-        mockConfig,
-        mockJobManager,
-        mockJob,
-        customTask,
-        customTaskFlow,
-        customExcludedTypes
-      );
+      const customOperations = new TaskWorker(mockLogger, mockConfig, mockJobManager, mockJob, customTask, customTaskFlow, customExcludedTypes);
 
       // When: getting next task type
       const result = customOperations.getNextTaskType();
 
       // Then: should skip excluded types and return finalize
       expect(result).toBe(jobDefinitionsConfig.tasks.finalize);
+    });
+
+    it('should return first task type when current task type is not in flow', () => {
+      // Given: current task type is not in the task flow
+      mockTask.type = 'unknownTaskType';
+
+      // When: getting next task type
+      const result = operations.getNextTaskType();
+
+      // Then: should return the first task type (indexOf returns -1, so next index is 0)
+      expect(result).toBe(taskFlowConfig.exportTasksFlow[0]);
+    });
+
+    it('should return next task type when no exclusions apply', () => {
+      // Given: custom flow with no excluded types
+      const customTaskFlow: TaskTypes = [jobDefinitionsConfig.tasks.init, jobDefinitionsConfig.tasks.merge, jobDefinitionsConfig.tasks.finalize];
+      const customExcludedTypes: TaskTypes = [];
+      const customTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED });
+
+      const customOperations = new TaskWorker(mockLogger, mockConfig, mockJobManager, mockJob, customTask, customTaskFlow, customExcludedTypes);
+
+      // When: getting next task type
+      const result = customOperations.getNextTaskType();
+
+      // Then: should return the immediate next task type without skipping
+      expect(result).toBe(jobDefinitionsConfig.tasks.merge);
     });
   });
 
