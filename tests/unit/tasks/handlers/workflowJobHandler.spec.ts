@@ -1,7 +1,7 @@
 import { ConflictError } from '@map-colonies/error-types';
 import { Logger } from '@map-colonies/js-logger';
 import { JobManagerClient, OperationStatus, IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
-import { WorkflowJobHandler } from '../../../../src/tasks/handlers/workflowJobHandler';
+import { WorkflowJobHandler } from '../../../../src/tasks/handlers/jobHandler';
 import { IConfig, TaskTypes } from '../../../../src/common/interfaces';
 import { getExportJobMock, getTaskMock } from '../../../mocks/JobMocks';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';

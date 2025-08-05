@@ -4,7 +4,7 @@ import { IJobResponse, ITaskResponse, JobManagerClient, ICreateTaskBody } from '
 import { IConfig, IJobDefinitionsConfig, TaskTypes } from '../../common/interfaces';
 import { calculateTaskPercentage } from '../../utils/taskUtils';
 import { BaseJobHandler } from './baseJobHandler';
-import { WorkflowTaskOperations } from './workflowTaskHandler';
+import { WorkflowTaskOperations } from './taskHandler';
 
 /**
  * Base class for workflow-enabled job handlers that handles task flow logic
