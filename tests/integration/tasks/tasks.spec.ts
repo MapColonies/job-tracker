@@ -590,7 +590,7 @@ describe('tasks', function () {
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockSeedTask.id }).reply(200, [mockSeedTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockSeedingJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockSeedingJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .put(`/jobs/${mockSeedingJob.id}`, { percentage: 100, status: OperationStatus.COMPLETED, reason: JOB_COMPLETED_MESSAGE })
+        .put(`/jobs/${mockSeedingJob.id}`, { percentage: 100, status: OperationStatus.COMPLETED })
         .reply(200);
       // action
       const response = await requestSender.handleTaskNotification(mockSeedTask.id);

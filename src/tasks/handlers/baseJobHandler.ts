@@ -18,7 +18,6 @@ export abstract class BaseJobHandler implements IJobHandler {
     this.logger.info({ msg: `Completing job`, jobId: this.job.id });
     await this.jobManager.updateJob(this.job.id, {
       status: OperationStatus.COMPLETED,
-      reason: JOB_COMPLETED_MESSAGE,
       percentage: 100,
     });
   };

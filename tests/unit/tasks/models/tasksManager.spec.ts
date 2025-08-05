@@ -385,7 +385,7 @@ describe('TasksManager', () => {
 
       await tasksManager.handleTaskNotification(finalizeTaskMock.id);
 
-      expect(mockUpdateJob).toHaveBeenCalledWith(job.id, { status: OperationStatus.COMPLETED, reason: finalizeTaskMock.reason, percentage: 100 });
+      expect(mockUpdateJob).toHaveBeenCalledWith(job.id, { status: OperationStatus.COMPLETED, percentage: 100 });
     });
 
     it('Should create next task when export finalize FullProcessing completed', async () => {
@@ -560,7 +560,6 @@ describe('TasksManager', () => {
       expect(mockUpdateJob).toHaveBeenCalledWith(seedingJob.id, {
         status: OperationStatus.COMPLETED,
         percentage: 100,
-        reason: JOB_COMPLETED_MESSAGE,
       });
     });
   });
