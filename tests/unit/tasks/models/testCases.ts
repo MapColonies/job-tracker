@@ -9,22 +9,22 @@ export interface PolygonPartsTaskCreationTestCase {
 
 export const polygonPartsTaskCreationTestCases: PolygonPartsTaskCreationTestCase[] = [
   {
-    description: 'Completed merge task with Completed init task',
+    description: 'Completed ingestion merge task with Completed init task',
     getJobMock: getIngestionJobMock,
     taskType: 'tilesMerging',
   },
   {
-    description: 'Init task when completed after merge task',
+    description: 'Completed ingestion init task when completed after merge task',
     getJobMock: getIngestionJobMock,
     taskType: 'init',
   },
   {
-    description: 'Completed merge task with Completed init task',
+    description: 'Completed export tilesExporting task with Completed init task',
     getJobMock: getExportJobMock,
     taskType: 'tilesExporting',
   },
   {
-    description: 'Init task when completed after merge task',
+    description: 'Completed export init task when completed after tilesExporting task',
     getJobMock: getExportJobMock,
     taskType: 'init',
   },

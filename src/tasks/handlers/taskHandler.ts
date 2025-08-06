@@ -1,7 +1,7 @@
 import { BadRequestError } from '@map-colonies/error-types';
 import { Logger } from '@map-colonies/js-logger';
 import { IJobResponse, ITaskResponse, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
-import { IConfig, IJobDefinitionsConfig, JobAndTask, TaskTypes } from '../../common/interfaces';
+import { IConfig, IJobDefinitionsConfig, JobAndTask, TaskTypes, TaskTypeItem } from '../../common/interfaces';
 import { createTaskParametersMapper } from '../../common/mappers';
 
 /**
@@ -35,7 +35,7 @@ export class TaskWorker {
     return parameters;
   }
 
-  public getNextTaskType(): string | undefined {
+  public getNextTaskType(): TaskTypeItem | undefined {
     const indexOfCurrentTask = this.tasksFlow.indexOf(this.task.type);
 
     // Handle case where current task type is not found in the flow
