@@ -88,22 +88,22 @@ describe('TasksManager', () => {
       expect(mockUpdateJob).toHaveBeenCalledTimes(1);
     });
 
-    // it("should do nothing in case of being called with a 'Completed' task whose job have no init task", async () => {
-    //   // mocks
-    //   const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
-    //   const ingestionJobMock = getIngestionJobMock();
-    //   const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
+    it("should do nothing in case of being called with a 'Completed' task whose job have no init task", async () => {
+      // mocks
+      const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
+      const ingestionJobMock = getIngestionJobMock();
+      const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
 
-    //   mockFindTasks.mockResolvedValueOnce([mergeTaskMock]).mockResolvedValueOnce(null);
-    //   mockGetJob.mockResolvedValueOnce(ingestionJobMock);
-    //   // action
-    //   await tasksManager.handleTaskNotification(mergeTaskMock.id);
-    //   // expectation
-    //   expect(mockFindTasks).toHaveBeenCalledTimes(2);
-    //   expect(mockGetJob).toHaveBeenCalledTimes(1);
-    //   expect(mockCreateTaskForJob).not.toHaveBeenCalled();
-    //   expect(mockUpdateJob).not.toHaveBeenCalled();
-    // });
+      mockFindTasks.mockResolvedValueOnce([mergeTaskMock]).mockResolvedValueOnce(null);
+      mockGetJob.mockResolvedValueOnce(ingestionJobMock);
+      // action
+      await tasksManager.handleTaskNotification(mergeTaskMock.id);
+      // expectation
+      expect(mockFindTasks).toHaveBeenCalledTimes(2);
+      expect(mockGetJob).toHaveBeenCalledTimes(1);
+      expect(mockCreateTaskForJob).not.toHaveBeenCalled();
+      expect(mockUpdateJob).toHaveBeenCalledTimes(1); // update job progress on notify - but nothing will really update since same task count.
+    });
 
     it("should only update percentage in case of being called with a 'Completed' task whose job's init task is not 'Completed'", async () => {
       // mocks

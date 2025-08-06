@@ -39,7 +39,10 @@ export abstract class JobHandler extends BaseJobHandler {
       return;
     }
 
-    if (!(await this.canProceed()) || (this.taskWorker?.shouldSkipTaskCreation(nextTaskType) ?? false)) {
+    const initTasksOfJob = await this.taskWorker?.getInitTasks();
+    const canProceed = this.areInitialTasksReady(initTasksOfJob);
+
+    if (!canProceed || (this.taskWorker?.shouldSkipTaskCreation(nextTaskType) ?? false)) {
       await this.handleSkipTask(nextTaskType);
       return;
     }
@@ -61,15 +64,19 @@ export abstract class JobHandler extends BaseJobHandler {
 
   protected async canProceed(): Promise<boolean> {
     const initTasksOfJob = await this.taskWorker?.getInitTasks();
+    return this.areInitialTasksReady(initTasksOfJob);
+  }
+
+  private areInitialTasksReady(initTasksOfJob: ITaskResponse<unknown>[] | undefined): boolean {
     if (initTasksOfJob === undefined || initTasksOfJob.length === 0) {
       this.logger.warn({
-        msg: `Skipping init tasks completed validation of job ${this.job.id} , init tasks were not found`,
+        msg: `Cannot proceed with task creation for job ${this.job.id}, init tasks were not found`,
         jobId: this.job.id,
         taskId: this.task.id,
         taskType: this.task.type,
         jobType: this.job.type,
       });
-      return true;
+      return false;
     } else {
       const isInitialWorkflowCompleted = this.taskWorker?.isInitialWorkflowCompleted(initTasksOfJob) ?? false;
       this.logger.info({

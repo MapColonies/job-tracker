@@ -238,12 +238,12 @@ describe('WorkflowJobHandler', () => {
   });
 
   describe('canProceed', () => {
-    it('should return true when no init tasks found', async () => {
+    it('should return false when no init tasks found', async () => {
       mockJobManager.findTasks.mockResolvedValue(null);
 
       const result = await handler.testCanProceed();
 
-      expect(result).toBe(true);
+      expect(result).toBe(false);
     });
 
     it('should return result from isInitialWorkflowCompleted when init tasks found', async () => {

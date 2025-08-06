@@ -268,13 +268,10 @@ describe('tasks', function () {
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(200, [mockMergeTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .post(`/jobs/${mockExportJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts }))
-        .reply(201);
-      const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(200);
-      nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post('/tasks/find', { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
         .reply(404);
+      const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(200);
       // action
       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
       // expectation
