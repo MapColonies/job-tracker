@@ -56,9 +56,6 @@ Start the server
 |`REQUEST_PAYLOAD_LIMIT`             |Maximum payload limit for incoming requests.	                            |1mb                          |
 |`RESPONSE_COMPRESSION_ENABLED`      |Enable or disable response compression (boolean).                         |true                         |
 |`JOB_MANAGER_BASE_URL`              |Base URL of the Job-Manager service.	                                    |http://localhost:8081        |
-|`HEARTBEAT_BASE_URL`                |Base URL for the heartbeat service.	                                    |http://localhost:8083        |
-|`HEARTBEAT_INTERVAL_MS`             |Interval (in milliseconds) for heartbeat checks.                          |3000                         |
-|`JOB_MANAGER_DEQUEUE_INTERVAL_MS`   |Job name.                                                                 |3000                         |
 |`JOB_DEFINITIONS_JOB_NEW`           |Job name.                                                                 |Ingestion_New                |
 |`JOB_DEFINITIONS_JOB_UPDATE`        |Job name.                                                                 |Ingestion_Update             |
 |`JOB_DEFINITIONS_JOB_SWAP_UPDATE`   |Job name.                                                                 |Ingestion_Swap_Update        |

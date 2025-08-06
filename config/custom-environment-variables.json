@@ -3,6 +3,7 @@
     "filePath": "OPENAPI_FILE_PATH"
   },
   "telemetry": {
+    "serviceName": "TELEMETRY_SERVICE_NAME",
     "logger": {
       "level": "LOG_LEVEL",
       "prettyPrint": {
@@ -49,12 +50,7 @@
   },
   "jobManagement": {
     "config": {
-      "jobManagerBaseUrl": "JOB_MANAGER_BASE_URL",
-      "heartbeat": {
-        "baseUrl": "HEARTBEAT_BASE_URL",
-        "intervalMs": "HEARTBEAT_INTERVAL_MS"
-      },
-      "dequeueIntervalMs": "JOB_MANAGER_DEQUEUE_INTERVAL_MS"
+      "jobManagerBaseUrl": "JOB_MANAGER_BASE_URL"
     }
   },
   "jobDefinitions": {
