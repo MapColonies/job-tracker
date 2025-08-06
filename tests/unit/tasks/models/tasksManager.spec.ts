@@ -23,551 +23,538 @@ describe('TasksManager', () => {
   });
 
   describe('handleTaskNotification', () => {
-    test.each(polygonPartsTaskCreationTestCases)(
-      'should create polygon-parts task and update job percentage in case of being called with a $description',
-      async ({ getJobMock, taskType }) => {
+    describe('Task Flow - Successful Completion', () => {
+      test.each(polygonPartsTaskCreationTestCases)(
+        'should create polygon-parts task and update job percentage in case of being called with a $description',
+        async ({ getJobMock, taskType }) => {
+          // mocks
+          const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
+
+          const jobMock = getJobMock();
+          const taskMock = getTaskMock(jobMock.id, {
+            type: taskType,
+            status: OperationStatus.COMPLETED,
+          });
+
+          const initTaskMock = getTaskMock(jobMock.id, {
+            type: jobDefinitionsConfigMock.tasks.init,
+            status: OperationStatus.COMPLETED,
+          });
+          mockFindTasks.mockResolvedValueOnce([taskMock]).mockResolvedValueOnce([initTaskMock]);
+
+          mockGetJob.mockResolvedValueOnce(jobMock);
+
+          // action
+          await tasksManager.handleTaskNotification(taskMock.id);
+
+          // expectation
+          expect(mockFindTasks).toHaveBeenCalledWith({ id: taskMock.id });
+          expect(mockGetJob).toHaveBeenCalledWith(jobMock.id);
+          expect(mockCreateTaskForJob).toHaveBeenCalledTimes(1);
+
+          // blockDuplication should be true for ingestion jobs, false for export jobs
+          const isIngestionJob = getJobMock === getIngestionJobMock;
+          expect(mockCreateTaskForJob).toHaveBeenCalledWith(jobMock.id, {
+            parameters: {},
+            type: jobDefinitionsConfigMock.tasks.polygonParts,
+            blockDuplication: isIngestionJob,
+          });
+          expect(mockUpdateJob).toHaveBeenCalledTimes(1);
+        }
+      );
+
+      it('should create finalize task and update job percentage in case of being called with a "Completed" polygon-parts task with Completed init task', async () => {
+        // mocks
+        const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
+        const ingestionJobMock = getIngestionJobMock();
+        const mergeTaskMock = getTaskMock(ingestionJobMock.id, {
+          type: jobDefinitionsConfigMock.tasks.polygonParts,
+          status: OperationStatus.COMPLETED,
+        });
+        const initTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
+
+        mockFindTasks.mockResolvedValueOnce([mergeTaskMock]).mockResolvedValueOnce([initTaskMock]);
+        mockGetJob.mockResolvedValueOnce(ingestionJobMock);
+        // action
+        await tasksManager.handleTaskNotification(mergeTaskMock.id);
+        // expectation
+        expect(mockFindTasks).toHaveBeenCalledWith({ id: mergeTaskMock.id });
+        expect(mockGetJob).toHaveBeenCalledWith(ingestionJobMock.id);
+        expect(mockCreateTaskForJob).toHaveBeenCalledTimes(1);
+        expect(mockCreateTaskForJob).toHaveBeenCalledWith(ingestionJobMock.id, {
+          parameters: { insertedToCatalog: false, insertedToGeoServer: false, insertedToMapproxy: false },
+          type: jobDefinitionsConfigMock.tasks.finalize,
+          blockDuplication: true,
+        });
+        expect(mockUpdateJob).toHaveBeenCalledTimes(1);
+      });
+
+      it('should create finalize task with proper params when being called on polygon parts tasks of each job', async () => {
         // mocks
         const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
 
-        const jobMock = getJobMock();
-        const taskMock = getTaskMock(jobMock.id, {
-          type: taskType,
+        const ingestionNewJobMock = getIngestionJobMock({ type: jobDefinitionsConfigMock.jobs.new });
+        const ingestionUpdateJobMock = getIngestionJobMock({ type: jobDefinitionsConfigMock.jobs.update });
+        const ingestionSwapJobMock = getIngestionJobMock({ type: jobDefinitionsConfigMock.jobs.swapUpdate });
+
+        const newPolygonPartsTaskMock = getTaskMock(ingestionNewJobMock.id, {
+          type: jobDefinitionsConfigMock.tasks.polygonParts,
+          status: OperationStatus.COMPLETED,
+          parameters: {},
+        });
+        const updatePolygonPartsTaskMock = getTaskMock(ingestionUpdateJobMock.id, {
+          type: jobDefinitionsConfigMock.tasks.polygonParts,
+          status: OperationStatus.COMPLETED,
+        });
+        const swapPolygonPartsTaskMock = getTaskMock(ingestionSwapJobMock.id, {
+          type: jobDefinitionsConfigMock.tasks.polygonParts,
           status: OperationStatus.COMPLETED,
         });
 
-        const initTaskMock = getTaskMock(jobMock.id, {
+        const newInitTaskMock = getTaskMock(ingestionNewJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
+        const updateInitTaskMock = getTaskMock(ingestionUpdateJobMock.id, {
           type: jobDefinitionsConfigMock.tasks.init,
           status: OperationStatus.COMPLETED,
         });
-        mockFindTasks.mockResolvedValueOnce([taskMock]).mockResolvedValueOnce([initTaskMock]);
+        const swapInitTaskMock = getTaskMock(ingestionSwapJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
 
-        mockGetJob.mockResolvedValueOnce(jobMock);
+        mockFindTasks.mockResolvedValueOnce([newPolygonPartsTaskMock]).mockResolvedValueOnce([newInitTaskMock]);
+        mockFindTasks.mockResolvedValueOnce([updatePolygonPartsTaskMock]).mockResolvedValueOnce([updateInitTaskMock]);
+        mockFindTasks.mockResolvedValueOnce([swapPolygonPartsTaskMock]).mockResolvedValueOnce([swapInitTaskMock]);
 
+        mockGetJob.mockResolvedValueOnce(ingestionNewJobMock).mockResolvedValueOnce(ingestionUpdateJobMock).mockResolvedValueOnce(ingestionSwapJobMock);
+
+        mockCreateTaskForJob.mockResolvedValue();
         // action
-        await tasksManager.handleTaskNotification(taskMock.id);
-
+        await tasksManager.handleTaskNotification(newPolygonPartsTaskMock.id);
+        await tasksManager.handleTaskNotification(updatePolygonPartsTaskMock.id);
+        await tasksManager.handleTaskNotification(swapPolygonPartsTaskMock.id);
         // expectation
-        expect(mockFindTasks).toHaveBeenCalledWith({ id: taskMock.id });
-        expect(mockGetJob).toHaveBeenCalledWith(jobMock.id);
+        expect(mockFindTasks).toHaveBeenCalledTimes(6);
+        expect(mockGetJob).toHaveBeenCalledTimes(3);
+        expect(mockCreateTaskForJob).toHaveBeenCalledTimes(3);
+        expect(mockUpdateJob).toHaveBeenCalledTimes(3);
+        expect(mockCreateTaskForJob).toHaveBeenCalledTimes(3);
+        expect(mockCreateTaskForJob).toHaveBeenCalledWith(ingestionNewJobMock.id, {
+          parameters: { insertedToMapproxy: false, insertedToGeoServer: false, insertedToCatalog: false },
+          type: jobDefinitionsConfigMock.tasks.finalize,
+          blockDuplication: true,
+        });
+        expect(mockCreateTaskForJob).toHaveBeenCalledWith(ingestionUpdateJobMock.id, {
+          parameters: { updatedInCatalog: false },
+          type: jobDefinitionsConfigMock.tasks.finalize,
+          blockDuplication: true,
+        });
+        expect(mockCreateTaskForJob).toHaveBeenCalledWith(ingestionSwapJobMock.id, {
+          parameters: { updatedInCatalog: false, updatedInMapproxy: false },
+          type: jobDefinitionsConfigMock.tasks.finalize,
+          blockDuplication: true,
+        });
+      });
+
+      it('Should create full processing finalize task type on successful export', async () => {
+        // mocks
+        const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
+        const exportJobMock = getExportJobMock();
+        const polygonPartsTaskMock = getTaskMock(exportJobMock.id, {
+          type: jobDefinitionsConfigMock.tasks.polygonParts,
+          status: OperationStatus.COMPLETED,
+        });
+        const initTaskMock = getTaskMock(exportJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
+
+        mockFindTasks.mockResolvedValueOnce([polygonPartsTaskMock]).mockResolvedValueOnce([initTaskMock]);
+        mockGetJob.mockResolvedValueOnce(exportJobMock);
+        // action
+        await tasksManager.handleTaskNotification(polygonPartsTaskMock.id);
+        // expectation
+        expect(mockFindTasks).toHaveBeenCalledWith({ id: polygonPartsTaskMock.id });
+        expect(mockGetJob).toHaveBeenCalledWith(exportJobMock.id);
         expect(mockCreateTaskForJob).toHaveBeenCalledTimes(1);
 
-        // blockDuplication should be true for ingestion jobs, false for export jobs
-        const isIngestionJob = getJobMock === getIngestionJobMock;
-        expect(mockCreateTaskForJob).toHaveBeenCalledWith(jobMock.id, {
-          parameters: {},
-          type: jobDefinitionsConfigMock.tasks.polygonParts,
-          blockDuplication: isIngestionJob,
-        });
+        const fullProccessingFinalizeTaskType: ICreateTaskBody<ExportFinalizeFullProcessingParams> = {
+          parameters: { type: ExportFinalizeType.Full_Processing, callbacksSent: false, gpkgModified: false, gpkgUploadedToS3: false },
+          type: jobDefinitionsConfigMock.tasks.finalize,
+          blockDuplication: false,
+        };
+        expect(mockCreateTaskForJob).toHaveBeenCalledWith(exportJobMock.id, fullProccessingFinalizeTaskType);
         expect(mockUpdateJob).toHaveBeenCalledTimes(1);
-      }
-    );
-
-    it('should create finalize task and update job percentage in case of being called with a "Completed" polygon-parts task with Completed init task', async () => {
-      // mocks
-      const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
-      const ingestionJobMock = getIngestionJobMock();
-      const mergeTaskMock = getTaskMock(ingestionJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.polygonParts,
-        status: OperationStatus.COMPLETED,
-      });
-      const initTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
-
-      mockFindTasks.mockResolvedValueOnce([mergeTaskMock]).mockResolvedValueOnce([initTaskMock]);
-      mockGetJob.mockResolvedValueOnce(ingestionJobMock);
-      // action
-      await tasksManager.handleTaskNotification(mergeTaskMock.id);
-      // expectation
-      expect(mockFindTasks).toHaveBeenCalledWith({ id: mergeTaskMock.id });
-      expect(mockGetJob).toHaveBeenCalledWith(ingestionJobMock.id);
-      expect(mockCreateTaskForJob).toHaveBeenCalledTimes(1);
-      expect(mockCreateTaskForJob).toHaveBeenCalledWith(ingestionJobMock.id, {
-        parameters: { insertedToCatalog: false, insertedToGeoServer: false, insertedToMapproxy: false },
-        type: jobDefinitionsConfigMock.tasks.finalize,
-        blockDuplication: true,
-      });
-      expect(mockUpdateJob).toHaveBeenCalledTimes(1);
-    });
-
-    it("should do nothing in case of being called with a 'Completed' task whose job have no init task", async () => {
-      // mocks
-      const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
-      const ingestionJobMock = getIngestionJobMock();
-      const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
-
-      mockFindTasks.mockResolvedValueOnce([mergeTaskMock]).mockResolvedValueOnce(null);
-      mockGetJob.mockResolvedValueOnce(ingestionJobMock);
-      // action
-      await tasksManager.handleTaskNotification(mergeTaskMock.id);
-      // expectation
-      expect(mockFindTasks).toHaveBeenCalledTimes(2);
-      expect(mockGetJob).toHaveBeenCalledTimes(1);
-      expect(mockCreateTaskForJob).not.toHaveBeenCalled();
-      expect(mockUpdateJob).toHaveBeenCalledTimes(1); // update job progress on notify - but nothing will really update since same task count.
-    });
-
-    it("should only update percentage in case of being called with a 'Completed' task whose job's init task is not 'Completed'", async () => {
-      // mocks
-      const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
-      const ingestionJobMock = getIngestionJobMock();
-      const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
-      const initTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.IN_PROGRESS });
-
-      mockFindTasks.mockResolvedValueOnce([mergeTaskMock]).mockResolvedValueOnce([initTaskMock]);
-      mockGetJob.mockResolvedValueOnce(ingestionJobMock);
-      // action
-      await tasksManager.handleTaskNotification(mergeTaskMock.id);
-      // expectation
-      expect(mockFindTasks).toHaveBeenCalledTimes(2);
-      expect(mockGetJob).toHaveBeenCalledTimes(1);
-      expect(mockUpdateJob).toHaveBeenCalledTimes(1);
-      expect(mockCreateTaskForJob).not.toHaveBeenCalled();
-    });
-
-    it("should do nothing in case of being called with a 'Completed' task but subsequent task already exists", async () => {
-      // mocks
-      const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
-      const ingestionJobMock = getIngestionJobMock();
-      const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
-      const initTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
-
-      mockFindTasks.mockResolvedValueOnce([mergeTaskMock]).mockResolvedValueOnce([initTaskMock]);
-      mockGetJob.mockResolvedValueOnce(ingestionJobMock);
-      mockCreateTaskForJob.mockRejectedValueOnce(new ConflictError(''));
-      // action
-      await tasksManager.handleTaskNotification(mergeTaskMock.id);
-      // expectation
-      expect(mockFindTasks).toHaveBeenCalledTimes(2);
-      expect(mockGetJob).toHaveBeenCalledTimes(1);
-      expect(mockCreateTaskForJob).toHaveBeenCalledTimes(1);
-      expect(mockUpdateJob).not.toHaveBeenCalled();
-    });
-
-    it("should only update percentage in case of being called with a 'Completed' task but job isn't completed", async () => {
-      // mocks
-      const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
-      const ingestionJobMock = getIngestionJobMock({ taskCount: 5, completedTasks: 4 });
-      const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
-      const initTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
-
-      mockFindTasks.mockResolvedValueOnce([mergeTaskMock]).mockResolvedValueOnce([initTaskMock]);
-      mockGetJob.mockResolvedValueOnce(ingestionJobMock);
-      // action
-      await tasksManager.handleTaskNotification(mergeTaskMock.id);
-      // expectation
-      expect(mockFindTasks).toHaveBeenCalledTimes(2);
-      expect(mockGetJob).toHaveBeenCalledTimes(1);
-      expect(mockCreateTaskForJob).not.toHaveBeenCalled();
-      expect(mockUpdateJob).toHaveBeenCalledTimes(1);
-    });
-
-    //ask shlomi
-    // it("should only update percentage in case of being called with a 'Completed' task that's neither merge nor polygon-parts", async () => {
-    //   // mocks
-    //   const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
-    //   const ingestionJobMock = getIngestionJobMock({ taskCount: 5, completedTasks: 4 });
-    //   const finalizeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.finalize, status: OperationStatus.COMPLETED });
-    //   const initTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
-
-    //   mockFindTasks.mockResolvedValueOnce([finalizeTaskMock]).mockResolvedValueOnce([initTaskMock]);
-    //   mockGetJob.mockResolvedValueOnce(ingestionJobMock);
-    //   // action
-    //   await tasksManager.handleTaskNotification(finalizeTaskMock.id);
-    //   // expectation
-    //   expect(mockFindTasks).toHaveBeenCalledTimes(2);
-    //   expect(mockGetJob).toHaveBeenCalledTimes(1);
-    //   expect(mockCreateTaskForJob).not.toHaveBeenCalled();
-    //   expect(mockUpdateJob).toHaveBeenCalledTimes(1);
-    // });
-
-    it('should create finalize task with proper params when being called on polygon parts tasks of each job', async () => {
-      // mocks
-      const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
-
-      const ingestionNewJobMock = getIngestionJobMock({ type: jobDefinitionsConfigMock.jobs.new });
-      const ingestionUpdateJobMock = getIngestionJobMock({ type: jobDefinitionsConfigMock.jobs.update });
-      const ingestionSwapJobMock = getIngestionJobMock({ type: jobDefinitionsConfigMock.jobs.swapUpdate });
-
-      const newPolygonPartsTaskMock = getTaskMock(ingestionNewJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.polygonParts,
-        status: OperationStatus.COMPLETED,
-        parameters: {},
-      });
-      const updatePolygonPartsTaskMock = getTaskMock(ingestionUpdateJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.polygonParts,
-        status: OperationStatus.COMPLETED,
-      });
-      const swapPolygonPartsTaskMock = getTaskMock(ingestionSwapJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.polygonParts,
-        status: OperationStatus.COMPLETED,
       });
 
-      const newInitTaskMock = getTaskMock(ingestionNewJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
-      const updateInitTaskMock = getTaskMock(ingestionUpdateJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.init,
-        status: OperationStatus.COMPLETED,
-      });
-      const swapInitTaskMock = getTaskMock(ingestionSwapJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
+      it('Should complete job when finalize is completed', async () => {
+        // mocks
+        const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
+        const job = getIngestionJobMock();
+        const finalizeTaskMock = getTaskMock(job.id, {
+          type: jobDefinitionsConfigMock.tasks.finalize,
+          status: OperationStatus.COMPLETED,
+          reason: JOB_COMPLETED_MESSAGE,
+        });
 
-      mockFindTasks.mockResolvedValueOnce([newPolygonPartsTaskMock]).mockResolvedValueOnce([newInitTaskMock]);
-      mockFindTasks.mockResolvedValueOnce([updatePolygonPartsTaskMock]).mockResolvedValueOnce([updateInitTaskMock]);
-      mockFindTasks.mockResolvedValueOnce([swapPolygonPartsTaskMock]).mockResolvedValueOnce([swapInitTaskMock]);
+        mockFindTasks.mockResolvedValue([finalizeTaskMock]);
+        mockGetJob.mockResolvedValue(job);
 
-      mockGetJob.mockResolvedValueOnce(ingestionNewJobMock).mockResolvedValueOnce(ingestionUpdateJobMock).mockResolvedValueOnce(ingestionSwapJobMock);
+        await tasksManager.handleTaskNotification(finalizeTaskMock.id);
 
-      mockCreateTaskForJob.mockResolvedValue();
-      // action
-      await tasksManager.handleTaskNotification(newPolygonPartsTaskMock.id);
-      await tasksManager.handleTaskNotification(updatePolygonPartsTaskMock.id);
-      await tasksManager.handleTaskNotification(swapPolygonPartsTaskMock.id);
-      // expectation
-      expect(mockFindTasks).toHaveBeenCalledTimes(6);
-      expect(mockGetJob).toHaveBeenCalledTimes(3);
-      expect(mockCreateTaskForJob).toHaveBeenCalledTimes(3);
-      expect(mockUpdateJob).toHaveBeenCalledTimes(3);
-      expect(mockCreateTaskForJob).toHaveBeenCalledTimes(3);
-      expect(mockCreateTaskForJob).toHaveBeenCalledWith(ingestionNewJobMock.id, {
-        parameters: { insertedToMapproxy: false, insertedToGeoServer: false, insertedToCatalog: false },
-        type: jobDefinitionsConfigMock.tasks.finalize,
-        blockDuplication: true,
+        expect(mockUpdateJob).toHaveBeenCalledWith(job.id, { status: OperationStatus.COMPLETED, percentage: 100 });
       });
-      expect(mockCreateTaskForJob).toHaveBeenCalledWith(ingestionUpdateJobMock.id, {
-        parameters: { updatedInCatalog: false },
-        type: jobDefinitionsConfigMock.tasks.finalize,
-        blockDuplication: true,
+
+      it('Should create next task when export finalize FullProcessing completed', async () => {
+        // mocks
+        const { tasksManager, mockFindTasks, mockCreateTaskForJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
+        setValue('taskFlowManager.exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);
+        init();
+        const mockReason = 'finalize task failed';
+        const job = getExportJobMock();
+        const mockExportFullProcessingFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
+          type: ExportFinalizeType.Full_Processing,
+          gpkgModified: true,
+          gpkgUploadedToS3: false,
+          callbacksSent: false,
+        };
+        const finalizeTaskMock = getTaskMock(job.id, {
+          type: jobDefinitionsConfigMock.tasks.finalize,
+          status: OperationStatus.COMPLETED,
+          reason: mockReason,
+          parameters: mockExportFullProcessingFinalizeTaskParams,
+        });
+
+        mockFindTasks.mockResolvedValue([finalizeTaskMock]);
+        mockGetJob.mockResolvedValue(job);
+
+        await tasksManager.handleTaskNotification(finalizeTaskMock.id);
+
+        expect(mockCreateTaskForJob).toHaveBeenCalledWith(job.id, {
+          type: jobDefinitionsConfigMock.tasks.polygonParts,
+          parameters: {},
+          blockDuplication: false,
+        });
       });
-      expect(mockCreateTaskForJob).toHaveBeenCalledWith(ingestionSwapJobMock.id, {
-        parameters: { updatedInCatalog: false, updatedInMapproxy: false },
-        type: jobDefinitionsConfigMock.tasks.finalize,
-        blockDuplication: true,
+
+      it('Should update job on a completed seeding task', async () => {
+        const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockUpdateJob } = testContext;
+        const seedingJob = getSeedingJobMock({ taskCount: 6, completedTasks: 4 });
+        const seedTaskMock = getTaskMock(seedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
+        const desiredPercentage = calculateJobPercentage(seedingJob.completedTasks, seedingJob.taskCount);
+
+        mockFindTasks.mockResolvedValue([seedTaskMock]);
+        mockGetJob.mockResolvedValue(seedingJob);
+        // action
+        await tasksManager.handleTaskNotification(seedTaskMock.id);
+        // expectation
+        expect(mockUpdateJob).toHaveBeenCalledTimes(1);
+        expect(mockUpdateJob).toHaveBeenCalledWith(seedingJob.id, { percentage: desiredPercentage });
+      });
+
+      it('Should set job to completed on completion of all tasks', async () => {
+        const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockUpdateJob } = testContext;
+        const seedingJob = getSeedingJobMock({ taskCount: 6, completedTasks: 6 });
+        const seedTaskMock = getTaskMock(seedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
+
+        mockFindTasks.mockResolvedValue([seedTaskMock]);
+        mockGetJob.mockResolvedValue(seedingJob);
+        // action
+        await tasksManager.handleTaskNotification(seedTaskMock.id);
+        // expectation
+        expect(mockUpdateJob).toHaveBeenCalledTimes(1);
+        expect(mockUpdateJob).toHaveBeenCalledWith(seedingJob.id, {
+          status: OperationStatus.COMPLETED,
+          percentage: 100,
+        });
       });
     });
 
-    it('Should throw NotFoundError if the given task does not exist', async () => {
-      // mocks
-      const { tasksManager, mockFindTasks, jobDefinitionsConfigMock } = testContext;
-      const ingestionJobMock = getIngestionJobMock();
-      const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
+    describe('Edge Cases and Special Conditions', () => {
+      it("should do nothing in case of being called with a 'Completed' task whose job have no init task", async () => {
+        // mocks
+        const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
+        const ingestionJobMock = getIngestionJobMock();
+        const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
 
-      mockFindTasks.mockResolvedValueOnce(null);
-      // action/expectations
-      await expect(tasksManager.handleTaskNotification(mergeTaskMock.id)).rejects.toThrow(NotFoundError);
-    });
-
-    it("Should fail the job if the given task's status is 'Failed' and task shouldn't suspend job", async () => {
-      // mocks
-      const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
-      const ingestionJobMock = getIngestionJobMock();
-      const mergeTaskMock = getTaskMock(ingestionJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.merge,
-        status: OperationStatus.FAILED,
-        reason: 'reason',
+        mockFindTasks.mockResolvedValueOnce([mergeTaskMock]).mockResolvedValueOnce(null);
+        mockGetJob.mockResolvedValueOnce(ingestionJobMock);
+        // action
+        await tasksManager.handleTaskNotification(mergeTaskMock.id);
+        // expectation
+        expect(mockFindTasks).toHaveBeenCalledTimes(2);
+        expect(mockGetJob).toHaveBeenCalledTimes(1);
+        expect(mockCreateTaskForJob).not.toHaveBeenCalled();
+        expect(mockUpdateJob).toHaveBeenCalledTimes(1); // update job progress on notify - but nothing will really update since same task count.
       });
 
-      mockFindTasks.mockResolvedValueOnce([mergeTaskMock]);
-      mockGetJob.mockResolvedValue(ingestionJobMock);
-      // action
-      await tasksManager.handleTaskNotification(mergeTaskMock.id);
-      // expectation
-      expect(mockUpdateJob).toHaveBeenCalledWith(ingestionJobMock.id, { status: OperationStatus.FAILED, reason: 'reason' });
-    });
+      it("should only update percentage in case of being called with a 'Completed' task whose job's init task is not 'Completed'", async () => {
+        // mocks
+        const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
+        const ingestionJobMock = getIngestionJobMock();
+        const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
+        const initTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.IN_PROGRESS });
 
-    it("Should suspend the job if the given task's status is 'Failed' and task is in suspendingTaskTypes list", async () => {
-      // mocks
-      const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
-      const ingestionJobMock = getIngestionJobMock();
-      const mergeTaskMock = getTaskMock(ingestionJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.polygonParts,
-        status: OperationStatus.FAILED,
-        reason: 'reason',
+        mockFindTasks.mockResolvedValueOnce([mergeTaskMock]).mockResolvedValueOnce([initTaskMock]);
+        mockGetJob.mockResolvedValueOnce(ingestionJobMock);
+        // action
+        await tasksManager.handleTaskNotification(mergeTaskMock.id);
+        // expectation
+        expect(mockFindTasks).toHaveBeenCalledTimes(2);
+        expect(mockGetJob).toHaveBeenCalledTimes(1);
+        expect(mockUpdateJob).toHaveBeenCalledTimes(1);
+        expect(mockCreateTaskForJob).not.toHaveBeenCalled();
       });
 
-      mockGetJob.mockResolvedValue(ingestionJobMock);
-      mockFindTasks.mockResolvedValueOnce([mergeTaskMock]);
-      // action
-      await tasksManager.handleTaskNotification(mergeTaskMock.id);
-      // expectation
-      expect(mockUpdateJob).toHaveBeenCalledWith(ingestionJobMock.id, { status: OperationStatus.SUSPENDED, reason: 'reason' });
-    });
+      it("should do nothing in case of being called with a 'Completed' task but subsequent task already exists", async () => {
+        // mocks
+        const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
+        const ingestionJobMock = getIngestionJobMock();
+        const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
+        const initTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
 
-    it("Should throw IrrelevantOperationStatusError if the given task's status is neither 'Completed' nor 'Failed'", async () => {
-      // mocks
-      const { tasksManager, mockFindTasks, jobDefinitionsConfigMock } = testContext;
-      const ingestionJobMock = getIngestionJobMock();
-      const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.PENDING });
-
-      mockFindTasks.mockResolvedValueOnce([mergeTaskMock]);
-      // action/expectations
-      await expect(tasksManager.handleTaskNotification(mergeTaskMock.id)).rejects.toThrow(IrrelevantOperationStatusError);
-    });
-
-    it('Should create export finalize error callback task type on failed export task', async () => {
-      // mocks
-      const { tasksManager, mockFindTasks, jobDefinitionsConfigMock, mockGetJob, mockCreateTaskForJob } = testContext;
-      const exportJobMock = getExportJobMock();
-      const exportTaskMock = getTaskMock(exportJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.export,
-        status: OperationStatus.FAILED,
-        reason: 'reason',
+        mockFindTasks.mockResolvedValueOnce([mergeTaskMock]).mockResolvedValueOnce([initTaskMock]);
+        mockGetJob.mockResolvedValueOnce(ingestionJobMock);
+        mockCreateTaskForJob.mockRejectedValueOnce(new ConflictError(''));
+        // action
+        await tasksManager.handleTaskNotification(mergeTaskMock.id);
+        // expectation
+        expect(mockFindTasks).toHaveBeenCalledTimes(2);
+        expect(mockGetJob).toHaveBeenCalledTimes(1);
+        expect(mockCreateTaskForJob).toHaveBeenCalledTimes(1);
+        expect(mockUpdateJob).not.toHaveBeenCalled();
       });
 
-      mockFindTasks.mockResolvedValueOnce([exportTaskMock]);
-      mockGetJob.mockResolvedValue(exportJobMock);
+      it("should only update percentage in case of being called with a 'Completed' task but job isn't completed", async () => {
+        // mocks
+        const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
+        const ingestionJobMock = getIngestionJobMock({ taskCount: 5, completedTasks: 4 });
+        const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
+        const initTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
 
-      // action
-      await tasksManager.handleTaskNotification(exportTaskMock.id);
-      // expectation
-      const createTaskBody: ICreateTaskBody<ExportFinalizeErrorCallbackParams> = {
-        parameters: { callbacksSent: false, type: ExportFinalizeType.Error_Callback },
-        type: jobDefinitionsConfigMock.tasks.finalize,
-        blockDuplication: false,
-      };
-      expect(mockCreateTaskForJob).toHaveBeenCalledWith(exportJobMock.id, createTaskBody);
-    });
-
-    it('Should fail job on export finalize task', async () => {
-      // mocks
-      const { tasksManager, mockFindTasks, jobDefinitionsConfigMock, mockGetJob, mockUpdateJob, mockCreateTaskForJob } = testContext;
-      const exportJobMock = getExportJobMock();
-      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
-      const finalizeTaskMock = getTaskMock(exportJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.finalize,
-        status: OperationStatus.FAILED,
-        reason: 'some error message',
-        parameters: mockExportErrorFinalizeTaskParams,
+        mockFindTasks.mockResolvedValueOnce([mergeTaskMock]).mockResolvedValueOnce([initTaskMock]);
+        mockGetJob.mockResolvedValueOnce(ingestionJobMock);
+        // action
+        await tasksManager.handleTaskNotification(mergeTaskMock.id);
+        // expectation
+        expect(mockFindTasks).toHaveBeenCalledTimes(2);
+        expect(mockGetJob).toHaveBeenCalledTimes(1);
+        expect(mockCreateTaskForJob).not.toHaveBeenCalled();
+        expect(mockUpdateJob).toHaveBeenCalledTimes(1);
       });
 
-      mockFindTasks.mockResolvedValue([finalizeTaskMock]);
-      mockGetJob.mockResolvedValue(exportJobMock);
-      // action
-      await tasksManager.handleTaskNotification(finalizeTaskMock.id);
-      // expectation
-      expect(mockUpdateJob).toHaveBeenCalledWith(exportJobMock.id, { status: OperationStatus.FAILED, reason: finalizeTaskMock.reason });
-      expect(mockCreateTaskForJob).not.toHaveBeenCalled();
-    });
+      it('Should update job percentage when export finalize ErrorCallback completed', async () => {
+        // mocks
+        const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
+        setValue('taskFlowManager.exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);
+        init();
+        const job = getExportJobMock({ failedTasks: 1, taskCount: 6 });
+        const mockExportErrorCallbackTaskParams: ExportFinalizeErrorCallbackParams = {
+          type: ExportFinalizeType.Error_Callback,
+          callbacksSent: false,
+        };
+        const finalizeTaskMock = getTaskMock(job.id, {
+          type: jobDefinitionsConfigMock.tasks.finalize,
+          status: OperationStatus.COMPLETED,
+          parameters: mockExportErrorCallbackTaskParams,
+        });
 
-    it('Should create full processing finalize task type on successful export', async () => {
-      // mocks
-      const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob, mockUpdateJob } = testContext;
-      const exportJobMock = getExportJobMock();
-      const polygonPartsTaskMock = getTaskMock(exportJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.polygonParts,
-        status: OperationStatus.COMPLETED,
-      });
-      const initTaskMock = getTaskMock(exportJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
+        mockFindTasks.mockResolvedValue([finalizeTaskMock]);
+        mockGetJob.mockResolvedValue(job);
 
-      mockFindTasks.mockResolvedValueOnce([polygonPartsTaskMock]).mockResolvedValueOnce([initTaskMock]);
-      mockGetJob.mockResolvedValueOnce(exportJobMock);
-      // action
-      await tasksManager.handleTaskNotification(polygonPartsTaskMock.id);
-      // expectation
-      expect(mockFindTasks).toHaveBeenCalledWith({ id: polygonPartsTaskMock.id });
-      expect(mockGetJob).toHaveBeenCalledWith(exportJobMock.id);
-      expect(mockCreateTaskForJob).toHaveBeenCalledTimes(1);
+        await tasksManager.handleTaskNotification(finalizeTaskMock.id);
 
-      const fullProccessingFinalizeTaskType: ICreateTaskBody<ExportFinalizeFullProcessingParams> = {
-        parameters: { type: ExportFinalizeType.Full_Processing, callbacksSent: false, gpkgModified: false, gpkgUploadedToS3: false },
-        type: jobDefinitionsConfigMock.tasks.finalize,
-        blockDuplication: false,
-      };
-      expect(mockCreateTaskForJob).toHaveBeenCalledWith(exportJobMock.id, fullProccessingFinalizeTaskType);
-      expect(mockUpdateJob).toHaveBeenCalledTimes(1);
-    });
-
-    it('Should complete job when finalize is completed', async () => {
-      // mocks
-      const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
-      const job = getIngestionJobMock();
-      const finalizeTaskMock = getTaskMock(job.id, {
-        type: jobDefinitionsConfigMock.tasks.finalize,
-        status: OperationStatus.COMPLETED,
-        reason: JOB_COMPLETED_MESSAGE,
+        expect(mockUpdateJob).toHaveBeenCalledWith(job.id, { percentage: calculateJobPercentage(job.completedTasks, job.taskCount) });
       });
 
-      mockFindTasks.mockResolvedValue([finalizeTaskMock]);
-      mockGetJob.mockResolvedValue(job);
+      //should remove?
+      it('Should not update job to completed on a completed error callback export finalize task', async () => {
+        // mocks
+        const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
+        const exportJobMock = getExportJobMock();
+        exportJobMock.failedTasks = 1;
+        exportJobMock.taskCount++;
+        exportJobMock.status = OperationStatus.FAILED;
+        const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
+        const exportTaskMock = getTaskMock(exportJobMock.id, {
+          type: jobDefinitionsConfigMock.tasks.finalize,
+          status: OperationStatus.COMPLETED,
+          reason: 'some error message',
+          parameters: mockExportErrorFinalizeTaskParams,
+        });
+        const expectedPercentage = calculateJobPercentage(exportJobMock.completedTasks, exportJobMock.taskCount);
 
-      await tasksManager.handleTaskNotification(finalizeTaskMock.id);
-
-      expect(mockUpdateJob).toHaveBeenCalledWith(job.id, { status: OperationStatus.COMPLETED, percentage: 100 });
-    });
-
-    it('Should create next task when export finalize FullProcessing completed', async () => {
-      // mocks
-      const { tasksManager, mockFindTasks, mockCreateTaskForJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
-      setValue('taskFlowManager.exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);
-      init();
-      const mockReason = 'finalize task failed';
-      const job = getExportJobMock();
-      const mockExportFullProcessingFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
-        type: ExportFinalizeType.Full_Processing,
-        gpkgModified: true,
-        gpkgUploadedToS3: false,
-        callbacksSent: false,
-      };
-      const finalizeTaskMock = getTaskMock(job.id, {
-        type: jobDefinitionsConfigMock.tasks.finalize,
-        status: OperationStatus.COMPLETED,
-        reason: mockReason,
-        parameters: mockExportFullProcessingFinalizeTaskParams,
-      });
-
-      mockFindTasks.mockResolvedValue([finalizeTaskMock]);
-      mockGetJob.mockResolvedValue(job);
-
-      await tasksManager.handleTaskNotification(finalizeTaskMock.id);
-
-      expect(mockCreateTaskForJob).toHaveBeenCalledWith(job.id, {
-        type: jobDefinitionsConfigMock.tasks.polygonParts,
-        parameters: {},
-        blockDuplication: false,
+        mockFindTasks.mockResolvedValue([exportTaskMock]);
+        mockGetJob.mockResolvedValue(exportJobMock);
+        // action
+        await tasksManager.handleTaskNotification(exportTaskMock.id);
+        // expectation
+        expect(mockUpdateJob).toHaveBeenCalledWith(exportJobMock.id, { percentage: expectedPercentage });
+        expect(expectedPercentage).toBeLessThan(100);
+        // Explicitly verify the job is NOT updated to completed status
+        expect(mockUpdateJob).not.toHaveBeenCalledWith(exportJobMock.id, {
+          status: OperationStatus.COMPLETED,
+          percentage: 100
+        });
       });
     });
 
-    it('Should update job percentage when export finalize ErrorCallback completed', async () => {
-      // mocks
-      const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
-      setValue('taskFlowManager.exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);
-      init();
-      const job = getExportJobMock({ failedTasks: 1, taskCount: 6 });
-      const mockExportErrorCallbackTaskParams: ExportFinalizeErrorCallbackParams = {
-        type: ExportFinalizeType.Error_Callback,
-        callbacksSent: false,
-      };
-      const finalizeTaskMock = getTaskMock(job.id, {
-        type: jobDefinitionsConfigMock.tasks.finalize,
-        status: OperationStatus.COMPLETED,
-        parameters: mockExportErrorCallbackTaskParams,
+    describe('Failed Tasks', () => {
+      it("Should fail the job if the given task's status is 'Failed' and task shouldn't suspend job", async () => {
+        // mocks
+        const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
+        const ingestionJobMock = getIngestionJobMock();
+        const mergeTaskMock = getTaskMock(ingestionJobMock.id, {
+          type: jobDefinitionsConfigMock.tasks.merge,
+          status: OperationStatus.FAILED,
+          reason: 'reason',
+        });
+
+        mockFindTasks.mockResolvedValueOnce([mergeTaskMock]);
+        mockGetJob.mockResolvedValue(ingestionJobMock);
+        // action
+        await tasksManager.handleTaskNotification(mergeTaskMock.id);
+        // expectation
+        expect(mockUpdateJob).toHaveBeenCalledWith(ingestionJobMock.id, { status: OperationStatus.FAILED, reason: 'reason' });
       });
 
-      mockFindTasks.mockResolvedValue([finalizeTaskMock]);
-      mockGetJob.mockResolvedValue(job);
+      it("Should suspend the job if the given task's status is 'Failed' and task is in suspendingTaskTypes list", async () => {
+        // mocks
+        const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
+        const ingestionJobMock = getIngestionJobMock();
+        const mergeTaskMock = getTaskMock(ingestionJobMock.id, {
+          type: jobDefinitionsConfigMock.tasks.polygonParts,
+          status: OperationStatus.FAILED,
+          reason: 'reason',
+        });
 
-      await tasksManager.handleTaskNotification(finalizeTaskMock.id);
-
-      expect(mockUpdateJob).toHaveBeenCalledWith(job.id, { percentage: calculateJobPercentage(job.completedTasks, job.taskCount) });
-    });
-
-    it('Should fail a job on a failed export task', async () => {
-      // mocks
-      const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
-      const exportJobMock = getExportJobMock();
-      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
-      const exportTaskMock = getTaskMock(exportJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.export,
-        status: OperationStatus.FAILED,
-        reason: 'some error message',
-        parameters: mockExportErrorFinalizeTaskParams,
+        mockGetJob.mockResolvedValue(ingestionJobMock);
+        mockFindTasks.mockResolvedValueOnce([mergeTaskMock]);
+        // action
+        await tasksManager.handleTaskNotification(mergeTaskMock.id);
+        // expectation
+        expect(mockUpdateJob).toHaveBeenCalledWith(ingestionJobMock.id, { status: OperationStatus.SUSPENDED, reason: 'reason' });
       });
 
-      mockFindTasks.mockResolvedValue([exportTaskMock]);
-      //mockFindTasks.mockResolvedValueOnce([finalizeTaskMock]);
-      mockGetJob.mockResolvedValue(exportJobMock);
-      // action
-      await tasksManager.handleTaskNotification(exportTaskMock.id);
-      // expectation
-      expect(mockUpdateJob).toHaveBeenCalledWith(exportJobMock.id, { status: OperationStatus.FAILED, reason: exportTaskMock.reason });
-    });
+      it('Should create export finalize error callback task type on failed export task', async () => {
+        // mocks
+        const { tasksManager, mockFindTasks, jobDefinitionsConfigMock, mockGetJob, mockCreateTaskForJob } = testContext;
+        const exportJobMock = getExportJobMock();
+        const exportTaskMock = getTaskMock(exportJobMock.id, {
+          type: jobDefinitionsConfigMock.tasks.export,
+          status: OperationStatus.FAILED,
+          reason: 'reason',
+        });
 
-    it('Should fail a job on a failed export init task', async () => {
-      // mocks
-      const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
-      const exportJobMock = getExportJobMock();
-      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
-      const exportTaskMock = getTaskMock(exportJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.init,
-        status: OperationStatus.FAILED,
-        reason: 'some error message',
-        parameters: mockExportErrorFinalizeTaskParams,
+        mockFindTasks.mockResolvedValueOnce([exportTaskMock]);
+        mockGetJob.mockResolvedValue(exportJobMock);
+
+        // action
+        await tasksManager.handleTaskNotification(exportTaskMock.id);
+        // expectation
+        const createTaskBody: ICreateTaskBody<ExportFinalizeErrorCallbackParams> = {
+          parameters: { callbacksSent: false, type: ExportFinalizeType.Error_Callback },
+          type: jobDefinitionsConfigMock.tasks.finalize,
+          blockDuplication: false,
+        };
+        expect(mockCreateTaskForJob).toHaveBeenCalledWith(exportJobMock.id, createTaskBody);
       });
 
-      mockFindTasks.mockResolvedValue([exportTaskMock]);
-      //mockFindTasks.mockResolvedValueOnce([finalizeTaskMock]);
-      mockGetJob.mockResolvedValue(exportJobMock);
-      // action
-      await tasksManager.handleTaskNotification(exportTaskMock.id);
-      // expectation
-      expect(mockUpdateJob).toHaveBeenCalledWith(exportJobMock.id, { status: OperationStatus.FAILED, reason: exportTaskMock.reason });
-    });
+      it('Should fail job on export finalize task', async () => {
+        // mocks
+        const { tasksManager, mockFindTasks, jobDefinitionsConfigMock, mockGetJob, mockUpdateJob, mockCreateTaskForJob } = testContext;
+        const exportJobMock = getExportJobMock();
+        const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
+        const finalizeTaskMock = getTaskMock(exportJobMock.id, {
+          type: jobDefinitionsConfigMock.tasks.finalize,
+          status: OperationStatus.FAILED,
+          reason: 'some error message',
+          parameters: mockExportErrorFinalizeTaskParams,
+        });
 
-    //should remove?
-    it('Should not update job to completed on a completed error callback export finalize task', async () => {
-      // mocks
-      const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
-      const exportJobMock = getExportJobMock();
-      exportJobMock.failedTasks = 1;
-      exportJobMock.taskCount++;
-      exportJobMock.status = OperationStatus.FAILED;
-      const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
-      const exportTaskMock = getTaskMock(exportJobMock.id, {
-        type: jobDefinitionsConfigMock.tasks.finalize,
-        status: OperationStatus.COMPLETED,
-        reason: 'some error message',
-        parameters: mockExportErrorFinalizeTaskParams,
-      });
-      const expectedPercentage = calculateJobPercentage(exportJobMock.completedTasks, exportJobMock.taskCount);
-
-      mockFindTasks.mockResolvedValue([exportTaskMock]);
-      mockGetJob.mockResolvedValue(exportJobMock);
-      // action
-      await tasksManager.handleTaskNotification(exportTaskMock.id);
-      // expectation
-      expect(mockUpdateJob).toHaveBeenCalledWith(exportJobMock.id, { percentage: expectedPercentage });
-      expect(expectedPercentage).toBeLessThan(100);
-      // Explicitly verify the job is NOT updated to completed status
-      expect(mockUpdateJob).not.toHaveBeenCalledWith(exportJobMock.id, {
-        status: OperationStatus.COMPLETED,
-        percentage: 100
-      });
-    });
-
-    it('Should fail a job on a failed seeding task', async () => {
-      // mocks
-      const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
-      const seedingJob = getSeedingJobMock();
-      const seedTaskMock = getTaskMock(seedingJob.id, {
-        type: jobDefinitionsConfigMock.tasks.seed,
-        status: OperationStatus.FAILED,
-        reason: 'some error reason',
+        mockFindTasks.mockResolvedValue([finalizeTaskMock]);
+        mockGetJob.mockResolvedValue(exportJobMock);
+        // action
+        await tasksManager.handleTaskNotification(finalizeTaskMock.id);
+        // expectation
+        expect(mockUpdateJob).toHaveBeenCalledWith(exportJobMock.id, { status: OperationStatus.FAILED, reason: finalizeTaskMock.reason });
+        expect(mockCreateTaskForJob).not.toHaveBeenCalled();
       });
 
-      mockFindTasks.mockResolvedValueOnce([seedTaskMock]);
-      mockGetJob.mockResolvedValue(seedingJob);
-      // action
-      await tasksManager.handleTaskNotification(seedTaskMock.id);
-      // expectation
-      expect(mockUpdateJob).toHaveBeenCalledTimes(1);
-      expect(mockUpdateJob).toHaveBeenCalledWith(seedingJob.id, { status: OperationStatus.FAILED, reason: 'some error reason' });
+      it('Should fail a job on a failed export task', async () => {
+        // mocks
+        const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
+        const exportJobMock = getExportJobMock();
+        const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
+        const exportTaskMock = getTaskMock(exportJobMock.id, {
+          type: jobDefinitionsConfigMock.tasks.export,
+          status: OperationStatus.FAILED,
+          reason: 'some error message',
+          parameters: mockExportErrorFinalizeTaskParams,
+        });
+
+        mockFindTasks.mockResolvedValue([exportTaskMock]);
+        mockGetJob.mockResolvedValue(exportJobMock);
+        // action
+        await tasksManager.handleTaskNotification(exportTaskMock.id);
+        // expectation
+        expect(mockUpdateJob).toHaveBeenCalledWith(exportJobMock.id, { status: OperationStatus.FAILED, reason: exportTaskMock.reason });
+      });
+
+      it('Should fail a job on a failed export init task', async () => {
+        // mocks
+        const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
+        const exportJobMock = getExportJobMock();
+        const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
+        const exportTaskMock = getTaskMock(exportJobMock.id, {
+          type: jobDefinitionsConfigMock.tasks.init,
+          status: OperationStatus.FAILED,
+          reason: 'some error message',
+          parameters: mockExportErrorFinalizeTaskParams,
+        });
+
+        mockFindTasks.mockResolvedValue([exportTaskMock]);
+        mockGetJob.mockResolvedValue(exportJobMock);
+        // action
+        await tasksManager.handleTaskNotification(exportTaskMock.id);
+        // expectation
+        expect(mockUpdateJob).toHaveBeenCalledWith(exportJobMock.id, { status: OperationStatus.FAILED, reason: exportTaskMock.reason });
+      });
+
+      it('Should fail a job on a failed seeding task', async () => {
+        // mocks
+        const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
+        const seedingJob = getSeedingJobMock();
+        const seedTaskMock = getTaskMock(seedingJob.id, {
+          type: jobDefinitionsConfigMock.tasks.seed,
+          status: OperationStatus.FAILED,
+          reason: 'some error reason',
+        });
+
+        mockFindTasks.mockResolvedValueOnce([seedTaskMock]);
+        mockGetJob.mockResolvedValue(seedingJob);
+        // action
+        await tasksManager.handleTaskNotification(seedTaskMock.id);
+        // expectation
+        expect(mockUpdateJob).toHaveBeenCalledTimes(1);
+        expect(mockUpdateJob).toHaveBeenCalledWith(seedingJob.id, { status: OperationStatus.FAILED, reason: 'some error reason' });
+      });
     });
 
-    it('Should update job on a completed seeding task', async () => {
-      const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockUpdateJob } = testContext;
-      const seedingJob = getSeedingJobMock({ taskCount: 6, completedTasks: 4 });
-      const seedTaskMock = getTaskMock(seedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
-      const desiredPercentage = calculateJobPercentage(seedingJob.completedTasks, seedingJob.taskCount);
+    describe('Error Handling', () => {
+      it('Should throw NotFoundError if the given task does not exist', async () => {
+        // mocks
+        const { tasksManager, mockFindTasks, jobDefinitionsConfigMock } = testContext;
+        const ingestionJobMock = getIngestionJobMock();
+        const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
 
-      mockFindTasks.mockResolvedValue([seedTaskMock]);
-      mockGetJob.mockResolvedValue(seedingJob);
-      // action
-      await tasksManager.handleTaskNotification(seedTaskMock.id);
-      // expectation
-      expect(mockUpdateJob).toHaveBeenCalledTimes(1);
-      expect(mockUpdateJob).toHaveBeenCalledWith(seedingJob.id, { percentage: desiredPercentage });
-    });
+        mockFindTasks.mockResolvedValueOnce(null);
+        // action/expectations
+        await expect(tasksManager.handleTaskNotification(mergeTaskMock.id)).rejects.toThrow(NotFoundError);
+      });
 
-    it('Should set job to completed on completion of all tasks', async () => {
-      const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockUpdateJob } = testContext;
-      const seedingJob = getSeedingJobMock({ taskCount: 6, completedTasks: 6 });
-      const seedTaskMock = getTaskMock(seedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
+      it("Should throw IrrelevantOperationStatusError if the given task's status is neither 'Completed' nor 'Failed'", async () => {
+        // mocks
+        const { tasksManager, mockFindTasks, jobDefinitionsConfigMock } = testContext;
+        const ingestionJobMock = getIngestionJobMock();
+        const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.PENDING });
 
-      mockFindTasks.mockResolvedValue([seedTaskMock]);
-      mockGetJob.mockResolvedValue(seedingJob);
-      // action
-      await tasksManager.handleTaskNotification(seedTaskMock.id);
-      // expectation
-      expect(mockUpdateJob).toHaveBeenCalledTimes(1);
-      expect(mockUpdateJob).toHaveBeenCalledWith(seedingJob.id, {
-        status: OperationStatus.COMPLETED,
-        percentage: 100,
+        mockFindTasks.mockResolvedValueOnce([mergeTaskMock]);
+        // action/expectations
+        await expect(tasksManager.handleTaskNotification(mergeTaskMock.id)).rejects.toThrow(IrrelevantOperationStatusError);
       });
     });
   });
