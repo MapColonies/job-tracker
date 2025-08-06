@@ -10,6 +10,7 @@ import { createTaskParametersMapper } from '../../common/mappers';
  */
 export class TaskWorker {
   protected readonly jobDefinitions: IJobDefinitionsConfig;
+  private readonly taskParametersMapper: Map<JobAndTask, Record<PropertyKey, unknown>>;
 
   public constructor(
     protected readonly logger: Logger,
@@ -21,12 +22,12 @@ export class TaskWorker {
     protected readonly excludedTypes: TaskTypes
   ) {
     this.jobDefinitions = this.config.get<IJobDefinitionsConfig>('jobDefinitions');
+    this.taskParametersMapper = createTaskParametersMapper(this.jobDefinitions);
   }
 
-  public getTaskParameters(jobType: string, taskType: string): unknown {
+  public getTaskParameters(jobType: string, taskType: string): Record<PropertyKey, unknown> {
     const key: JobAndTask = `${jobType}_${taskType}`;
-    const taskParametersMapper = createTaskParametersMapper(this.jobDefinitions);
-    const parameters = taskParametersMapper.get(key);
+    const parameters = this.taskParametersMapper.get(key);
     if (parameters === undefined) {
       this.logger.error({ msg: `task parameters for ${key} do not exist` });
       throw new BadRequestError(`task parameters for ${key} do not exist`);
@@ -36,9 +37,28 @@ export class TaskWorker {
 
   public getNextTaskType(): string | undefined {
     const indexOfCurrentTask = this.tasksFlow.indexOf(this.task.type);
+
+    // Handle case where current task type is not found in the flow
+    if (indexOfCurrentTask < 0) {
+      this.logger.error({
+        msg: 'Current task type not found in task flow',
+        taskType: this.task.type,
+        tasksFlow: this.tasksFlow
+      });
+      return undefined;
+    }
+
     let nextTaskTypeIndex = indexOfCurrentTask + 1;
-    while (this.shouldSkipTaskCreation(this.tasksFlow[nextTaskTypeIndex])) {
+
+    // Find the next task that should not be skipped, with bounds checking
+    while (nextTaskTypeIndex < this.tasksFlow.length &&
+      this.shouldSkipTaskCreation(this.tasksFlow[nextTaskTypeIndex])) {
       nextTaskTypeIndex++;
+    }
+
+    // Return undefined if we've reached the end of the flow
+    if (nextTaskTypeIndex >= this.tasksFlow.length) {
+      return undefined;
     }
 
     return this.tasksFlow[nextTaskTypeIndex];

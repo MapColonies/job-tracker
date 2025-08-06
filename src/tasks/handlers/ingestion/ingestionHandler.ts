@@ -9,7 +9,7 @@ import { JobHandler } from '../jobHandler';
 export class IngestionJobHandler extends JobHandler {
   protected readonly tasksFlow: TaskTypes;
   protected readonly excludedTypes: TaskTypes;
-  protected readonly shouldBlockDuplicationForTypes: TaskTypes;
+  protected readonly blockedDuplicationTypes: TaskTypes;
 
   public constructor(
     @inject(SERVICES.LOGGER) logger: Logger,
@@ -21,7 +21,7 @@ export class IngestionJobHandler extends JobHandler {
     super(logger, config, jobManagerClient, job, task);
     this.tasksFlow = this.config.get<TaskTypes>('taskFlowManager.ingestionTasksFlow');
     this.excludedTypes = this.config.get<TaskTypes>('taskFlowManager.ingestionCreationExcludedTaskTypes');
-    this.shouldBlockDuplicationForTypes = [this.jobDefinitions.tasks.finalize, this.jobDefinitions.tasks.polygonParts];
+    this.blockedDuplicationTypes = [this.jobDefinitions.tasks.finalize, this.jobDefinitions.tasks.polygonParts];
 
     // Initialize task operations after setting up the flow properties
     this.initializeTaskOperations();

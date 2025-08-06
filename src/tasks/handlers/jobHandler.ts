@@ -15,7 +15,7 @@ export abstract class JobHandler extends BaseJobHandler {
   protected taskWorker?: TaskWorker;
   protected abstract readonly tasksFlow: TaskTypes;
   protected abstract readonly excludedTypes: TaskTypes;
-  protected abstract readonly shouldBlockDuplicationForTypes: TaskTypes;
+  protected abstract readonly blockedDuplicationTypes: TaskTypes;
 
   protected constructor(
     logger: Logger,
@@ -84,7 +84,7 @@ export abstract class JobHandler extends BaseJobHandler {
   }
 
   private async handleNoNextTask(): Promise<void> {
-    if (this.isAllTasksCompleted()) {
+    if (this.areAllTasksCompleted()) {
       this.logger.info({ msg: 'Completing job', jobId: this.job.id });
       await this.completeJob();
     } else {
@@ -102,7 +102,7 @@ export abstract class JobHandler extends BaseJobHandler {
     const createTaskBody: ICreateTaskBody<unknown> = {
       type: nextTaskType,
       parameters: this.taskWorker?.getTaskParameters(this.job.type, nextTaskType),
-      blockDuplication: this.shouldBlockDuplicationForTypes.includes(nextTaskType),
+      blockDuplication: this.blockedDuplicationTypes.includes(nextTaskType),
     };
 
     try {

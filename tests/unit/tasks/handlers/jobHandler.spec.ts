@@ -10,7 +10,7 @@ import { registerDefaultConfig, clear as clearConfig, configMock } from '../../.
 class TestJobHandler extends JobHandler {
   protected readonly tasksFlow: TaskTypes;
   protected readonly excludedTypes: TaskTypes;
-  protected readonly shouldBlockDuplicationForTypes: TaskTypes;
+  protected readonly blockedDuplicationTypes: TaskTypes;
 
   public constructor(
     logger: Logger,
@@ -25,7 +25,7 @@ class TestJobHandler extends JobHandler {
     super(logger, config, jobManager, job, task);
     this.tasksFlow = tasksFlow;
     this.excludedTypes = excludedTypes;
-    this.shouldBlockDuplicationForTypes = blockDuplicationTypes;
+    this.blockedDuplicationTypes = blockDuplicationTypes;
     this.initializeTaskOperations();
   }
 
@@ -37,19 +37,19 @@ class TestJobHandler extends JobHandler {
 
 // Test helper functions
 const createMockLogger = (): jest.Mocked<Logger> =>
-  ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  } as unknown as jest.Mocked<Logger>);
+({
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+} as unknown as jest.Mocked<Logger>);
 
 const createMockJobManager = (): jest.Mocked<JobManagerClient> =>
-  ({
-    updateJob: jest.fn(),
-    createTaskForJob: jest.fn(),
-    findTasks: jest.fn(),
-  } as unknown as jest.Mocked<JobManagerClient>);
+({
+  updateJob: jest.fn(),
+  createTaskForJob: jest.fn(),
+  findTasks: jest.fn(),
+} as unknown as jest.Mocked<JobManagerClient>);
 
 const createTestJob = (overrides?: Partial<IJobResponse<unknown, unknown>>): IJobResponse<unknown, unknown> => {
   const jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
@@ -204,7 +204,7 @@ describe('WorkflowJobHandler', () => {
         mockJob.id,
         expect.objectContaining({
           type: jobDefinitionsConfig.tasks.polygonParts, // Should skip tilesExporting (excluded)
-          blockDuplication: false, // polygon-parts is not in shouldBlockDuplicationForTypes
+          blockDuplication: false, // polygon-parts is not in blockedDuplicationTypes
         })
       );
       expect(handler.updateJobProgress).toHaveBeenCalledWith();

@@ -135,15 +135,15 @@ describe('WorkflowTaskOperations', () => {
       expect(result).toBe(jobDefinitionsConfig.tasks.finalize);
     });
 
-    it('should return first task type when current task type is not in flow', () => {
+    it('should return undefined when current task type is not in flow', () => {
       // Given: current task type is not in the task flow
       mockTask.type = 'unknownTaskType';
 
       // When: getting next task type
       const result = operations.getNextTaskType();
 
-      // Then: should return the first task type (indexOf returns -1, so next index is 0)
-      expect(result).toBe(taskFlowConfig.exportTasksFlow[0]);
+      // Then: should return undefined since the current task type is not found in the flow
+      expect(result).toBeUndefined();
     });
 
     it('should return next task type when no exclusions apply', () => {
@@ -159,6 +159,21 @@ describe('WorkflowTaskOperations', () => {
 
       // Then: should return the immediate next task type without skipping
       expect(result).toBe(jobDefinitionsConfig.tasks.merge);
+    });
+
+    it('should return undefined when reaching end of task flow', () => {
+      // Given: current task is the last task in the flow
+      const customTaskFlow: TaskTypes = [jobDefinitionsConfig.tasks.init, jobDefinitionsConfig.tasks.finalize];
+      const customExcludedTypes: TaskTypes = [];
+      const customTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.finalize, status: OperationStatus.COMPLETED });
+
+      const customOperations = new TaskWorker(mockLogger, mockConfig, mockJobManager, mockJob, customTask, customTaskFlow, customExcludedTypes);
+
+      // When: getting next task type
+      const result = customOperations.getNextTaskType();
+
+      // Then: should return undefined since there are no more tasks in the flow
+      expect(result).toBeUndefined();
     });
   });
 
