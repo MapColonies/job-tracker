@@ -8,17 +8,17 @@ import { registerDefaultConfig, clear as clearConfig, configMock } from '../../.
 
 // Test helper functions
 const createMockLogger = (): jest.Mocked<Logger> =>
-({
-  info: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-  debug: jest.fn(),
-} as unknown as jest.Mocked<Logger>);
+  ({
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+  } as unknown as jest.Mocked<Logger>);
 
 const createMockJobManager = (): jest.Mocked<JobManagerClient> =>
-({
-  findTasks: jest.fn(),
-} as unknown as jest.Mocked<JobManagerClient>);
+  ({
+    findTasks: jest.fn(),
+  } as unknown as jest.Mocked<JobManagerClient>);
 
 describe('WorkflowTaskOperations', () => {
   let operations: TaskWorker;
@@ -52,7 +52,7 @@ describe('WorkflowTaskOperations', () => {
       mockJob,
       mockTask,
       taskFlowConfig.exportTasksFlow as unknown as TaskTypes,
-      ["tilesExporting"] as TaskTypes
+      ['tilesExporting'] as TaskTypes
     );
   });
 

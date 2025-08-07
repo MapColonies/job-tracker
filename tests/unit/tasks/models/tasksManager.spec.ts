@@ -116,13 +116,19 @@ describe('TasksManager', () => {
           type: jobDefinitionsConfigMock.tasks.init,
           status: OperationStatus.COMPLETED,
         });
-        const swapInitTaskMock = getTaskMock(ingestionSwapJobMock.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
+        const swapInitTaskMock = getTaskMock(ingestionSwapJobMock.id, {
+          type: jobDefinitionsConfigMock.tasks.init,
+          status: OperationStatus.COMPLETED,
+        });
 
         mockFindTasks.mockResolvedValueOnce([newPolygonPartsTaskMock]).mockResolvedValueOnce([newInitTaskMock]);
         mockFindTasks.mockResolvedValueOnce([updatePolygonPartsTaskMock]).mockResolvedValueOnce([updateInitTaskMock]);
         mockFindTasks.mockResolvedValueOnce([swapPolygonPartsTaskMock]).mockResolvedValueOnce([swapInitTaskMock]);
 
-        mockGetJob.mockResolvedValueOnce(ingestionNewJobMock).mockResolvedValueOnce(ingestionUpdateJobMock).mockResolvedValueOnce(ingestionSwapJobMock);
+        mockGetJob
+          .mockResolvedValueOnce(ingestionNewJobMock)
+          .mockResolvedValueOnce(ingestionUpdateJobMock)
+          .mockResolvedValueOnce(ingestionSwapJobMock);
 
         mockCreateTaskForJob.mockResolvedValue();
         // action
@@ -368,7 +374,10 @@ describe('TasksManager', () => {
         exportJobMock.failedTasks = 1;
         exportJobMock.taskCount++;
         exportJobMock.status = OperationStatus.FAILED;
-        const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
+        const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = {
+          callbacksSent: false,
+          type: ExportFinalizeType.Error_Callback,
+        };
         const exportTaskMock = getTaskMock(exportJobMock.id, {
           type: jobDefinitionsConfigMock.tasks.finalize,
           status: OperationStatus.COMPLETED,
@@ -387,7 +396,7 @@ describe('TasksManager', () => {
         // Explicitly verify the job is NOT updated to completed status
         expect(mockUpdateJob).not.toHaveBeenCalledWith(exportJobMock.id, {
           status: OperationStatus.COMPLETED,
-          percentage: 100
+          percentage: 100,
         });
       });
     });
@@ -457,7 +466,10 @@ describe('TasksManager', () => {
         // mocks
         const { tasksManager, mockFindTasks, jobDefinitionsConfigMock, mockGetJob, mockUpdateJob, mockCreateTaskForJob } = testContext;
         const exportJobMock = getExportJobMock();
-        const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
+        const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = {
+          callbacksSent: false,
+          type: ExportFinalizeType.Error_Callback,
+        };
         const finalizeTaskMock = getTaskMock(exportJobMock.id, {
           type: jobDefinitionsConfigMock.tasks.finalize,
           status: OperationStatus.FAILED,
@@ -478,7 +490,10 @@ describe('TasksManager', () => {
         // mocks
         const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
         const exportJobMock = getExportJobMock();
-        const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
+        const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = {
+          callbacksSent: false,
+          type: ExportFinalizeType.Error_Callback,
+        };
         const exportTaskMock = getTaskMock(exportJobMock.id, {
           type: jobDefinitionsConfigMock.tasks.export,
           status: OperationStatus.FAILED,
@@ -498,7 +513,10 @@ describe('TasksManager', () => {
         // mocks
         const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
         const exportJobMock = getExportJobMock();
-        const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
+        const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = {
+          callbacksSent: false,
+          type: ExportFinalizeType.Error_Callback,
+        };
         const exportTaskMock = getTaskMock(exportJobMock.id, {
           type: jobDefinitionsConfigMock.tasks.init,
           status: OperationStatus.FAILED,

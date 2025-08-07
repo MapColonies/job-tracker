@@ -43,7 +43,7 @@ export class TaskWorker {
       this.logger.error({
         msg: 'Current task type not found in task flow',
         taskType: this.task.type,
-        tasksFlow: this.tasksFlow
+        tasksFlow: this.tasksFlow,
       });
       return undefined;
     }
@@ -51,8 +51,7 @@ export class TaskWorker {
     let nextTaskTypeIndex = indexOfCurrentTask + 1;
 
     // Find the next task that should not be skipped, with bounds checking
-    while (nextTaskTypeIndex < this.tasksFlow.length &&
-      this.shouldSkipTaskCreation(this.tasksFlow[nextTaskTypeIndex])) {
+    while (nextTaskTypeIndex < this.tasksFlow.length && this.shouldSkipTaskCreation(this.tasksFlow[nextTaskTypeIndex])) {
       nextTaskTypeIndex++;
     }
 
