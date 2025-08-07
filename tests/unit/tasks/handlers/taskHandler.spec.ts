@@ -28,7 +28,7 @@ describe('WorkflowTaskOperations', () => {
   let mockTask: ITaskResponse<unknown>;
   let mockConfig: IConfig;
   let jobDefinitionsConfig: IJobDefinitionsConfig;
-  let taskFlowConfig: { exportTasksFlow: string[]; exportCreationExcludedTaskTypes: string[] };
+  let taskFlowConfig: { exportTasksFlow: string[] };
 
   beforeEach(() => {
     registerDefaultConfig();
@@ -38,7 +38,6 @@ describe('WorkflowTaskOperations', () => {
     jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
     taskFlowConfig = configMock.get<{
       exportTasksFlow: string[];
-      exportCreationExcludedTaskTypes: string[];
     }>('taskFlowManager');
 
     mockLogger = createMockLogger();
@@ -53,7 +52,7 @@ describe('WorkflowTaskOperations', () => {
       mockJob,
       mockTask,
       taskFlowConfig.exportTasksFlow as unknown as TaskTypes,
-      taskFlowConfig.exportCreationExcludedTaskTypes as unknown as TaskTypes
+      ["tilesExporting"] as TaskTypes
     );
   });
 

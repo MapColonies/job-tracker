@@ -82,14 +82,6 @@
     "exportTasksFlow": {
       "__name": "EXPORT_TASKS_FLOW",
       "__format": "json"
-    },
-    "ingestionCreationExcludedTaskTypes": {
-      "__name": "INGESTION_CREATION_EXCLUDED_TASK_TYPES",
-      "__format": "json"
-    },
-    "exportCreationExcludedTaskTypes": {
-      "__name": "EXPORT_CREATION_EXCLUDED_TASK_TYPES",
-      "__format": "json"
     }
   }
 }

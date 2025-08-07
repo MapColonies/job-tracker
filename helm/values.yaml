@@ -113,12 +113,6 @@ taskFlowManager:
     - tilesExporting
     - polygon-parts
     - finalize
-  ingestionCreationExcludedTaskTypes:
-    - tilesMerging
-    - TilesSeeding
-  exportCreationExcludedTaskTypes:
-    - tilesExporting
-
 
 env:
   port: 80

@@ -40,6 +40,4 @@ data:
   JOB_DEFINITIONS_SUSPENDING_TASKS: {{ $suspendingTaskTypes | fromYaml | toJson | quote }}
   INGESTION_TASKS_FLOW: {{ .Values.taskFlowManager.ingestionTasksFlow | toJson | quote }}
   EXPORT_TASKS_FLOW: {{ .Values.taskFlowManager.exportTasksFlow | toJson | quote }}
-  INGESTION_CREATION_EXCLUDED_TASK_TYPES: {{ .Values.taskFlowManager.ingestionCreationExcludedTaskTypes | toJson | quote }}
-  EXPORT_CREATION_EXCLUDED_TASK_TYPES: {{ .Values.taskFlowManager.exportCreationExcludedTaskTypes | toJson | quote }}
 {{- end }}

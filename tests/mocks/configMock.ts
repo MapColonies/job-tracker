@@ -102,8 +102,6 @@ const registerDefaultConfig = (): void => {
     taskFlowManager: {
       ingestionTasksFlow: ['init', 'tilesMerging', 'polygon-parts', 'finalize', 'TilesSeeding'],
       exportTasksFlow: ['init', 'tilesExporting', 'polygon-parts', 'finalize'],
-      ingestionCreationExcludedTaskTypes: ['tilesMerging', 'TilesSeeding'],
-      exportCreationExcludedTaskTypes: ['tilesExporting'],
     },
   };
 

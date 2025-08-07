@@ -20,12 +20,12 @@ class TestJobHandler extends JobHandler {
     task: ITaskResponse<unknown>,
     tasksFlow: TaskTypes,
     excludedTypes: TaskTypes,
-    blockDuplicationTypes: TaskTypes
+    blockedDuplicationTypes: TaskTypes
   ) {
     super(logger, config, jobManager, job, task);
     this.tasksFlow = tasksFlow;
     this.excludedTypes = excludedTypes;
-    this.blockedDuplicationTypes = blockDuplicationTypes;
+    this.blockedDuplicationTypes = blockedDuplicationTypes;
     this.initializeTaskOperations();
   }
 
@@ -61,7 +61,7 @@ const createTestJob = (overrides?: Partial<IJobResponse<unknown, unknown>>): IJo
   });
 };
 
-describe('WorkflowJobHandler', () => {
+describe('JobHandler', () => {
   let handler: TestJobHandler;
   let mockLogger: jest.Mocked<Logger>;
   let mockJobManager: jest.Mocked<JobManagerClient>;
@@ -69,7 +69,7 @@ describe('WorkflowJobHandler', () => {
   let mockTask: ITaskResponse<unknown>;
   let mockConfig: IConfig;
   let jobDefinitionsConfig: IJobDefinitionsConfig;
-  let taskFlowConfig: { exportTasksFlow: string[]; exportCreationExcludedTaskTypes: string[] };
+  let taskFlowConfig: { exportTasksFlow: string[] };
 
   beforeEach(() => {
     registerDefaultConfig();
@@ -77,7 +77,7 @@ describe('WorkflowJobHandler', () => {
 
     // Extract config values
     jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
-    taskFlowConfig = configMock.get<{ exportTasksFlow: string[]; exportCreationExcludedTaskTypes: string[] }>('taskFlowManager');
+    taskFlowConfig = configMock.get<{ exportTasksFlow: string[] }>('taskFlowManager');
 
     mockLogger = createMockLogger();
     mockJobManager = createMockJobManager();
@@ -91,8 +91,8 @@ describe('WorkflowJobHandler', () => {
       mockJob,
       mockTask,
       taskFlowConfig.exportTasksFlow as unknown as TaskTypes,
-      taskFlowConfig.exportCreationExcludedTaskTypes as unknown as TaskTypes,
-      ['init'] as unknown as TaskTypes // block duplication types
+      ["tilesExporting"] as TaskTypes, // Excluded types for export
+      ["tilesExporting"] as TaskTypes // Blocked duplication types for export
     );
   });
 

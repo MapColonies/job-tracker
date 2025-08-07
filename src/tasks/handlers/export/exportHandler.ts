@@ -20,7 +20,7 @@ export class ExportJobHandler extends JobHandler {
   ) {
     super(logger, config, jobManagerClient, job, task);
     this.tasksFlow = this.config.get<TaskTypes>('taskFlowManager.exportTasksFlow');
-    this.excludedTypes = this.config.get<TaskTypes>('taskFlowManager.exportCreationExcludedTaskTypes');
+    this.excludedTypes = [this.jobDefinitions.tasks.export];
     this.blockedDuplicationTypes = [this.jobDefinitions.tasks.export];
 
     // Initialize task operations after setting up the flow properties
