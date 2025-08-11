@@ -33,19 +33,19 @@ class TestJobHandler extends JobHandler {
 
 // Test helper functions
 const createMockLogger = (): jest.Mocked<Logger> =>
-({
-  info: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-  debug: jest.fn(),
-} as unknown as jest.Mocked<Logger>);
+  ({
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+  } as unknown as jest.Mocked<Logger>);
 
 const createMockJobManager = (): jest.Mocked<JobManagerClient> =>
-({
-  updateJob: jest.fn(),
-  createTaskForJob: jest.fn(),
-  findTasks: jest.fn(),
-} as unknown as jest.Mocked<JobManagerClient>);
+  ({
+    updateJob: jest.fn(),
+    createTaskForJob: jest.fn(),
+    findTasks: jest.fn(),
+  } as unknown as jest.Mocked<JobManagerClient>);
 
 const createTestJob = (overrides?: Partial<IJobResponse<unknown, unknown>>): IJobResponse<unknown, unknown> => {
   const jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
