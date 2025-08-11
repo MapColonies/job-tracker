@@ -84,7 +84,7 @@ export abstract class JobHandler extends BaseJobHandler {
         jobId: this.job.id,
         taskId: this.task.id,
         taskType: this.task.type,
-        isInitialWorkflowCompleted: isInitialWorkflowCompleted,
+        isInitialWorkflowCompleted,
       });
       return isInitialWorkflowCompleted;
     }

@@ -1,4 +1,4 @@
-import { ICreateTaskBody, IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
+import { JobManagerClient } from '@map-colonies/mc-priority-queue';
 import jsLogger from '@map-colonies/js-logger';
 import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { TasksManager } from '../../../../src/tasks/models/tasksManager';
@@ -49,10 +49,10 @@ function setupQueueClient(useMockQueueClient = false): QueueClientTestContext {
   };
 }
 
-export type MockGetJob = jest.MockedFunction<(jobId: string) => Promise<IJobResponse<unknown, unknown>>>;
-export type MockFindTasks = jest.MockedFunction<(taskId: string) => Promise<ITaskResponse<unknown>[] | null>>;
-export type MockUpdateJob = jest.MockedFunction<(jobId: string, update: Record<string, unknown>) => Promise<void>>;
-export type MockCreateTaskForJob = jest.MockedFunction<(jobId: string, body: ICreateTaskBody<unknown>) => Promise<void>>;
+export type MockGetJob = jest.MockedFunction<JobManagerClient['getJob']>;
+export type MockFindTasks = jest.MockedFunction<JobManagerClient['findTasks']>;
+export type MockUpdateJob = jest.MockedFunction<JobManagerClient['updateJob']>;
+export type MockCreateTaskForJob = jest.MockedFunction<JobManagerClient['createTaskForJob']>;
 
 export interface TasksModelTestContext {
   tasksManager: TasksManager;

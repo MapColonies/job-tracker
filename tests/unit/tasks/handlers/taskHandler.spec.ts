@@ -114,7 +114,7 @@ describe('WorkflowTaskOperations', () => {
       expect(result).toBeUndefined();
     });
 
-    it('should skip excluded types and find next valid task', () => {
+    it('should skip multiple consecutive excluded types and find next valid task', () => {
       // Given: custom flow with multiple excluded types
       const customTaskFlow: TaskTypes = [
         jobDefinitionsConfig.tasks.init,
