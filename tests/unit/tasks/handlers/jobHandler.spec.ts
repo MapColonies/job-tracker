@@ -8,19 +8,15 @@ import { registerDefaultConfig, clear as clearConfig, configMock } from '../../.
 
 // Concrete implementation for testing
 class TestJobHandler extends JobHandler {
-  protected readonly tasksFlow: TaskTypes;
-  protected readonly excludedTypes: TaskTypes;
-  protected readonly blockedDuplicationTypes: TaskTypes;
-
   public constructor(
     logger: Logger,
     config: IConfig,
     jobManager: JobManagerClient,
     job: IJobResponse<unknown, unknown>,
     task: ITaskResponse<unknown>,
-    tasksFlow: TaskTypes,
-    excludedTypes: TaskTypes,
-    blockedDuplicationTypes: TaskTypes
+    protected readonly tasksFlow: TaskTypes,
+    protected readonly excludedTypes: TaskTypes,
+    protected readonly blockedDuplicationTypes: TaskTypes
   ) {
     super(logger, config, jobManager, job, task);
     this.tasksFlow = tasksFlow;
@@ -37,19 +33,19 @@ class TestJobHandler extends JobHandler {
 
 // Test helper functions
 const createMockLogger = (): jest.Mocked<Logger> =>
-  ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  } as unknown as jest.Mocked<Logger>);
+({
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+} as unknown as jest.Mocked<Logger>);
 
 const createMockJobManager = (): jest.Mocked<JobManagerClient> =>
-  ({
-    updateJob: jest.fn(),
-    createTaskForJob: jest.fn(),
-    findTasks: jest.fn(),
-  } as unknown as jest.Mocked<JobManagerClient>);
+({
+  updateJob: jest.fn(),
+  createTaskForJob: jest.fn(),
+  findTasks: jest.fn(),
+} as unknown as jest.Mocked<JobManagerClient>);
 
 const createTestJob = (overrides?: Partial<IJobResponse<unknown, unknown>>): IJobResponse<unknown, unknown> => {
   const jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
