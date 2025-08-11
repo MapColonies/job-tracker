@@ -8,7 +8,7 @@ import { createTaskParametersMapper } from '../../common/mappers';
  * Utility class for workflow-specific task operations
  * This class is designed to be composed with job handlers to provide task-level functionality
  */
-export class TaskWorker {
+export class TaskHandler {
   protected readonly jobDefinitions: IJobDefinitionsConfig;
   private readonly taskParametersMapper: Map<JobAndTask, Record<PropertyKey, unknown>>;
 

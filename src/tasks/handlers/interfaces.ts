@@ -25,5 +25,5 @@ export interface IJobHandler {
   /**
    * Check if all tasks in the job are completed
    */
-  areAllTasksCompleted: () => boolean;
+  isJobCompleted: () => boolean;
 }

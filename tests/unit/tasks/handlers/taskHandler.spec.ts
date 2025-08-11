@@ -1,27 +1,27 @@
 import { BadRequestError } from '@map-colonies/error-types';
 import { Logger } from '@map-colonies/js-logger';
 import { JobManagerClient, OperationStatus, IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
-import { TaskWorker } from '../../../../src/tasks/handlers/taskHandler';
+import { TaskHandler } from '../../../../src/tasks/handlers/taskHandler';
 import { IConfig, TaskTypes, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { getExportJobMock, getTaskMock } from '../../../mocks/JobMocks';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
 
 // Test helper functions
 const createMockLogger = (): jest.Mocked<Logger> =>
-  ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  } as unknown as jest.Mocked<Logger>);
+({
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+} as unknown as jest.Mocked<Logger>);
 
 const createMockJobManager = (): jest.Mocked<JobManagerClient> =>
-  ({
-    findTasks: jest.fn(),
-  } as unknown as jest.Mocked<JobManagerClient>);
+({
+  findTasks: jest.fn(),
+} as unknown as jest.Mocked<JobManagerClient>);
 
 describe('WorkflowTaskOperations', () => {
-  let operations: TaskWorker;
+  let operations: TaskHandler;
   let mockLogger: jest.Mocked<Logger>;
   let mockJobManager: jest.Mocked<JobManagerClient>;
   let mockJob: IJobResponse<unknown, unknown>;
@@ -45,7 +45,7 @@ describe('WorkflowTaskOperations', () => {
     mockJob = getExportJobMock({ type: jobDefinitionsConfig.jobs.export });
     mockTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED });
 
-    operations = new TaskWorker(
+    operations = new TaskHandler(
       mockLogger,
       mockConfig,
       mockJobManager,
@@ -125,7 +125,7 @@ describe('WorkflowTaskOperations', () => {
       const customExcludedTypes: TaskTypes = [jobDefinitionsConfig.tasks.export, jobDefinitionsConfig.tasks.polygonParts];
       const customTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED });
 
-      const customOperations = new TaskWorker(mockLogger, mockConfig, mockJobManager, mockJob, customTask, customTaskFlow, customExcludedTypes);
+      const customOperations = new TaskHandler(mockLogger, mockConfig, mockJobManager, mockJob, customTask, customTaskFlow, customExcludedTypes);
 
       // When: getting next task type
       const result = customOperations.getNextTaskType();
@@ -151,7 +151,7 @@ describe('WorkflowTaskOperations', () => {
       const customExcludedTypes: TaskTypes = [];
       const customTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED });
 
-      const customOperations = new TaskWorker(mockLogger, mockConfig, mockJobManager, mockJob, customTask, customTaskFlow, customExcludedTypes);
+      const customOperations = new TaskHandler(mockLogger, mockConfig, mockJobManager, mockJob, customTask, customTaskFlow, customExcludedTypes);
 
       // When: getting next task type
       const result = customOperations.getNextTaskType();
@@ -166,7 +166,7 @@ describe('WorkflowTaskOperations', () => {
       const customExcludedTypes: TaskTypes = [];
       const customTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.finalize, status: OperationStatus.COMPLETED });
 
-      const customOperations = new TaskWorker(mockLogger, mockConfig, mockJobManager, mockJob, customTask, customTaskFlow, customExcludedTypes);
+      const customOperations = new TaskHandler(mockLogger, mockConfig, mockJobManager, mockJob, customTask, customTaskFlow, customExcludedTypes);
 
       // When: getting next task type
       const result = customOperations.getNextTaskType();

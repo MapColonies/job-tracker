@@ -3,7 +3,7 @@ import { ConflictError } from '@map-colonies/error-types';
 import { IJobResponse, ITaskResponse, JobManagerClient, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
 import { IConfig, IJobDefinitionsConfig, TaskTypes } from '../../common/interfaces';
 import { BaseJobHandler } from './baseJobHandler';
-import { TaskWorker } from './taskHandler';
+import { TaskHandler } from './taskHandler';
 
 /**
  * Base class for workflow-enabled job handlers that handles task flow logic
@@ -12,7 +12,7 @@ export abstract class JobHandler extends BaseJobHandler {
   protected readonly config: IConfig;
   protected readonly jobDefinitions: IJobDefinitionsConfig;
   protected readonly task: ITaskResponse<unknown>;
-  protected taskWorker?: TaskWorker;
+  protected taskWorker?: TaskHandler;
   protected abstract readonly tasksFlow: TaskTypes;
   protected abstract readonly excludedTypes: TaskTypes;
   protected abstract readonly blockedDuplicationTypes: TaskTypes;
@@ -59,7 +59,7 @@ export abstract class JobHandler extends BaseJobHandler {
   }
 
   protected initializeTaskOperations(): void {
-    this.taskWorker = new TaskWorker(this.logger, this.config, this.jobManager, this.job, this.task, this.tasksFlow, this.excludedTypes);
+    this.taskWorker = new TaskHandler(this.logger, this.config, this.jobManager, this.job, this.task, this.tasksFlow, this.excludedTypes);
   }
 
   protected async canProceed(): Promise<boolean> {
@@ -91,7 +91,7 @@ export abstract class JobHandler extends BaseJobHandler {
   }
 
   private async handleNoNextTask(): Promise<void> {
-    if (this.areAllTasksCompleted()) {
+    if (this.isJobCompleted()) {
       this.logger.info({ msg: 'Completing job', jobId: this.job.id });
       await this.completeJob();
     } else {

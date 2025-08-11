@@ -366,7 +366,6 @@ describe('TasksManager', () => {
         expect(mockUpdateJob).toHaveBeenCalledWith(job.id, { percentage: calculateJobPercentage(job.completedTasks, job.taskCount) });
       });
 
-      //should remove?
       it('Should not update job to completed on a completed error callback export finalize task', async () => {
         // mocks
         const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;

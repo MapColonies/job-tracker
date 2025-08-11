@@ -11,7 +11,7 @@ export abstract class BaseJobHandler implements IJobHandler {
     protected readonly logger: Logger,
     protected readonly jobManager: JobManagerClient,
     protected readonly job: IJobResponse<unknown, unknown>
-  ) {}
+  ) { }
 
   public completeJob = async (): Promise<void> => {
     this.logger.info({ msg: `Completing job`, jobId: this.job.id });
@@ -49,7 +49,7 @@ export abstract class BaseJobHandler implements IJobHandler {
     await this.jobManager.updateJob(this.job.id, { percentage: actualPercentage });
   };
 
-  public areAllTasksCompleted = (): boolean => {
+  public isJobCompleted = (): boolean => {
     return this.job.completedTasks === this.job.taskCount;
   };
 
