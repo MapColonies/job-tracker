@@ -62,11 +62,6 @@ export abstract class JobHandler extends BaseJobHandler {
     this.taskWorker = new TaskHandler(this.logger, this.config, this.jobManager, this.job, this.task, this.tasksFlow, this.excludedTypes);
   }
 
-  protected async canProceed(): Promise<boolean> {
-    const initTasksOfJob = await this.taskWorker?.getInitTasks();
-    return this.areInitialTasksReady(initTasksOfJob);
-  }
-
   private areInitialTasksReady(initTasksOfJob: ITaskResponse<unknown>[] | undefined): boolean {
     if (initTasksOfJob === undefined || initTasksOfJob.length === 0) {
       this.logger.warn({
