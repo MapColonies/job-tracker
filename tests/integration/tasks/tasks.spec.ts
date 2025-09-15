@@ -1,7 +1,6 @@
 import nock from 'nock';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import _ from 'lodash';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams } from '@map-colonies/raster-shared';
 import { ExportFinalizeType } from '@map-colonies/raster-shared';
 import { trace } from '@opentelemetry/api';
@@ -110,14 +109,14 @@ describe('tasks', function () {
         type: jobDefinitionsConfigMock.tasks.init,
         status: OperationStatus.COMPLETED,
       });
-      const mockMergeTask = getTaskMock(mockIngestionJob.id, {
+      const mockPolygonPartsTask = getTaskMock(mockIngestionJob.id, {
         type: jobDefinitionsConfigMock.tasks.polygonParts,
         status: OperationStatus.COMPLETED,
       });
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post(`/tasks/find`, { jobId: mockIngestionJob.id, type: mockInitTask.type })
         .reply(200, [mockInitTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(200, [mockMergeTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockPolygonPartsTask.id }).reply(200, [mockPolygonPartsTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .get(`/jobs/${mockIngestionJob.id}`)
         .query({ shouldReturnTasks: false })
@@ -127,7 +126,7 @@ describe('tasks', function () {
         .reply(201);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockIngestionJob.id}`).reply(200);
       // action
-      const response = await requestSender.handleTaskNotification(mockMergeTask.id);
+      const response = await requestSender.handleTaskNotification(mockPolygonPartsTask.id);
       // expectation
       expect(response.status).toBe(200);
       expect(response).toSatisfyApiSpec();
@@ -152,7 +151,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('should return 200 and create polygonParts task when getting completed init task of export job when task count and completed task are even', async () => {
+    it('should return 200 and create polygonParts task when getting completed init task of export job when task count and completed task are equal', async () => {
       // mocks
       const mockExportJob = getExportJobMock();
       const mockInitTask = getTaskMock(mockExportJob.id, {
@@ -180,7 +179,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('should return 200 and create finalize task when getting completed polygonParts task of export job when task count and completed task are even', async () => {
+    it('should return 200 and create finalize task when getting completed polygonParts task of export job when task count and completed task are equal', async () => {
       // mocks
       const mockExportJob = getExportJobMock();
       const mockPolygonPartsTask = getTaskMock(mockExportJob.id, {
@@ -213,7 +212,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('should return 200 when getting completed init task of export job when task count and completed task are not even', async () => {
+    it('should return 200 and update job progress only when getting completed init task of export job when task count and completed task are not equal', async () => {
       // mocks
       const mockExportJob = getExportJobMock({ completedTasks: 4 });
       const mockInitTask = getTaskMock(mockExportJob.id, {
