@@ -50,7 +50,7 @@ describe('tasks', function () {
   });
 
   describe('Happy Path', function () {
-    it('Should return 200 and create polygon parts task when getting tiles merging completed task', async () => {
+    it('should return 200 and create polygon parts task when getting tiles merging completed task', async () => {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
@@ -78,7 +78,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 and create polygon-parts task when getting completed init task that finished after merge tasks', async () => {
+    it('should return 200 and create polygon-parts task when getting completed init task that finished after merge tasks', async () => {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
       const mockInitTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
@@ -103,7 +103,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 and create finalize task when getting polygon parts completed task', async () => {
+    it('should return 200 and create finalize task when getting polygon parts completed task', async () => {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
       const mockInitTask = getTaskMock(mockIngestionJob.id, {
@@ -133,7 +133,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 and fail job when getting failed task whose type is not in suspendingTaskTypes list', async () => {
+    it('should return 200 and fail job when getting failed task whose type is not in suspendingTaskTypes list', async () => {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.FAILED });
@@ -152,7 +152,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 and create polygonParts task when getting completed init task of export job when task count and completed task are even', async () => {
+    it('should return 200 and create polygonParts task when getting completed init task of export job when task count and completed task are even', async () => {
       // mocks
       const mockExportJob = getExportJobMock();
       const mockInitTask = getTaskMock(mockExportJob.id, {
@@ -180,7 +180,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 and create finalize task when getting completed polygonParts task of export job when task count and completed task are even', async () => {
+    it('should return 200 and create finalize task when getting completed polygonParts task of export job when task count and completed task are even', async () => {
       // mocks
       const mockExportJob = getExportJobMock();
       const mockPolygonPartsTask = getTaskMock(mockExportJob.id, {
@@ -213,7 +213,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 when getting completed init task of export job when task count and completed task are not even', async () => {
+    it('should return 200 when getting completed init task of export job when task count and completed task are not even', async () => {
       // mocks
       const mockExportJob = getExportJobMock({ completedTasks: 4 });
       const mockInitTask = getTaskMock(mockExportJob.id, {
@@ -235,7 +235,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 and create polygon-parts task when getting completed export merging task and init is completed', async () => {
+    it('should return 200 and create polygon-parts task when getting completed export merging task and init is completed', async () => {
       // mocks
       const mockExportJob = getExportJobMock();
       const mockExportingTask = getTaskMock(mockExportJob.id, {
@@ -261,7 +261,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 when getting completed task whose job have no init task', async () => {
+    it('should return 200 when getting completed task whose job have no init task', async () => {
       // mocks
       const mockExportJob = getExportJobMock();
       const mockMergeTask = getTaskMock(mockExportJob.id, { type: jobDefinitionsConfigMock.tasks.export, status: OperationStatus.COMPLETED });
@@ -277,9 +277,9 @@ describe('tasks', function () {
       // expectation
       expect(response.status).toBe(200);
       expect(response).toSatisfyApiSpec();
-    }, 1000000);
+    });
 
-    it('Should return 200 and create finalize task when getting failed task of export job', async () => {
+    it('should return 200 and create finalize task when getting failed task of export job', async () => {
       // mocks
       const mockExportJob = getExportJobMock();
       const mockExportTask = getTaskMock(mockExportJob.id, {
@@ -294,7 +294,6 @@ describe('tasks', function () {
         blockDuplication: false,
       };
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(200, mockExportJob);
-      //nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`).reply(200);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockExportTask.id }).reply(200, [mockExportTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/jobs/${mockExportJob.id}/tasks`, mockExportErrorFinalizeTaskParams).reply(201);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
@@ -312,7 +311,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 and complete job when getting completed export finalize task', async () => {
+    it('should return 200 and complete job when getting completed export finalize task', async () => {
       const mockExportJob = getExportJobMock();
       const fullProccessingFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
         type: ExportFinalizeType.Full_Processing,
@@ -337,7 +336,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 and fail export job when error callback export finalize task type is failing', async () => {
+    it('should return 200 and fail export job when error callback export finalize task type is failing', async () => {
       const mockExportJob = getExportJobMock();
 
       const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
@@ -360,7 +359,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 and fail export job when full processing export finalize task type is failing', async () => {
+    it('should return 200 and fail export job when full processing export finalize task type is failing', async () => {
       // mocks
       const mockExportJob = getExportJobMock();
       const mockReason = 'finalize task failed';
@@ -392,7 +391,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 update percentage only and keep export job as failed when finalize failed and second finalize error callback export finalize task type is completed', async () => {
+    it('should return 200 update percentage only and keep export job as failed when finalize failed and second finalize error callback export finalize task type is completed', async () => {
       // mocks
       const mockExportJob = getExportJobMock({ failedTasks: 1, taskCount: 6, status: OperationStatus.FAILED });
       const mockExportErrorCallbackTaskParams: ExportFinalizeErrorCallbackParams = {
@@ -419,7 +418,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 complete job and and create following task', async () => {
+    it('should return 200 complete job and and create following task', async () => {
       // mocks
       const mockExportJob = getExportJobMock();
       setValue('taskFlowManager.exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);
@@ -460,7 +459,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 Complete export job for notified export finalize task completed', async () => {
+    it('should return 200 Complete export job for notified export finalize task completed', async () => {
       const mockExportJob = getExportJobMock();
 
       const mockExportFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
@@ -487,7 +486,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 and create finalize task on a successful export merge', async () => {
+    it('should return 200 and create finalize task on a successful export merge', async () => {
       // mocks
       const mockExportJob = getExportJobMock();
       const mockExportTask = getTaskMock(mockExportJob.id, {
@@ -522,7 +521,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 and suspend job when getting failed task whose type is in suspendingTaskTypes list', async () => {
+    it('should return 200 and suspend job when getting failed task whose type is in suspendingTaskTypes list', async () => {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.polygonParts, status: OperationStatus.FAILED });
@@ -565,7 +564,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 when getting completed but not last seeding task', async () => {
+    it('should return 200 when getting completed but not last seeding task', async () => {
       // mocks
       const mockSeedingJob = getSeedingJobMock();
       const mockSeedTask = getTaskMock(mockSeedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
@@ -580,7 +579,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 when getting last completed seeding task', async () => {
+    it('should return 200 when getting last completed seeding task', async () => {
       // mocks
       const mockSeedingJob = getSeedingJobMock({ completedTasks: 5, taskCount: 5 });
       const mockSeedTask = getTaskMock(mockSeedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
@@ -596,7 +595,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 200 when getting failed seeding task', async () => {
+    it('should return 200 when getting failed seeding task', async () => {
       // mocks
       const mockSeedingJob = getSeedingJobMock();
       const mockSeedTask = getTaskMock(mockSeedingJob.id, {
@@ -619,7 +618,7 @@ describe('tasks', function () {
 
   describe('Bad Path', function () {
     // All requests with status code of 400
-    it('Should return 400 if the endpoint is called with a path parameter that is not a valid uuid', async () => {
+    it('should return 400 if the endpoint is called with a path parameter that is not a valid uuid', async () => {
       const response = await requestSender.handleTaskNotification('1');
       expect(response.status).toBe(400);
       expect(response).toSatisfyApiSpec();
@@ -628,7 +627,7 @@ describe('tasks', function () {
 
   describe('Sad Path', function () {
     // All requests with status code 4XX-5XX
-    it('Should return 404 if the task given does not exists', async () => {
+    it('should return 404 if the task given does not exists', async () => {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
@@ -640,7 +639,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('Should return 428 if the task given is neither in "Completed" nor "Failed" status', async () => {
+    it('should return 428 if the task given is neither in "Completed" nor "Failed" status', async () => {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.PENDING });

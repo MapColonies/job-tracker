@@ -1,6 +1,8 @@
 import { ConflictError } from '@map-colonies/error-types';
 import { Logger } from '@map-colonies/js-logger';
 import { JobManagerClient, OperationStatus, IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
+import { faker } from '@faker-js/faker';
+import _ from 'lodash';
 import { JobHandler } from '../../../../src/tasks/handlers/jobHandler';
 import { IConfig, TaskTypes, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { getExportJobMock, getTaskMock } from '../../../mocks/JobMocks';
@@ -28,19 +30,19 @@ class TestJobHandler extends JobHandler {
 
 // Test helper functions
 const createMockLogger = (): jest.Mocked<Logger> =>
-  ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  } as unknown as jest.Mocked<Logger>);
+({
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+} as unknown as jest.Mocked<Logger>);
 
 const createMockJobManager = (): jest.Mocked<JobManagerClient> =>
-  ({
-    updateJob: jest.fn(),
-    createTaskForJob: jest.fn(),
-    findTasks: jest.fn(),
-  } as unknown as jest.Mocked<JobManagerClient>);
+({
+  updateJob: jest.fn(),
+  createTaskForJob: jest.fn(),
+  findTasks: jest.fn(),
+} as unknown as jest.Mocked<JobManagerClient>);
 
 const createTestJob = (overrides?: Partial<IJobResponse<unknown, unknown>>): IJobResponse<unknown, unknown> => {
   const jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
@@ -254,7 +256,7 @@ describe('JobHandler', () => {
 
     it('should fail job when task type is not in suspending types', async () => {
       // Given: task type is not in suspending types
-      mockTask.type = jobDefinitionsConfig.tasks.init;
+      mockTask.type = faker.helpers.arrayElement(_.difference(Object.values(jobDefinitionsConfig.tasks), jobDefinitionsConfig.suspendingTaskTypes));
       mockTask.reason = 'Task failed reason';
 
       // When: handling failed task
