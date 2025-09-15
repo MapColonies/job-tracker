@@ -1,6 +1,7 @@
 import { Logger } from '@map-colonies/js-logger';
 import { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
 import { injectable, inject } from 'tsyringe';
+import { ExportFinalizeType } from '@map-colonies/raster-shared';
 import { IConfig, TaskTypes } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
 import { JobHandler } from '../jobHandler';
@@ -31,15 +32,14 @@ export class ExportJobHandler extends JobHandler {
     // For export tasks, create a finalize error callback task and fail the job
     if (this.task.type === this.jobDefinitions.tasks.export) {
       const createTaskBody = {
-        parameters: { callbacksSent: false, type: 'ErrorCallback' },
+        parameters: { callbacksSent: false, type: ExportFinalizeType.Error_Callback },
         type: this.jobDefinitions.tasks.finalize,
         blockDuplication: false,
       };
       await this.jobManager.createTaskForJob(this.job.id, createTaskBody);
       // Update job progress after creating the task
       this.job.taskCount++;
-      await this.updateJobProgress();
-      // Also fail the job
+
       await this.failJob(this.task.reason);
     } else {
       // For other task types, use the default implementation
