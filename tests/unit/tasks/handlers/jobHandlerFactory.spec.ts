@@ -104,7 +104,7 @@ describe('jobHandlerFactory', () => {
 
       expect(() => {
         getJobHandler(invalidJobType, jobDefinitionsConfig, logger, mockQueueClient, configMock, mockJob, mockTask);
-      }).toThrow(new BadRequestError(`${invalidJobType} job type is invalid`))
+      }).toThrow(new BadRequestError(`${invalidJobType} job type is invalid`));
     });
   });
 });
