@@ -270,7 +270,7 @@ describe('tasks', function () {
         .post('/tasks/find', { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
         .reply(404);
       const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(200);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(200); // update job progress on notify - but nothing will really update since same task count.
       // action
       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
       // expectation
@@ -385,7 +385,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('should return 200 update percentage only and keep export job as failed when finalize failed and second finalize error callback export finalize task type is completed', async () => {
+    it('should return 200 update job percentage when export finalize ErrorCallback completed', async () => {
       // mocks
       const mockExportJob = getExportJobMock({ failedTasks: 1, taskCount: 6, status: OperationStatus.FAILED });
       const mockExportErrorCallbackTaskParams: ExportFinalizeErrorCallbackParams = {
