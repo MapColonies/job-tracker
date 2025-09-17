@@ -79,36 +79,33 @@ describe('TasksManager Business Logic Integration Tests', () => {
           jobTypeKey: 'swapUpdate' as const,
           expectedParameters: { updatedInCatalog: false, updatedInMapproxy: false },
         },
-      ])(
-        'should create finalize task with job-type-specific parameters for $jobType ingestion',
-        async ({ jobTypeKey, expectedParameters }) => {
-          // mocks
-          const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob } = testContext;
+      ])('should create finalize task with job-type-specific parameters for $jobType ingestion', async ({ jobTypeKey, expectedParameters }) => {
+        // mocks
+        const { tasksManager, mockGetJob, mockFindTasks, jobDefinitionsConfigMock, mockCreateTaskForJob } = testContext;
 
-          const jobMock = getIngestionJobMock({ type: jobDefinitionsConfigMock.jobs[jobTypeKey] });
-          const polygonPartsTaskMock = getTaskMock(jobMock.id, {
-            type: jobDefinitionsConfigMock.tasks.polygonParts,
-            status: OperationStatus.COMPLETED,
-          });
-          const initTaskMock = getTaskMock(jobMock.id, {
-            type: jobDefinitionsConfigMock.tasks.init,
-            status: OperationStatus.COMPLETED,
-          });
+        const jobMock = getIngestionJobMock({ type: jobDefinitionsConfigMock.jobs[jobTypeKey] });
+        const polygonPartsTaskMock = getTaskMock(jobMock.id, {
+          type: jobDefinitionsConfigMock.tasks.polygonParts,
+          status: OperationStatus.COMPLETED,
+        });
+        const initTaskMock = getTaskMock(jobMock.id, {
+          type: jobDefinitionsConfigMock.tasks.init,
+          status: OperationStatus.COMPLETED,
+        });
 
-          mockFindTasks.mockResolvedValueOnce([polygonPartsTaskMock]).mockResolvedValueOnce([initTaskMock]);
-          mockGetJob.mockResolvedValueOnce(jobMock);
+        mockFindTasks.mockResolvedValueOnce([polygonPartsTaskMock]).mockResolvedValueOnce([initTaskMock]);
+        mockGetJob.mockResolvedValueOnce(jobMock);
 
-          // action
-          await tasksManager.handleTaskNotification(polygonPartsTaskMock.id);
+        // action
+        await tasksManager.handleTaskNotification(polygonPartsTaskMock.id);
 
-          // expectation - Verify job-type-specific parameter logic
-          expect(mockCreateTaskForJob).toHaveBeenCalledWith(jobMock.id, {
-            parameters: expectedParameters,
-            type: jobDefinitionsConfigMock.tasks.finalize,
-            blockDuplication: true,
-          });
-        }
-      );
+        // expectation - Verify job-type-specific parameter logic
+        expect(mockCreateTaskForJob).toHaveBeenCalledWith(jobMock.id, {
+          parameters: expectedParameters,
+          type: jobDefinitionsConfigMock.tasks.finalize,
+          blockDuplication: true,
+        });
+      });
 
       it('should create export finalize task with Full_Processing type and proper defaults', async () => {
         // mocks
@@ -267,31 +264,28 @@ describe('TasksManager Business Logic Integration Tests', () => {
           taskTypeKey: 'seed' as const,
           reason: 'Seeding process failed due to network error',
         },
-      ])(
-        'should apply correct job failure logic when $taskType task fails in $jobType job',
-        async ({ getJobMock, taskTypeKey, reason }) => {
-          // mocks
-          const { tasksManager, mockFindTasks, jobDefinitionsConfigMock, mockGetJob, mockUpdateJob } = testContext;
-          const jobMock = getJobMock();
-          const taskMock = getTaskMock(jobMock.id, {
-            type: jobDefinitionsConfigMock.tasks[taskTypeKey],
-            status: OperationStatus.FAILED,
-            reason,
-          });
+      ])('should apply correct job failure logic when $taskType task fails in $jobType job', async ({ getJobMock, taskTypeKey, reason }) => {
+        // mocks
+        const { tasksManager, mockFindTasks, jobDefinitionsConfigMock, mockGetJob, mockUpdateJob } = testContext;
+        const jobMock = getJobMock();
+        const taskMock = getTaskMock(jobMock.id, {
+          type: jobDefinitionsConfigMock.tasks[taskTypeKey],
+          status: OperationStatus.FAILED,
+          reason,
+        });
 
-          mockFindTasks.mockResolvedValueOnce([taskMock]);
-          mockGetJob.mockResolvedValue(jobMock);
+        mockFindTasks.mockResolvedValueOnce([taskMock]);
+        mockGetJob.mockResolvedValue(jobMock);
 
-          // action
-          await tasksManager.handleTaskNotification(taskMock.id);
+        // action
+        await tasksManager.handleTaskNotification(taskMock.id);
 
-          // expectation - Verify job failure logic
-          expect(mockUpdateJob).toHaveBeenCalledWith(jobMock.id, {
-            status: OperationStatus.FAILED,
-            reason,
-          });
-        }
-      );
+        // expectation - Verify job failure logic
+        expect(mockUpdateJob).toHaveBeenCalledWith(jobMock.id, {
+          status: OperationStatus.FAILED,
+          reason,
+        });
+      });
 
       it('should apply suspension logic for polygon-parts task failures', async () => {
         // mocks
