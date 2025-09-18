@@ -21,7 +21,7 @@ describe('TasksManager', () => {
 
   describe('handleTaskNotification', () => {
     describe('Failed Tasks', () => {
-      it("Should fail the job if the given task's status is 'Failed' and task shouldn't suspend job", async () => {
+      it("should fail the job if the given task's status is 'Failed' and task shouldn't suspend job", async () => {
         // mocks
         const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
         const ingestionJobMock = getIngestionJobMock();
@@ -39,7 +39,7 @@ describe('TasksManager', () => {
         expect(mockUpdateJob).toHaveBeenCalledWith(ingestionJobMock.id, { status: OperationStatus.FAILED, reason: 'reason' });
       });
 
-      it("Should suspend the job if the given task's status is 'Failed' and task is in suspendingTaskTypes list", async () => {
+      it("should suspend the job if the given task's status is 'Failed' and task is in suspendingTaskTypes list", async () => {
         // mocks
         const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
         const ingestionJobMock = getIngestionJobMock();
@@ -159,7 +159,7 @@ describe('TasksManager', () => {
         await expect(tasksManager.handleTaskNotification(mergeTaskMock.id)).rejects.toThrow(NotFoundError);
       });
 
-      it("Should throw IrrelevantOperationStatusError if the given task's status is neither 'Completed' nor 'Failed'", async () => {
+      it("should throw IrrelevantOperationStatusError if the given task's status is neither 'Completed' nor 'Failed'", async () => {
         // mocks
         const { tasksManager, mockFindTasks, jobDefinitionsConfigMock } = testContext;
         const ingestionJobMock = getIngestionJobMock();

@@ -1,6 +1,7 @@
 import nock from 'nock';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import _ from 'lodash';
+import { StatusCodes as httpStatusCodes } from 'http-status-codes';
 import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams } from '@map-colonies/raster-shared';
 import { ExportFinalizeType } from '@map-colonies/raster-shared';
 import { trace } from '@opentelemetry/api';
@@ -73,7 +74,7 @@ describe('tasks', function () {
       // action
       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -98,7 +99,7 @@ describe('tasks', function () {
       const response = await requestSender.handleTaskNotification(mockInitTask.id);
 
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -128,7 +129,7 @@ describe('tasks', function () {
       // action
       const response = await requestSender.handleTaskNotification(mockPolygonPartsTask.id);
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -147,7 +148,7 @@ describe('tasks', function () {
       // action
       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -175,7 +176,7 @@ describe('tasks', function () {
       // action
       const response = await requestSender.handleTaskNotification(mockInitTask.id);
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -208,7 +209,7 @@ describe('tasks', function () {
       // action
       const response = await requestSender.handleTaskNotification(mockPolygonPartsTask.id);
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -230,7 +231,7 @@ describe('tasks', function () {
       // action
       const response = await requestSender.handleTaskNotification(mockInitTask.id);
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -256,7 +257,7 @@ describe('tasks', function () {
       // action
       const response = await requestSender.handleTaskNotification(mockExportingTask.id);
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -274,7 +275,7 @@ describe('tasks', function () {
       // action
       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -301,7 +302,7 @@ describe('tasks', function () {
       // action
       const response = await requestSender.handleTaskNotification(mockExportTask.id);
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -326,7 +327,7 @@ describe('tasks', function () {
 
       const response = await requestSender.handleTaskNotification(mockFinalizeTask.id);
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -349,7 +350,7 @@ describe('tasks', function () {
 
       const response = await requestSender.handleTaskNotification(mockFinalizeTask.id);
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -381,7 +382,7 @@ describe('tasks', function () {
       const response = await requestSender.handleTaskNotification(mockFinalizeTask.id);
 
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -408,7 +409,7 @@ describe('tasks', function () {
       const response = await requestSender.handleTaskNotification(mockFinalizeTask.id);
 
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -449,7 +450,7 @@ describe('tasks', function () {
       const response = await requestSender.handleTaskNotification(mockFinalizeTask.id);
 
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -476,7 +477,7 @@ describe('tasks', function () {
 
       const response = await requestSender.handleTaskNotification(mockFinalizeTask.id);
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -511,7 +512,7 @@ describe('tasks', function () {
       // action
       const response = await requestSender.handleTaskNotification(mockExportTask.id);
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -530,11 +531,11 @@ describe('tasks', function () {
       // action
       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
-    it("Should return 200 when getting completed task who'se job's init task status is in progress", async () => {
+    it("should return 200 when getting completed task who'se job's init task status is in progress", async () => {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
       mockIngestionJob.completedTasks = 4;
@@ -554,7 +555,7 @@ describe('tasks', function () {
       // action
       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -569,7 +570,7 @@ describe('tasks', function () {
       // action
       const response = await requestSender.handleTaskNotification(mockSeedTask.id);
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -585,7 +586,7 @@ describe('tasks', function () {
       // action
       const response = await requestSender.handleTaskNotification(mockSeedTask.id);
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -605,7 +606,7 @@ describe('tasks', function () {
       // action
       const response = await requestSender.handleTaskNotification(mockSeedTask.id);
       // expectation
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
   });
@@ -614,7 +615,7 @@ describe('tasks', function () {
     // All requests with status code of 400
     it('should return 400 if the endpoint is called with a path parameter that is not a valid uuid', async () => {
       const response = await requestSender.handleTaskNotification('1');
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
       expect(response).toSatisfyApiSpec();
     });
   });
@@ -629,7 +630,7 @@ describe('tasks', function () {
       // action
       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
       // expectation
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(httpStatusCodes.NOT_FOUND);
       expect(response).toSatisfyApiSpec();
     });
 
@@ -641,7 +642,7 @@ describe('tasks', function () {
       // action
       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
       // expectation
-      expect(response.status).toBe(428);
+      expect(response.status).toBe(httpStatusCodes.PRECONDITION_REQUIRED);
       expect(response).toSatisfyApiSpec();
     });
   });
