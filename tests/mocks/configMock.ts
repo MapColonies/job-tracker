@@ -70,7 +70,6 @@ const registerDefaultConfig = (): void => {
       attempts: 5,
       delay: 'exponential',
       shouldResetTimeout: true,
-      disableHttpClientLogs: true,
     },
     jobManagement: {
       config: {
@@ -87,18 +86,22 @@ const registerDefaultConfig = (): void => {
         new: 'Ingestion_New',
         update: 'Ingestion_Update',
         swapUpdate: 'Ingestion_Swap_Update',
-        export: 'export',
-        seed: 'TilesSeeding',
+        export: 'Export',
+        seed: 'tilesSeeding',
       },
       tasks: {
         init: 'init',
-        merge: 'merge',
+        merge: 'tilesMerging',
         polygonParts: 'polygon-parts',
         finalize: 'finalize',
-        export: 'export',
-        seed: 'TilesSeeding',
+        export: 'tilesExporting',
+        seed: 'tilesSeeding',
       },
       suspendingTaskTypes: ['polygon-parts'],
+    },
+    taskFlowManager: {
+      ingestionTasksFlow: ['init', 'tilesMerging', 'polygon-parts', 'finalize', 'tilesSeeding'],
+      exportTasksFlow: ['init', 'tilesExporting', 'polygon-parts', 'finalize'],
     },
   };
 

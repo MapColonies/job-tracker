@@ -14,8 +14,8 @@ function getTestContainerConfig(): InjectionObject<unknown>[] {
     { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
     { token: SERVICES.CONFIG, provider: { useValue: configMock } },
     { token: SERVICES.TRACER, provider: { useValue: trace.getTracer('testTracer') } },
-    { token: TASKS_ROUTER_SYMBOL, provider: { useFactory: tasksRouterFactory } },
     { token: SERVICES.QUEUE_CLIENT, provider: { useFactory: instancePerContainerCachingFactory(queueClientFactory) } },
+    { token: TASKS_ROUTER_SYMBOL, provider: { useFactory: tasksRouterFactory } },
   ];
 }
 

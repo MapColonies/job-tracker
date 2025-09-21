@@ -15,6 +15,7 @@ data:
   RESPONSE_COMPRESSION_ENABLED: {{ .Values.env.responseCompressionEnabled | quote }}
   LOG_LEVEL: {{ .Values.env.logLevel | quote }}
   LOG_PRETTY_PRINT_ENABLED: {{ .Values.env.logPrettyPrintEnabled | quote }}
+  TELEMETRY_SERVICE_NAME: {{ .Values.env.telemetry.serviceName | quote }}
   {{ if $tracing.enabled }}
   TELEMETRY_TRACING_ENABLED: 'true'
   TELEMETRY_TRACING_URL: {{ $tracing.url }}
@@ -25,9 +26,6 @@ data:
   {{ end }}
   npm_config_cache: /tmp/
   JOB_MANAGER_BASE_URL: {{ $serviceUrls.jobManager | quote }}
-  HEARTBEAT_BASE_URL: {{ $serviceUrls.heartbeatManager | quote }}
-  HEARTBEAT_INTERVAL_MS: {{ $queue.heartbeatIntervalMs | quote }}
-  JOB_MANAGER_DEQUEUE_INTERVAL_MS: {{ $queue.dequeueIntervalMs | quote }}
   JOB_DEFINITIONS_JOB_NEW: {{ $jobDefinitions.jobs.new.type | quote }}
   JOB_DEFINITIONS_JOB_UPDATE: {{ $jobDefinitions.jobs.update.type | quote }}
   JOB_DEFINITIONS_JOB_SWAP_UPDATE: {{ $jobDefinitions.jobs.swapUpdate.type | quote }}
@@ -39,5 +37,7 @@ data:
   JOB_DEFINITIONS_TASK_EXPORT: {{ $jobDefinitions.tasks.export.type | quote }}
   JOB_DEFINITIONS_TASK_FINALIZE: {{ $jobDefinitions.tasks.finalize.type | quote }}
   JOB_DEFINITIONS_TASK_SEED: {{ $jobDefinitions.tasks.seed.type | quote }}
-  JOB_DEFINITIONS_SUSPENDING_TASKS: {{ $suspendingTaskTypes | toYaml | nindent 4 }}
+  JOB_DEFINITIONS_SUSPENDING_TASKS: {{ $suspendingTaskTypes | fromYaml | toJson | quote }}
+  INGESTION_TASKS_FLOW: {{ .Values.taskFlowManager.ingestionTasksFlow | toJson | quote }}
+  EXPORT_TASKS_FLOW: {{ .Values.taskFlowManager.exportTasksFlow | toJson | quote }}
 {{- end }}

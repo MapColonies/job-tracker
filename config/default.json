@@ -28,8 +28,7 @@
   "httpRetry": {
     "attempts": 5,
     "delay": "exponential",
-    "shouldResetTimeout": true,
-    "disableHttpClientLogs": true
+    "shouldResetTimeout": true
   },
   "jobManagement": {
     "config": {
@@ -51,12 +50,16 @@
     },
     "tasks": {
       "init": "init",
-      "merge": "merge",
+      "merge": "tilesMerging",
       "polygonParts": "polygon-parts",
-      "export": "export",
+      "export": "tilesExporting",
       "finalize": "finalize",
       "seed": "TilesSeeding"
     },
     "suspendingTaskTypes": ["polygon-parts"]
+  },
+  "taskFlowManager": {
+    "ingestionTasksFlow": ["init", "tilesMerging", "polygon-parts", "finalize", "TilesSeeding"],
+    "exportTasksFlow": ["init", "tilesExporting", "polygon-parts", "finalize"]
   }
 }

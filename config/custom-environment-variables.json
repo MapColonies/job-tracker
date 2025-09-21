@@ -4,8 +4,6 @@
   },
   "telemetry": {
     "serviceName": "TELEMETRY_SERVICE_NAME",
-    "hostname": "TELEMETRY_HOST_NAME",
-    "version": "TELEMETRY_SERVICE_VERSION",
     "logger": {
       "level": "LOG_LEVEL",
       "prettyPrint": {
@@ -52,12 +50,7 @@
   },
   "jobManagement": {
     "config": {
-      "jobManagerBaseUrl": "JOB_MANAGER_BASE_URL",
-      "heartbeat": {
-        "baseUrl": "HEARTBEAT_BASE_URL",
-        "intervalMs": "HEARTBEAT_INTERVAL_MS"
-      },
-      "dequeueIntervalMs": "JOB_MANAGER_DEQUEUE_INTERVAL_MS"
+      "jobManagerBaseUrl": "JOB_MANAGER_BASE_URL"
     }
   },
   "jobDefinitions": {
@@ -76,6 +69,19 @@
       "finalize": "JOB_DEFINITIONS_TASK_FINALIZE",
       "seed": "JOB_DEFINITIONS_TASK_SEED"
     },
-    "suspendingTaskTypes": "JOB_DEFINITIONS_SUSPENDING_TASKS"
+    "suspendingTaskTypes": {
+      "__name": "JOB_DEFINITIONS_SUSPENDING_TASKS",
+      "__format": "json"
+    }
+  },
+  "taskFlowManager": {
+    "ingestionTasksFlow": {
+      "__name": "INGESTION_TASKS_FLOW",
+      "__format": "json"
+    },
+    "exportTasksFlow": {
+      "__name": "EXPORT_TASKS_FLOW",
+      "__format": "json"
+    }
   }
 }

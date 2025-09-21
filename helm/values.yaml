@@ -5,7 +5,7 @@ global:
   environment: ''
   jobDefinitions: {}
   serviceUrls: {}
-  ca:    
+  ca:
     secretName: ''
     path: '/usr/local/share/ca-certificates'
     key: 'ca.crt'
@@ -50,7 +50,7 @@ args: []
 sidecars: []
 
 cloudProvider:
-  dockerRegistryUrl: 
+  dockerRegistryUrl:
   imagePullSecretName: ''
   flavor: openshift
 
@@ -101,6 +101,19 @@ jobDefinitions:
     seed:
       type: ''
 
+taskFlowManager:
+  ingestionTasksFlow:
+  - init
+  - tilesMerging
+  - polygon-parts
+  - finalize
+  - tilesSeeding
+  exportTasksFlow:
+  - init
+  - tilesExporting
+  - polygon-parts
+  - finalize
+
 env:
   port: 80
   targetPort: 8080
@@ -112,7 +125,6 @@ env:
   queue:
     dequeueIntervalMs: 3000
     heartbeatIntervalMs: 3000
-
 
 resources:
   enabled: false
@@ -127,7 +139,7 @@ resources:
 route:
   enabled: false
   path: /
-  host: 
+  host:
   timeout:
     enabled: false # defaults to 30s by openshift
     duration: 60s # supported units (us, ms, s, m, h, d)

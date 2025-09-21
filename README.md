@@ -56,9 +56,6 @@ Start the server
 |`REQUEST_PAYLOAD_LIMIT`             |Maximum payload limit for incoming requests.	                            |1mb                          |
 |`RESPONSE_COMPRESSION_ENABLED`      |Enable or disable response compression (boolean).                         |true                         |
 |`JOB_MANAGER_BASE_URL`              |Base URL of the Job-Manager service.	                                    |http://localhost:8081        |
-|`HEARTBEAT_BASE_URL`                |Base URL for the heartbeat service.	                                    |http://localhost:8083        |
-|`HEARTBEAT_INTERVAL_MS`             |Interval (in milliseconds) for heartbeat checks.                          |3000                         |
-|`JOB_MANAGER_DEQUEUE_INTERVAL_MS`   |Job name.                                                                 |3000                         |
 |`JOB_DEFINITIONS_JOB_NEW`           |Job name.                                                                 |Ingestion_New                |
 |`JOB_DEFINITIONS_JOB_UPDATE`        |Job name.                                                                 |Ingestion_Update             |
 |`JOB_DEFINITIONS_JOB_SWAP_UPDATE`   |Job name.                                                                 |Ingestion_Swap_Update        |
@@ -69,9 +66,6 @@ Start the server
 |`HTTP_RETRY_ATTEMPTS`               |How many retries should the service make if a request fails.              |5                            |
 |`HTTP_RETRY_DELAY`                  |The delay between each http retry if a request fails.                     |exponential                  |
 |`HTTP_RETRY_RESET_TIMEOUT`          |Defines if the timeout should be reset between retries                    |true                         |
-|`TELEMETRY_SERVICE_NAME`            |Name of the telemetry service.	                                        |(not set)                    |
-|`TELEMETRY_HOST_NAME`               |Hostname for the telemetry service.                                       |(not set)                    |
-|`TELEMETRY_SERVICE_VERSION`         |Version of the telemetry service.	                                        |(not set)                    |
 |`LOG_LEVEL`                         |Logging level for the application (e.g., info, debug, warn, error, fatal).|info                         |
 |`LOG_PRETTY_PRINT_ENABLED`          |Enable or disable pretty printing for logs (boolean).                     |false                        |
 |`TELEMETRY_TRACING_ENABLED`         |Enable or disable tracing (boolean).	                                    |(not set)                    |

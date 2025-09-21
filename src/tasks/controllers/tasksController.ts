@@ -2,15 +2,17 @@ import { RequestHandler } from 'express';
 import httpStatus from 'http-status-codes';
 import { injectable, inject } from 'tsyringe';
 import { HttpError } from 'express-openapi-validator/dist/framework/types';
+import { Logger } from '@map-colonies/js-logger';
 import { TasksManager } from '../models/tasksManager';
 import { TaskNotificationRequest } from '../../common/interfaces';
 import { IrrelevantOperationStatusError } from '../../common/errors';
+import { SERVICES } from '../../common/constants';
 
 type TaskNotificationHandler = RequestHandler<TaskNotificationRequest, undefined, undefined>;
 
 @injectable()
 export class TasksController {
-  public constructor(@inject(TasksManager) private readonly taskManager: TasksManager) {}
+  public constructor(@inject(TasksManager) private readonly taskManager: TasksManager, @inject(SERVICES.LOGGER) private readonly logger: Logger) {}
 
   public handleTaskNotification: TaskNotificationHandler = async (req, res, next) => {
     try {
@@ -19,6 +21,9 @@ export class TasksController {
     } catch (error) {
       if (error instanceof IrrelevantOperationStatusError) {
         (error as HttpError).status = httpStatus.PRECONDITION_REQUIRED;
+      }
+      if (error instanceof Error) {
+        this.logger.error({ msg: 'Failed to handle task notification', error: error.message, stack: error.stack });
       }
       next(error);
     }

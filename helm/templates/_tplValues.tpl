@@ -73,5 +73,5 @@ Custom definitions
     {{- $result = append $result $task.type -}}
   {{- end -}}
 {{- end -}}
-{{- toYaml $result -}}
+{{- toJson $result -}}
 {{- end -}}

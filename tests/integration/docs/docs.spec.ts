@@ -1,4 +1,4 @@
-import httpStatusCodes from 'http-status-codes';
+import { StatusCodes as httpStatusCodes } from 'http-status-codes';
 import { getApp } from '../../../src/app';
 import { getTestContainerConfig } from '../tasks/helpers/containerConfig';
 import { DocsRequestSender } from './helpers/docsRequestSender';
