@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.2.0](https://github.com/MapColonies/job-tracker/compare/v3.1.1...v3.2.0) (2025-09-21)
+
+
+### Features
+
+* add multiple handlers and edit base handler ([8635623](https://github.com/MapColonies/job-tracker/commit/8635623387047f692937db924c0d0ca4e6b64195))
+* apply factory ([31d9b4c](https://github.com/MapColonies/job-tracker/commit/31d9b4c1fc93c1cec1bc24f3deebea16abb3b0dd))
+
+
+### Bug Fixes
+
+* add missing task job parameters ([80c5888](https://github.com/MapColonies/job-tracker/commit/80c58889e4a024290fb1ac5c09cadb08f9dd9646))
+* baseHandler behaviour ([9ea7785](https://github.com/MapColonies/job-tracker/commit/9ea7785dd18f83f387377e6bc8bb9f28d7550928))
+* fix controller error handling ([849df96](https://github.com/MapColonies/job-tracker/commit/849df96ea5c19a8d2b6c60b1c93b89144a008d2a))
+* fix update precentage flow ([10a1ada](https://github.com/MapColonies/job-tracker/commit/10a1ada1df51cec879dcc27d9dd7cfd621c49b75))
+* job update when export fails ([442202d](https://github.com/MapColonies/job-tracker/commit/442202d705bc181e3de79ce79dc69f48931900c7))
+* small bug fixes ([55c5ab3](https://github.com/MapColonies/job-tracker/commit/55c5ab3ea5b4f63784bd16ecf124d93ca8324692))
+* streamline error handling in task notification processing ([b20aaa1](https://github.com/MapColonies/job-tracker/commit/b20aaa11ce31db3cb69a5987e21e7ee53f44fccb))
+* vit pr commets ([b9240f2](https://github.com/MapColonies/job-tracker/commit/b9240f2b341057a98b5b530c42d4c1dcc65adcf3))
+
 ### [3.1.1](https://github.com-personal/MapColonies/job-tracker/compare/v3.1.0...v3.1.1) (2025-06-23)
 
 
