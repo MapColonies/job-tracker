@@ -21,11 +21,11 @@ export class TasksController {
     } catch (error) {
       if (error instanceof IrrelevantOperationStatusError) {
         (error as HttpError).status = httpStatus.PRECONDITION_REQUIRED;
-        next(error);
-      } else if (error instanceof Error) {
-        this.logger.error({ msg: 'Failed to handle task notification', error: error.message, stack: error.stack });
-        next(error);
       }
+      if (error instanceof Error) {
+        this.logger.error({ msg: 'Failed to handle task notification', error: error.message, stack: error.stack });
+      }
+      next(error);
     }
   };
 }
