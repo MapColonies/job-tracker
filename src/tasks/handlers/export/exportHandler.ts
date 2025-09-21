@@ -37,8 +37,6 @@ export class ExportJobHandler extends JobHandler {
         blockDuplication: false,
       };
       await this.jobManager.createTaskForJob(this.job.id, createTaskBody);
-      // Update job progress after creating the task
-      this.job.taskCount++;
 
       await this.failJob(this.task.reason);
     } else {
