@@ -12,7 +12,7 @@ type TaskNotificationHandler = RequestHandler<TaskNotificationRequest, undefined
 
 @injectable()
 export class TasksController {
-  public constructor(@inject(TasksManager) private readonly taskManager: TasksManager, @inject(SERVICES.LOGGER) private readonly logger: Logger) {}
+  public constructor(@inject(TasksManager) private readonly taskManager: TasksManager, @inject(SERVICES.LOGGER) private readonly logger: Logger) { }
 
   public handleTaskNotification: TaskNotificationHandler = async (req, res, next) => {
     try {
@@ -21,6 +21,7 @@ export class TasksController {
     } catch (error) {
       if (error instanceof IrrelevantOperationStatusError) {
         (error as HttpError).status = httpStatus.PRECONDITION_REQUIRED;
+        next(error);
       } else if (error instanceof Error) {
         this.logger.error({ msg: 'Failed to handle task notification', error: error.message, stack: error.stack });
         next(error);
