@@ -117,7 +117,9 @@ describe('tasks', function () {
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post(`/tasks/find`, { jobId: mockIngestionJob.id, type: mockInitTask.type })
         .reply(httpStatusCodes.OK, [mockInitTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockPolygonPartsTask.id }).reply(httpStatusCodes.OK, [mockPolygonPartsTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { id: mockPolygonPartsTask.id })
+        .reply(httpStatusCodes.OK, [mockPolygonPartsTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .get(`/jobs/${mockIngestionJob.id}`)
         .query({ shouldReturnTasks: false })
@@ -165,12 +167,17 @@ describe('tasks', function () {
         type: jobDefinitionsConfigMock.tasks.polygonParts,
         blockDuplication: false,
       };
-      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockExportJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockExportJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockInitTask.id }).reply(httpStatusCodes.OK, [mockInitTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post(`/tasks/find`, { jobId: mockExportJob.id, type: mockInitTask.type })
         .reply(httpStatusCodes.OK, [mockInitTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/jobs/${mockExportJob.id}/tasks`, mockFullProcessFinalizeTaskParams).reply(httpStatusCodes.CREATED);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post(`/jobs/${mockExportJob.id}/tasks`, mockFullProcessFinalizeTaskParams)
+        .reply(httpStatusCodes.CREATED);
       const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
       // action
@@ -198,12 +205,19 @@ describe('tasks', function () {
         type: jobDefinitionsConfigMock.tasks.finalize,
         blockDuplication: false,
       };
-      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockExportJob);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockPolygonPartsTask.id }).reply(httpStatusCodes.OK, [mockPolygonPartsTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockExportJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockExportJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { id: mockPolygonPartsTask.id })
+        .reply(httpStatusCodes.OK, [mockPolygonPartsTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post(`/tasks/find`, { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
         .reply(httpStatusCodes.OK, [mockPolygonPartsTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/jobs/${mockExportJob.id}/tasks`, mockFullProcessFinalizeTaskParams).reply(httpStatusCodes.CREATED);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post(`/jobs/${mockExportJob.id}/tasks`, mockFullProcessFinalizeTaskParams)
+        .reply(httpStatusCodes.CREATED);
       const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
       // action
@@ -221,7 +235,10 @@ describe('tasks', function () {
         status: OperationStatus.COMPLETED,
       });
 
-      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockExportJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockExportJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockInitTask.id }).reply(httpStatusCodes.OK, [mockInitTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post(`/tasks/find`, { jobId: mockExportJob.id, type: mockInitTask.type })
@@ -243,7 +260,10 @@ describe('tasks', function () {
         status: OperationStatus.COMPLETED,
       });
 
-      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockExportJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockExportJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockExportingTask.id }).reply(httpStatusCodes.OK, [mockExportingTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post('/tasks/find', { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
@@ -266,7 +286,10 @@ describe('tasks', function () {
       const mockExportJob = getExportJobMock();
       const mockMergeTask = getTaskMock(mockExportJob.id, { type: jobDefinitionsConfigMock.tasks.export, status: OperationStatus.COMPLETED });
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(httpStatusCodes.OK, [mockMergeTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockExportJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockExportJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post('/tasks/find', { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
         .reply(httpStatusCodes.NOT_FOUND);
@@ -293,9 +316,14 @@ describe('tasks', function () {
         type: jobDefinitionsConfigMock.tasks.finalize,
         blockDuplication: false,
       };
-      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockExportJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockExportJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockExportTask.id }).reply(httpStatusCodes.OK, [mockExportTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/jobs/${mockExportJob.id}/tasks`, mockExportErrorFinalizeTaskParams).reply(httpStatusCodes.CREATED);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post(`/jobs/${mockExportJob.id}/tasks`, mockExportErrorFinalizeTaskParams)
+        .reply(httpStatusCodes.CREATED);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .put(`/jobs/${mockExportJob.id}`, { status: OperationStatus.FAILED, reason: mockExportTask.reason })
         .reply(httpStatusCodes.OK);
@@ -319,7 +347,10 @@ describe('tasks', function () {
         status: OperationStatus.COMPLETED,
         parameters: fullProccessingFinalizeTaskParams,
       });
-      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockExportJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockExportJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(httpStatusCodes.OK, [mockFinalizeTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .put(`/jobs/${mockExportJob.id}`, _.matches({ status: OperationStatus.COMPLETED }))
@@ -343,7 +374,10 @@ describe('tasks', function () {
       });
 
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(httpStatusCodes.OK, [mockFinalizeTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockExportJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockExportJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .put(`/jobs/${mockExportJob.id}`, { status: OperationStatus.FAILED, reason: mockFinalizeTask.reason })
         .reply(httpStatusCodes.OK);
@@ -373,7 +407,10 @@ describe('tasks', function () {
       });
 
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(httpStatusCodes.OK, [mockFinalizeTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockExportJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockExportJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .put(`/jobs/${mockExportJob.id}`, { status: OperationStatus.FAILED, reason: mockReason })
         .reply(httpStatusCodes.OK);
@@ -400,7 +437,10 @@ describe('tasks', function () {
       });
 
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(httpStatusCodes.OK, [mockFinalizeTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockExportJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockExportJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .put(`/jobs/${mockExportJob.id}`, { percentage: calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount) })
         .reply(httpStatusCodes.OK);
@@ -431,7 +471,10 @@ describe('tasks', function () {
       });
 
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(httpStatusCodes.OK, [mockFinalizeTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockExportJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockExportJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockExportJob);
 
       // Mock the init tasks lookup that baseCanProceed performs
       const mockInitTask = getTaskMock(mockExportJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
@@ -454,7 +497,7 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('should return 200 Complete export job for notified export finalize task completed', async () => {
+    it('should return 200 complete export job for notified export finalize task completed', async () => {
       const mockExportJob = getExportJobMock();
 
       const mockExportFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
@@ -470,7 +513,10 @@ describe('tasks', function () {
       });
 
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(httpStatusCodes.OK, [mockFinalizeTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockExportJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockExportJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .put(`/jobs/${mockExportJob.id}`, _.matches({ status: OperationStatus.COMPLETED }))
         .reply(httpStatusCodes.OK);
@@ -501,7 +547,10 @@ describe('tasks', function () {
       };
       const mockInitTask = getTaskMock(mockExportJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
 
-      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockExportJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockExportJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockExportJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post('/tasks/find', { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
         .reply(httpStatusCodes.OK, [mockInitTask]);
@@ -564,7 +613,10 @@ describe('tasks', function () {
       const mockSeedingJob = getSeedingJobMock();
       const mockSeedTask = getTaskMock(mockSeedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockSeedTask.id }).reply(httpStatusCodes.OK, [mockSeedTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockSeedingJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockSeedingJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockSeedingJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockSeedingJob);
       const taskPercentage = calculateJobPercentage(mockSeedingJob.completedTasks, mockSeedingJob.taskCount);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockSeedingJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
       // action
@@ -579,7 +631,10 @@ describe('tasks', function () {
       const mockSeedingJob = getSeedingJobMock({ completedTasks: 5, taskCount: 5 });
       const mockSeedTask = getTaskMock(mockSeedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockSeedTask.id }).reply(httpStatusCodes.OK, [mockSeedTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockSeedingJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockSeedingJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockSeedingJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockSeedingJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .put(`/jobs/${mockSeedingJob.id}`, { percentage: 100, status: OperationStatus.COMPLETED })
         .reply(httpStatusCodes.OK);
@@ -599,7 +654,10 @@ describe('tasks', function () {
         reason: 'some error reason',
       });
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockSeedTask.id }).reply(httpStatusCodes.OK, [mockSeedTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockSeedingJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockSeedingJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockSeedingJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockSeedingJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .put(`/jobs/${mockSeedingJob.id}`, { status: OperationStatus.FAILED, reason: 'some error reason' })
         .reply(httpStatusCodes.OK);
@@ -626,7 +684,9 @@ describe('tasks', function () {
       // mocks
       const mockIngestionJob = getIngestionJobMock();
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
-      nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/tasks/find`, { id: mockMergeTask.id }).reply(httpStatusCodes.NOT_FOUND, 'message: Tasks not found');
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post(`/tasks/find`, { id: mockMergeTask.id })
+        .reply(httpStatusCodes.NOT_FOUND, 'message: Tasks not found');
       // action
       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
       // expectation

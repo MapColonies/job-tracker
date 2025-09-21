@@ -97,11 +97,6 @@ describe('jobHandlerFactory', () => {
       const mockTask = getTaskMock(mockJob.id);
       const mockQueueClient = createMockQueueClient();
 
-      // When & Then: should throw BadRequestError for invalid job type
-      expect(() => {
-        getJobHandler(invalidJobType, jobDefinitionsConfig, logger, mockQueueClient, configMock, mockJob, mockTask);
-      }).toThrow(BadRequestError);
-
       expect(() => {
         getJobHandler(invalidJobType, jobDefinitionsConfig, logger, mockQueueClient, configMock, mockJob, mockTask);
       }).toThrow(new BadRequestError(`${invalidJobType} job type is invalid`));
