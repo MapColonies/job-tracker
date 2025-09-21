@@ -12,7 +12,7 @@ type TaskNotificationHandler = RequestHandler<TaskNotificationRequest, undefined
 
 @injectable()
 export class TasksController {
-  public constructor(@inject(TasksManager) private readonly taskManager: TasksManager, @inject(SERVICES.LOGGER) private readonly logger: Logger) { }
+  public constructor(@inject(TasksManager) private readonly taskManager: TasksManager, @inject(SERVICES.LOGGER) private readonly logger: Logger) {}
 
   public handleTaskNotification: TaskNotificationHandler = async (req, res, next) => {
     try {
