@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.2.1](https://github.com/MapColonies/job-tracker/compare/v3.2.0...v3.2.1) (2025-09-25)
+
+
+### Bug Fixes
+
+* helm chart null parameter ([f2440b6](https://github.com/MapColonies/job-tracker/commit/f2440b60354e9ce6c661e0a1e973adda3e068fc7))
+
 ## [3.2.0](https://github.com/MapColonies/job-tracker/compare/v3.1.1...v3.2.0) (2025-09-21)
 
 
