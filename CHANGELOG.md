@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.2.2](https://github.com/MapColonies/job-tracker/compare/v3.2.1...v3.2.2) (2025-10-20)
+
+
+### Bug Fixes
+
+* remove unnecessary json conversion from configmap ([#28](https://github.com/MapColonies/job-tracker/issues/28)) ([92f2610](https://github.com/MapColonies/job-tracker/commit/92f26104ae0a4750c08e0839736536bb955b76c8))
+
 ### [3.2.1](https://github.com/MapColonies/job-tracker/compare/v3.2.0...v3.2.1) (2025-09-25)
 
 
