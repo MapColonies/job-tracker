@@ -36,7 +36,7 @@ data:
   JOB_DEFINITIONS_TASK_EXPORT: {{ $jobDefinitions.tasks.export.type | quote }}
   JOB_DEFINITIONS_TASK_FINALIZE: {{ $jobDefinitions.tasks.finalize.type | quote }}
   JOB_DEFINITIONS_TASK_SEED: {{ $jobDefinitions.tasks.seed.type | quote }}
-  JOB_DEFINITIONS_SUSPENDING_TASKS: {{ $suspendingTaskTypes | fromYaml | toJson | quote }}
+  JOB_DEFINITIONS_SUSPENDING_TASKS: {{ $suspendingTaskTypes | quote }}
   INGESTION_TASKS_FLOW: {{ .Values.taskFlowManager.ingestionTasksFlow | toJson | quote }}
   EXPORT_TASKS_FLOW: {{ .Values.taskFlowManager.exportTasksFlow | toJson | quote }}
 {{- end }}
