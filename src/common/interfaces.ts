@@ -37,7 +37,9 @@ export interface IJobDefinitionsConfig {
   tasks: {
     polygonParts: string;
     finalize: string;
+    mergeTaskCreation: string;
     merge: string;
+    validation: string;
     init: string;
     export: string;
     seed: string;

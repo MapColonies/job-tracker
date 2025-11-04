@@ -39,10 +39,10 @@ export abstract class JobHandler extends BaseJobHandler {
       return;
     }
 
-    const initTasksOfJob = await this.taskWorker?.getInitTasks();
+    const initTasksOfJob = await this.getJobInitialTask();
     const canProceed = this.areInitialTasksReady(initTasksOfJob);
-
-    if (!canProceed || (this.taskWorker?.shouldSkipTaskCreation(nextTaskType) ?? false)) {
+    const shouldSkipTaskCreation = (this.taskWorker?.shouldSkipTaskCreation(nextTaskType) ?? false)
+    if (!canProceed || shouldSkipTaskCreation) {
       await this.handleSkipTask(nextTaskType);
       return;
     }
@@ -62,7 +62,12 @@ export abstract class JobHandler extends BaseJobHandler {
     this.taskWorker = new TaskHandler(this.logger, this.config, this.jobManager, this.job, this.task, this.tasksFlow, this.excludedTypes);
   }
 
-  private areInitialTasksReady(initTasksOfJob: ITaskResponse<unknown>[] | undefined): boolean {
+  protected async getJobInitialTask(): Promise<ITaskResponse<unknown>[] | undefined> {
+    const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.init });
+    return tasks ?? undefined;
+  }
+
+  protected areInitialTasksReady(initTasksOfJob: ITaskResponse<unknown>[] | undefined): boolean {
     if (initTasksOfJob === undefined || initTasksOfJob.length === 0) {
       this.logger.warn({
         msg: `Cannot proceed with task creation for job ${this.job.id}, init tasks were not found`,

@@ -49,9 +49,11 @@
       "seed": "TilesSeeding"
     },
     "tasks": {
+      "validation": "validation",
       "init": "init",
       "merge": "tilesMerging",
       "polygonParts": "polygon-parts",
+      "mergeTaskCreation": "create-merge-tasks",
       "export": "tilesExporting",
       "finalize": "finalize",
       "seed": "TilesSeeding"
@@ -59,7 +61,7 @@
     "suspendingTaskTypes": ["polygon-parts"]
   },
   "taskFlowManager": {
-    "ingestionTasksFlow": ["init", "tilesMerging", "polygon-parts", "finalize", "TilesSeeding"],
+    "ingestionTasksFlow": ["validation", "create-merge-tasks", "tilesMerging", "finalize", "TilesSeeding"],
     "exportTasksFlow": ["init", "tilesExporting", "polygon-parts", "finalize"]
   }
 }

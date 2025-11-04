@@ -67,8 +67,8 @@ export class TaskHandler {
     return this.excludedTypes.includes(taskType);
   }
 
-  public async getInitTasks(): Promise<ITaskResponse<unknown>[] | undefined> {
-    const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.init });
+  public async getInitTasks(initialTaskType: string): Promise<ITaskResponse<unknown>[] | undefined> {
+    const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: initialTaskType });
     return tasks ?? undefined;
   }
 

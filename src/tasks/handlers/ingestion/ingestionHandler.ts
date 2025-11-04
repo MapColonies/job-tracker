@@ -26,4 +26,9 @@ export class IngestionJobHandler extends JobHandler {
     // Initialize task operations after setting up the flow properties
     this.initializeTaskOperations();
   }
+
+  protected override async getJobInitialTask(): Promise<ITaskResponse<unknown>[] | undefined> {
+    const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.validation });
+    return tasks ?? undefined;
+  }
 }

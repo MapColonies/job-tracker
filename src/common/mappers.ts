@@ -8,6 +8,9 @@ import { JobAndTask, IJobDefinitionsConfig } from './interfaces';
 
 export const createTaskParametersMapper = (jobDefinitions: IJobDefinitionsConfig): Map<JobAndTask, Record<PropertyKey, unknown>> => {
   return new Map<JobAndTask, Record<PropertyKey, unknown>>([
+    [`${jobDefinitions.jobs.new}_${jobDefinitions.tasks.mergeTaskCreation}`, {}],
+    [`${jobDefinitions.jobs.update}_${jobDefinitions.tasks.mergeTaskCreation}`, {}],
+    [`${jobDefinitions.jobs.swapUpdate}_${jobDefinitions.tasks.mergeTaskCreation}`, {}],
     [
       `${jobDefinitions.jobs.new}_${jobDefinitions.tasks.finalize}`,
       {
@@ -16,8 +19,6 @@ export const createTaskParametersMapper = (jobDefinitions: IJobDefinitionsConfig
         insertedToMapproxy: false,
       } satisfies IngestionNewFinalizeTaskParams,
     ],
-    [`${jobDefinitions.jobs.new}_${jobDefinitions.tasks.polygonParts}`, {}],
-    [`${jobDefinitions.jobs.update}_${jobDefinitions.tasks.polygonParts}`, {}],
     [
       `${jobDefinitions.jobs.update}_${jobDefinitions.tasks.finalize}`,
       {
@@ -31,7 +32,6 @@ export const createTaskParametersMapper = (jobDefinitions: IJobDefinitionsConfig
         updatedInMapproxy: false,
       } satisfies IngestionSwapUpdateFinalizeTaskParams,
     ],
-    [`${jobDefinitions.jobs.swapUpdate}_${jobDefinitions.tasks.polygonParts}`, {}],
     [`${jobDefinitions.jobs.export}_${jobDefinitions.tasks.polygonParts}`, {}],
     [
       `${jobDefinitions.jobs.export}_${jobDefinitions.tasks.finalize}`,
