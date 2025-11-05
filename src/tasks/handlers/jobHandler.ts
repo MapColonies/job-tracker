@@ -39,7 +39,7 @@ export abstract class JobHandler extends BaseJobHandler {
       return;
     }
 
-    const initTasksOfJob = await this.getJobInitialTask();
+    const initTasksOfJob = await this.getJobInitialTasks();
     const canProceed = this.areInitialTasksReady(initTasksOfJob);
     const shouldSkipTaskCreation = (this.taskWorker?.shouldSkipTaskCreation(nextTaskType) ?? false)
     if (!canProceed || shouldSkipTaskCreation) {
@@ -62,7 +62,7 @@ export abstract class JobHandler extends BaseJobHandler {
     this.taskWorker = new TaskHandler(this.logger, this.config, this.jobManager, this.job, this.task, this.tasksFlow, this.excludedTypes);
   }
 
-  protected async getJobInitialTask(): Promise<ITaskResponse<unknown>[] | undefined> {
+  protected async getJobInitialTasks(): Promise<ITaskResponse<unknown>[] | undefined> {
     const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.init });
     return tasks ?? undefined;
   }
