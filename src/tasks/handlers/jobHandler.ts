@@ -102,7 +102,7 @@ export abstract class JobHandler extends BaseJobHandler {
 
   private async handleSkipTask(nextTaskType: string): Promise<void> {
     this.logger.info({ msg: 'Skipping task creation', jobId: this.job.id, taskType: nextTaskType });
-    await this.updateJobProgress();
+    //await this.updateJobProgress();
   }
 
   private async createNewTask(nextTaskType: string): Promise<void> {

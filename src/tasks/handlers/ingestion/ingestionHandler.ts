@@ -21,11 +21,16 @@ export class IngestionJobHandler extends JobHandler {
   ) {
     super(logger, config, jobManagerClient, job, task);
     this.tasksFlow = this.config.get<TaskTypes>('taskFlowManager.ingestionTasksFlow');
-    this.excludedTypes = [this.jobDefinitions.tasks.merge, this.jobDefinitions.tasks.seed];
+    this.excludedTypes = [this.jobDefinitions.tasks.merge];
     this.blockedDuplicationTypes = [this.jobDefinitions.tasks.finalize, this.jobDefinitions.tasks.polygonParts];
 
     // Initialize task operations after setting up the flow properties
     this.initializeTaskOperations();
+  }
+
+  protected async getJobInitialTasks(): Promise<ITaskResponse<unknown>[] | undefined> {
+    const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.validation });
+    return tasks ?? undefined;
   }
 
   protected override areInitialTasksReady(initTasksOfJob: ITaskResponse<BaseIngestionValidationTaskParams>[] | undefined): boolean {
@@ -45,7 +50,8 @@ export class IngestionJobHandler extends JobHandler {
       taskType: this.task.type,
     });
     const isInitialCompleted = this.taskWorker?.isInitialWorkflowCompleted(initTasksOfJob) ?? false;
-    const isValid = initTasksOfJob.some((initTask) => initTask.parameters.isValid === false);
+    const isValid = initTasksOfJob.some((initTask) => initTask.parameters.isValid === true);
+    if (!isValid) this.suspendJob(`invalid ${this.jobDefinitions.tasks.validation} task` );
 
     return isInitialCompleted && isValid;
   }
