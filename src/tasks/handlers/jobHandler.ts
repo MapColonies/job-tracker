@@ -1,5 +1,5 @@
 import { Logger } from '@map-colonies/js-logger';
-import { ConflictError } from '@map-colonies/error-types';
+import { ConflictError, UnprocessableEntityError } from '@map-colonies/error-types';
 import { IJobResponse, ITaskResponse, JobManagerClient, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
 import { IConfig, IJobDefinitionsConfig, TaskTypes } from '../../common/interfaces';
 import { BaseJobHandler } from './baseJobHandler';
@@ -40,9 +40,25 @@ export abstract class JobHandler extends BaseJobHandler {
     }
 
     const initTasksOfJob = await this.getJobInitialTasks();
-    const canProceed = this.areInitialTasksReady(initTasksOfJob);
+    if (initTasksOfJob === undefined || initTasksOfJob.length === 0) {
+      this.logger.warn({
+        msg: `Cannot proceed with task creation for job ${this.job.id}, init tasks were not found`,
+        jobId: this.job.id,
+        taskId: this.task.id,
+        taskType: this.task.type,
+        jobType: this.job.type,
+      });
+      throw new UnprocessableEntityError('no init task found');
+    }
+    const isReady = this.areInitialTasksReady(initTasksOfJob);
+    const isProceed = this.isProceed(initTasksOfJob);
     const shouldSkipTaskCreation = (this.taskWorker?.shouldSkipTaskCreation(nextTaskType) ?? false)
-    if (!canProceed || shouldSkipTaskCreation) {
+    if (!isProceed.result) {
+      const reason = isProceed.reason?? undefined;
+      await this.handleUnprocessableTask(reason) // implement for both export and ingestion handler what unproceecable task is: ex, for ingestion its should suspend job and update progress - check if need to update progress, in export can be the same for nowu
+      return;
+    }
+    if (!isReady || shouldSkipTaskCreation) {
       await this.handleSkipTask(nextTaskType);
       return;
     }
@@ -67,27 +83,16 @@ export abstract class JobHandler extends BaseJobHandler {
     return tasks ?? undefined;
   }
 
-  protected areInitialTasksReady(initTasksOfJob: ITaskResponse<unknown>[] | undefined): boolean {
-    if (initTasksOfJob === undefined || initTasksOfJob.length === 0) {
-      this.logger.warn({
-        msg: `Cannot proceed with task creation for job ${this.job.id}, init tasks were not found`,
-        jobId: this.job.id,
-        taskId: this.task.id,
-        taskType: this.task.type,
-        jobType: this.job.type,
-      });
-      return false;
-    } else {
-      const isInitialWorkflowCompleted = this.taskWorker?.isInitialWorkflowCompleted(initTasksOfJob) ?? false;
-      this.logger.info({
-        msg: `checking if init tasks completed for job ${this.job.id}`,
-        jobId: this.job.id,
-        taskId: this.task.id,
-        taskType: this.task.type,
-        isInitialWorkflowCompleted,
-      });
-      return isInitialWorkflowCompleted;
-    }
+  protected areInitialTasksReady(initTasksOfJob: ITaskResponse<unknown>[]): boolean {
+    const isInitialWorkflowCompleted = this.taskWorker?.isInitialWorkflowCompleted(initTasksOfJob) ?? false;
+    this.logger.info({
+      msg: `checking if init tasks completed for job ${this.job.id}`,
+      jobId: this.job.id,
+      taskId: this.task.id,
+      taskType: this.task.type,
+      isInitialWorkflowCompleted,
+    });
+    return isInitialWorkflowCompleted;
   }
 
   private async handleNoNextTask(): Promise<void> {
@@ -102,7 +107,7 @@ export abstract class JobHandler extends BaseJobHandler {
 
   private async handleSkipTask(nextTaskType: string): Promise<void> {
     this.logger.info({ msg: 'Skipping task creation', jobId: this.job.id, taskType: nextTaskType });
-    //await this.updateJobProgress();
+    await this.updateJobProgress();
   }
 
   private async createNewTask(nextTaskType: string): Promise<void> {
@@ -126,4 +131,8 @@ export abstract class JobHandler extends BaseJobHandler {
     this.job.taskCount++;
     await this.updateJobProgress();
   }
+
+  // Abstract methods that concrete handlers must implement
+  public abstract isProceed(initTask: ITaskResponse<unknown>[]): {result: boolean, reason?: string};
+  public abstract handleUnprocessableTask(reason?: string): Promise<void>;
 }

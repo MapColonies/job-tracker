@@ -22,7 +22,7 @@ export class IngestionJobHandler extends JobHandler {
     super(logger, config, jobManagerClient, job, task);
     this.tasksFlow = this.config.get<TaskTypes>('taskFlowManager.ingestionTasksFlow');
     this.excludedTypes = [this.jobDefinitions.tasks.merge];
-    this.blockedDuplicationTypes = [this.jobDefinitions.tasks.finalize, this.jobDefinitions.tasks.polygonParts];
+    this.blockedDuplicationTypes = [this.jobDefinitions.tasks.validation, this.jobDefinitions.tasks.finalize];
 
     // Initialize task operations after setting up the flow properties
     this.initializeTaskOperations();
@@ -33,7 +33,7 @@ export class IngestionJobHandler extends JobHandler {
     return tasks ?? undefined;
   }
 
-  protected override areInitialTasksReady(initTasksOfJob: ITaskResponse<BaseIngestionValidationTaskParams>[] | undefined): boolean {
+  protected override areInitialTasksReady(initTasksOfJob: ITaskResponse<BaseIngestionValidationTaskParams>[]): boolean {
     if (initTasksOfJob === undefined || initTasksOfJob.length === 0) {
       this.logger.warn({
         msg: `Cannot proceed with task creation for job ${this.job.id}, initial tasks of ingestion job were not found`,
@@ -50,9 +50,17 @@ export class IngestionJobHandler extends JobHandler {
       taskType: this.task.type,
     });
     const isInitialCompleted = this.taskWorker?.isInitialWorkflowCompleted(initTasksOfJob) ?? false;
-    const isValid = initTasksOfJob.some((initTask) => initTask.parameters.isValid === true);
-    if (!isValid) this.suspendJob(`invalid ${this.jobDefinitions.tasks.validation} task` );
 
-    return isInitialCompleted && isValid;
+    return isInitialCompleted;
+  }
+
+  public isProceed(initTasks: ITaskResponse<BaseIngestionValidationTaskParams>[]): { result: boolean, reason: string } {
+    const areValid = initTasks.every((initTask) => initTask.parameters.isValid === true);
+    return { result: areValid, reason: 'invalid validation task' };
+
+  }
+
+  public async handleUnprocessableTask(reason: string): Promise<void> {
+    await this.suspendJob(reason);
   }
 }

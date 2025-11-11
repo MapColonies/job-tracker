@@ -5,6 +5,7 @@ import { ExportFinalizeType } from '@map-colonies/raster-shared';
 import { IConfig, TaskTypes } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
 import { JobHandler } from '../jobHandler';
+import { resolve } from 'path';
 
 @injectable()
 export class ExportJobHandler extends JobHandler {
@@ -43,5 +44,14 @@ export class ExportJobHandler extends JobHandler {
       // For other task types, use the default implementation
       return super.handleFailedTask();
     }
+  }
+
+  public isProceed(initTask: ITaskResponse<unknown>[]): {result: boolean, reason?: string} {
+    return {result: true };
+  }
+
+  // implement handleUprocesableTask
+  public async handleUnprocessableTask(): Promise<void> {
+    resolve();
   }
 }

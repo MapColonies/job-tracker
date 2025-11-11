@@ -75,4 +75,8 @@ export class TaskHandler {
   public isInitialWorkflowCompleted(initTasks: ITaskResponse<unknown>[]): boolean {
     return this.job.completedTasks === this.job.taskCount && initTasks.every((task) => task.status === OperationStatus.COMPLETED);
   }
+
+  public isProceed(initTasks: ITaskResponse<unknown>[]): boolean {
+    return this.job.completedTasks === this.job.taskCount && initTasks.every((task) => task.status === OperationStatus.COMPLETED);
+  }
 }
