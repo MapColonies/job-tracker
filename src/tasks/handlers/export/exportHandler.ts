@@ -46,12 +46,7 @@ export class ExportJobHandler extends JobHandler {
     }
   }
 
-  public isProceed(initTask: ITaskResponse<unknown>[]): {result: boolean, reason?: string} {
+  public isProceedable(): {result: boolean, reason?: string} {
     return {result: true };
-  }
-
-  // implement handleUprocesableTask
-  public async handleUnprocessableTask(): Promise<void> {
-    resolve();
   }
 }

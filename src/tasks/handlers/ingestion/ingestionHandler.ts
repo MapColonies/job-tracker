@@ -1,5 +1,5 @@
 import { Logger } from '@map-colonies/js-logger';
-import { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
+import { IJobResponse, ITaskResponse, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { injectable, inject } from 'tsyringe';
 import { IConfig, TaskTypes } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
@@ -22,7 +22,7 @@ export class IngestionJobHandler extends JobHandler {
     super(logger, config, jobManagerClient, job, task);
     this.tasksFlow = this.config.get<TaskTypes>('taskFlowManager.ingestionTasksFlow');
     this.excludedTypes = [this.jobDefinitions.tasks.merge];
-    this.blockedDuplicationTypes = [this.jobDefinitions.tasks.validation, this.jobDefinitions.tasks.finalize];
+    this.blockedDuplicationTypes = [this.jobDefinitions.tasks.validation, this.jobDefinitions.tasks.mergeTaskCreation, this.jobDefinitions.tasks.finalize];
 
     // Initialize task operations after setting up the flow properties
     this.initializeTaskOperations();
@@ -33,34 +33,13 @@ export class IngestionJobHandler extends JobHandler {
     return tasks ?? undefined;
   }
 
-  protected override areInitialTasksReady(initTasksOfJob: ITaskResponse<BaseIngestionValidationTaskParams>[]): boolean {
-    if (initTasksOfJob === undefined || initTasksOfJob.length === 0) {
-      this.logger.warn({
-        msg: `Cannot proceed with task creation for job ${this.job.id}, initial tasks of ingestion job were not found`,
-        jobId: this.job.id,
-        taskType: this.task.type,
-        jobType: this.job.type,
-      });
-      return false;
-    }
+  public isProceedable(initTasks: ITaskResponse<BaseIngestionValidationTaskParams>[]): { result: boolean, reason: string } {
     this.logger.info({
-      msg: `checking if init tasks completed for job ${this.job.id}`,
+      msg: 'Checking if validation task is valid in order to proceed',
       jobId: this.job.id,
-      taskId: this.task.id,
-      taskType: this.task.type,
+      jobType: this.job.type
     });
-    const isInitialCompleted = this.taskWorker?.isInitialWorkflowCompleted(initTasksOfJob) ?? false;
-
-    return isInitialCompleted;
-  }
-
-  public isProceed(initTasks: ITaskResponse<BaseIngestionValidationTaskParams>[]): { result: boolean, reason: string } {
     const areValid = initTasks.every((initTask) => initTask.parameters.isValid === true);
     return { result: areValid, reason: 'invalid validation task' };
-
-  }
-
-  public async handleUnprocessableTask(reason: string): Promise<void> {
-    await this.suspendJob(reason);
   }
 }

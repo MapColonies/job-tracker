@@ -1,3 +1,5 @@
+import { TaskType } from "../../common/interfaces";
+
 /**
  * Interface for handling job-level operations
  */
@@ -25,5 +27,5 @@ export interface IJobHandler {
   /**
    * Check if all tasks in the job are completed
    */
-  isJobCompleted: () => boolean;
+  isJobCompleted: (taskType: TaskType) => boolean;
 }

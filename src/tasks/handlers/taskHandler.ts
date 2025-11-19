@@ -71,12 +71,4 @@ export class TaskHandler {
     const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: initialTaskType });
     return tasks ?? undefined;
   }
-
-  public isInitialWorkflowCompleted(initTasks: ITaskResponse<unknown>[]): boolean {
-    return this.job.completedTasks === this.job.taskCount && initTasks.every((task) => task.status === OperationStatus.COMPLETED);
-  }
-
-  public isProceed(initTasks: ITaskResponse<unknown>[]): boolean {
-    return this.job.completedTasks === this.job.taskCount && initTasks.every((task) => task.status === OperationStatus.COMPLETED);
-  }
 }

@@ -50,15 +50,16 @@ export abstract class JobHandler extends BaseJobHandler {
       });
       throw new UnprocessableEntityError('no init task found');
     }
-    const isReady = this.areInitialTasksReady(initTasksOfJob);
-    const isProceed = this.isProceed(initTasksOfJob);
-    const shouldSkipTaskCreation = (this.taskWorker?.shouldSkipTaskCreation(nextTaskType) ?? false)
-    if (!isProceed.result) {
-      const reason = isProceed.reason?? undefined;
-      await this.handleUnprocessableTask(reason) // implement for both export and ingestion handler what unproceecable task is: ex, for ingestion its should suspend job and update progress - check if need to update progress, in export can be the same for nowu
+    
+    const isProceedable = this.isProceedable(initTasksOfJob); // in case of completed task but with errors
+    if (!isProceedable.result) {
+      await this.suspendJob(isProceedable.reason);
       return;
     }
-    if (!isReady || shouldSkipTaskCreation) {
+
+    const shouldSkipTaskCreation = this.taskWorker?.shouldSkipTaskCreation(nextTaskType);
+    const isReadyForNextTask = this.isReadyForNextTask();
+    if (!isReadyForNextTask || shouldSkipTaskCreation) {
       await this.handleSkipTask(nextTaskType);
       return;
     }
@@ -83,20 +84,18 @@ export abstract class JobHandler extends BaseJobHandler {
     return tasks ?? undefined;
   }
 
-  protected areInitialTasksReady(initTasksOfJob: ITaskResponse<unknown>[]): boolean {
-    const isInitialWorkflowCompleted = this.taskWorker?.isInitialWorkflowCompleted(initTasksOfJob) ?? false;
+  protected isReadyForNextTask(): boolean {
     this.logger.info({
-      msg: `checking if init tasks completed for job ${this.job.id}`,
+      msg: `checking if job is ready to for the next type ${this.job.id}`,
       jobId: this.job.id,
       taskId: this.task.id,
       taskType: this.task.type,
-      isInitialWorkflowCompleted,
     });
-    return isInitialWorkflowCompleted;
+    return this.job.completedTasks === this.job.taskCount;
   }
 
   private async handleNoNextTask(): Promise<void> {
-    if (this.isJobCompleted()) {
+    if (this.isJobCompleted(this.task.type)) {
       this.logger.info({ msg: 'Completing job', jobId: this.job.id });
       await this.completeJob();
     } else {
@@ -133,6 +132,5 @@ export abstract class JobHandler extends BaseJobHandler {
   }
 
   // Abstract methods that concrete handlers must implement
-  public abstract isProceed(initTask: ITaskResponse<unknown>[]): {result: boolean, reason?: string};
-  public abstract handleUnprocessableTask(reason?: string): Promise<void>;
+  public abstract isProceedable(initTask: ITaskResponse<unknown>[]): {result: boolean, reason?: string};
 }
