@@ -50,7 +50,7 @@ export abstract class JobHandler extends BaseJobHandler {
       });
       throw new UnprocessableEntityError('no init task found');
     }
-    
+
     const isProceedable = this.isProceedable(initTasksOfJob); // in case of completed task but with errors
     if (!isProceedable.result) {
       await this.suspendJob(isProceedable.reason);
@@ -132,5 +132,5 @@ export abstract class JobHandler extends BaseJobHandler {
   }
 
   // Abstract methods that concrete handlers must implement
-  public abstract isProceedable(initTask: ITaskResponse<unknown>[]): {result: boolean, reason?: string};
+  public abstract isProceedable(initTask: ITaskResponse<unknown>[]): { result: boolean; reason?: string };
 }

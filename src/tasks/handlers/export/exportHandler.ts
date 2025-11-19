@@ -5,7 +5,6 @@ import { ExportFinalizeType } from '@map-colonies/raster-shared';
 import { IConfig, TaskTypes } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
 import { JobHandler } from '../jobHandler';
-import { resolve } from 'path';
 
 @injectable()
 export class ExportJobHandler extends JobHandler {
@@ -46,7 +45,7 @@ export class ExportJobHandler extends JobHandler {
     }
   }
 
-  public isProceedable(): {result: boolean, reason?: string} {
-    return {result: true };
+  public isProceedable(): { result: boolean; reason?: string } {
+    return { result: true };
   }
 }

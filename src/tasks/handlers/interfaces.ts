@@ -1,4 +1,4 @@
-import { TaskType } from "../../common/interfaces";
+import { TaskType } from '../../common/interfaces';
 
 /**
  * Interface for handling job-level operations
