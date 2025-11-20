@@ -25,7 +25,7 @@ export interface IJobHandler {
   updateJobProgress: () => Promise<void>;
 
   /**
-   * Check if all tasks in the job are completed
+   * Check if finalize task is completed along with all other tasks
    */
   isJobCompleted: (taskType: TaskType) => boolean;
 }

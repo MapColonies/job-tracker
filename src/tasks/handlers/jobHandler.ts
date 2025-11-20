@@ -53,6 +53,7 @@ export abstract class JobHandler extends BaseJobHandler {
 
     const isProceedable = this.isProceedable(initTasksOfJob); // in case of completed task but with errors
     if (!isProceedable.result) {
+      this.logger.info({ msg: `job is not proceedable, suspending job id: ${this.job.id}`, jobId: this.job.id, taskId: this.task.id, reason: isProceedable.reason })
       await this.suspendJob(isProceedable.reason);
       return;
     }

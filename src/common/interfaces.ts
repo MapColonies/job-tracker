@@ -1,5 +1,5 @@
 type ValueOf<T> = T[keyof T];
-export type JobType = ValueOf<IJobDefinitionsConfig['jobs']>;
+type JobType = ValueOf<IJobDefinitionsConfig['jobs']>;
 export type TaskType = ValueOf<IJobDefinitionsConfig['tasks']>;
 export type TaskTypes = TaskType[];
 export type JobAndTask = `${JobType}_${TaskType}`;
