@@ -32,14 +32,18 @@ export class IngestionJobHandler extends JobHandler {
     this.initializeTaskOperations();
   }
 
-  public isProceedable(initTasks: ITaskResponse<BaseIngestionValidationTaskParams>[]): { result: boolean; reason: string } {
+  public isProceedable(initTasks: ITaskResponse<BaseIngestionValidationTaskParams>[]): { result: boolean; reason?: string } {
     this.logger.info({
       msg: 'Checking if validation task is valid in order to proceed',
       jobId: this.job.id,
       jobType: this.job.type,
     });
     const areValid = initTasks.every((initTask) => initTask.parameters.isValid);
-    return { result: areValid, reason: 'invalid validation task' };
+    const isProceedable = {
+      result: areValid,
+      ...(!areValid ? { reason: "Invalid validation task" } : {})
+    };
+    return isProceedable;
   }
 
   protected async getJobInitialTasks(): Promise<ITaskResponse<unknown>[] | undefined> {

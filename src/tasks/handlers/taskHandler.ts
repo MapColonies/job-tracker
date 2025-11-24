@@ -66,9 +66,4 @@ export class TaskHandler {
   public shouldSkipTaskCreation(taskType: string): boolean {
     return this.excludedTypes.includes(taskType);
   }
-
-  public async getInitTasks(initialTaskType: string): Promise<ITaskResponse<unknown>[] | undefined> {
-    const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: initialTaskType });
-    return tasks ?? undefined;
-  }
 }
