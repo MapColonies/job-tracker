@@ -62,7 +62,9 @@
       "seed": "JOB_DEFINITIONS_JOB_SEED"
     },
     "tasks": {
+      "validation": "JOB_DEFINITIONS_TASK_VALIDATION",
       "init": "JOB_DEFINITIONS_TASK_INIT",
+      "mergeTaskCreation": "JOB_DEFINITIONS_TASK_MERGE_TASK_CREATION",
       "merge": "JOB_DEFINITIONS_TASK_MERGE",
       "polygonParts": "JOB_DEFINITIONS_TASK_POLYGON_PARTS",
       "export": "JOB_DEFINITIONS_TASK_EXPORT",
@@ -81,6 +83,10 @@
     },
     "exportTasksFlow": {
       "__name": "EXPORT_TASKS_FLOW",
+      "__format": "json"
+    },
+    "seedTasksFlow": {
+      "__name": "SEED_TASKS_FLOW",
       "__format": "json"
     }
   }

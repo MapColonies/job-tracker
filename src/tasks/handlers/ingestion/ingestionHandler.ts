@@ -1,5 +1,5 @@
 import { Logger } from '@map-colonies/js-logger';
-import { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
+import { IJobResponse, ITaskResponse, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { injectable, inject } from 'tsyringe';
 import { BaseIngestionValidationTaskParams } from '@map-colonies/raster-shared';
 import { IConfig, TaskTypes } from '../../../common/interfaces';
@@ -32,16 +32,20 @@ export class IngestionJobHandler extends JobHandler {
     this.initializeTaskOperations();
   }
 
-  public isProceedable(initTasks: ITaskResponse<BaseIngestionValidationTaskParams>[]): { result: boolean; reason?: string } {
+  public isProceedable(task: ITaskResponse<BaseIngestionValidationTaskParams>): { result: boolean; reason?: string } {
+    if (task.type !== this.jobDefinitions.tasks.validation) {
+      return { result: true };
+    };
+
     this.logger.info({
       msg: 'Checking if validation task is valid in order to proceed',
       jobId: this.job.id,
       jobType: this.job.type,
     });
-    const areValid = initTasks.every((initTask) => initTask.parameters.isValid);
+    const isValid = task.status === OperationStatus.COMPLETED && task.parameters.isValid;
     const isProceedable = {
-      result: areValid,
-      ...(!areValid ? { reason: "Invalid validation task" } : {})
+      result: isValid,
+      ...(!isValid ? { reason: "Invalid validation task" } : {})
     };
     return isProceedable;
   }

@@ -87,7 +87,11 @@ jobDefinitions:
     seed:
       type: ''
   tasks:
+    validation:
+      type: ''
     init:
+      type: ''
+    mergeTaskCreation:
       type: ''
     merge:
       type: ''
@@ -103,17 +107,17 @@ jobDefinitions:
 
 taskFlowManager:
   ingestionTasksFlow:
-  - init
+  - validation
+  - mergeTaskCreation
   - tilesMerging
-  - polygon-parts
   - finalize
-  - tilesSeeding
   exportTasksFlow:
   - init
   - tilesExporting
   - polygon-parts
   - finalize
-
+  seedTasksFlow:
+  - TilesSeeding
 env:
   port: 80
   targetPort: 8080

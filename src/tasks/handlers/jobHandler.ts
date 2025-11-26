@@ -1,7 +1,7 @@
 import { Logger } from '@map-colonies/js-logger';
 import { ConflictError, UnprocessableEntityError } from '@map-colonies/error-types';
 import { IJobResponse, ITaskResponse, JobManagerClient, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
-import { IConfig, IJobDefinitionsConfig, TaskTypes } from '../../common/interfaces';
+import { IConfig, IJobDefinitionsConfig, TaskType, TaskTypes } from '../../common/interfaces';
 import { BaseJobHandler } from './baseJobHandler';
 import { TaskHandler } from './taskHandler';
 
@@ -39,19 +39,7 @@ export abstract class JobHandler extends BaseJobHandler {
       return;
     }
 
-    const initTasksOfJob = await this.getJobInitialTasks();
-    if (initTasksOfJob === undefined || initTasksOfJob.length === 0) {
-      this.logger.warn({
-        msg: `Cannot proceed with task creation for job ${this.job.id}, init tasks were not found`,
-        jobId: this.job.id,
-        taskId: this.task.id,
-        taskType: this.task.type,
-        jobType: this.job.type,
-      });
-      throw new UnprocessableEntityError('no init task found');
-    }
-
-    const isProceedable = this.isProceedable(initTasksOfJob); // in case of completed task but with errors
+    const isProceedable = this.isProceedable(this.task); // in case of completed task but with errors
     if (!isProceedable.result) {
       this.logger.info({ msg: `job is not proceedable, suspending job id: ${this.job.id}`, jobId: this.job.id, taskId: this.task.id, reason: isProceedable.reason })
       await this.suspendJob(isProceedable.reason);
@@ -76,18 +64,21 @@ export abstract class JobHandler extends BaseJobHandler {
     }
   }
 
+  // Abstract methods that concrete handlers must implement
+  public abstract isProceedable(init: ITaskResponse<unknown>): { result: boolean; reason?: string };
+
   protected initializeTaskOperations(): void {
     this.taskWorker = new TaskHandler(this.logger, this.config, this.jobManager, this.job, this.task, this.tasksFlow, this.excludedTypes);
   }
 
-  protected async getJobInitialTasks(): Promise<ITaskResponse<unknown>[] | undefined> {
-    const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.init });
+  protected async getJobInitialTasks(task: ITaskResponse<unknown>): Promise<ITaskResponse<unknown>[] | undefined> {
+    const tasks = task.type === this.jobDefinitions.tasks.init ? [task] : await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.init });
     return tasks ?? undefined;
   }
 
   protected isReadyForNextTask(): boolean {
     this.logger.info({
-      msg: `checking if job is ready to for the next type ${this.job.id}`,
+      msg: `Checking if job is ready to for the next type ${this.job.id}`,
       jobId: this.job.id,
       taskId: this.task.id,
       taskType: this.task.type,
@@ -132,6 +123,5 @@ export abstract class JobHandler extends BaseJobHandler {
     await this.updateJobProgress();
   }
 
-  // Abstract methods that concrete handlers must implement
-  public abstract isProceedable(initTask: ITaskResponse<unknown>[]): { result: boolean; reason?: string };
+
 }

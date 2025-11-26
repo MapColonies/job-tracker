@@ -5,6 +5,7 @@ import { IConfig, IJobDefinitionsConfig } from '../../common/interfaces';
 import { JobHandler } from './jobHandler';
 import { IngestionJobHandler } from './ingestion/ingestionHandler';
 import { ExportJobHandler } from './export/exportHandler';
+import { SeedJobHandler } from './seed/seedHandler';
 
 export function getJobHandler(
   jobHandlerType: string,
@@ -20,12 +21,14 @@ export function getJobHandler(
   switch (jobHandlerType) {
     case jobDefinitions.jobs.new:
     case jobDefinitions.jobs.update:
-    case jobDefinitions.jobs.swapUpdate:
-    case jobDefinitions.jobs.seed: {
+    case jobDefinitions.jobs.swapUpdate: {
       return new IngestionJobHandler(logger, config, jobManagerClient, job, task);
     }
     case jobDefinitions.jobs.export: {
       return new ExportJobHandler(logger, config, jobManagerClient, job, task);
+    }
+    case jobDefinitions.jobs.seed: {
+      return new SeedJobHandler(logger, config, jobManagerClient, job, task);
     }
     default:
       throw new BadRequestError(`${jobHandlerType} job type is invalid`);

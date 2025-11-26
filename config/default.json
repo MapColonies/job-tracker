@@ -62,6 +62,7 @@
   },
   "taskFlowManager": {
     "ingestionTasksFlow": ["validation", "create-merge-tasks", "tilesMerging", "finalize"],
-    "exportTasksFlow": ["init", "tilesExporting", "polygon-parts", "finalize"]
+    "exportTasksFlow": ["init", "tilesExporting", "polygon-parts", "finalize"],
+    "seedTasksFlow": ["TilesSeeding"]
   }
 }
