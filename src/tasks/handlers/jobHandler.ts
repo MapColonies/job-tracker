@@ -41,7 +41,12 @@ export abstract class JobHandler extends BaseJobHandler {
 
     const isProceedable = this.isProceedable(this.task); // in case of completed task but with errors
     if (!isProceedable.result) {
-      this.logger.info({ msg: `job is not proceedable, suspending job id: ${this.job.id}`, jobId: this.job.id, taskId: this.task.id, reason: isProceedable.reason })
+      this.logger.info({
+        msg: `job is not proceedable, suspending job id: ${this.job.id}`,
+        jobId: this.job.id,
+        taskId: this.task.id,
+        reason: isProceedable.reason,
+      });
       await this.suspendJob(isProceedable.reason);
       return;
     }
@@ -72,7 +77,10 @@ export abstract class JobHandler extends BaseJobHandler {
   }
 
   protected async getJobInitialTasks(task: ITaskResponse<unknown>): Promise<ITaskResponse<unknown>[] | undefined> {
-    const tasks = task.type === this.jobDefinitions.tasks.init ? [task] : await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.init });
+    const tasks =
+      task.type === this.jobDefinitions.tasks.init
+        ? [task]
+        : await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.init });
     return tasks ?? undefined;
   }
 
@@ -122,6 +130,4 @@ export abstract class JobHandler extends BaseJobHandler {
     this.job.taskCount++;
     await this.updateJobProgress();
   }
-
-
 }

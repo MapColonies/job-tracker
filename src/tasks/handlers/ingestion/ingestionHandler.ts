@@ -35,7 +35,7 @@ export class IngestionJobHandler extends JobHandler {
   public isProceedable(task: ITaskResponse<BaseIngestionValidationTaskParams>): { result: boolean; reason?: string } {
     if (task.type !== this.jobDefinitions.tasks.validation) {
       return { result: true };
-    };
+    }
 
     this.logger.info({
       msg: 'Checking if validation task is valid in order to proceed',
@@ -45,7 +45,7 @@ export class IngestionJobHandler extends JobHandler {
     const isValid = task.status === OperationStatus.COMPLETED && task.parameters.isValid;
     const isProceedable = {
       result: isValid,
-      ...(!isValid ? { reason: "Invalid validation task" } : {})
+      ...(!isValid ? { reason: 'Invalid validation task' } : {}),
     };
     return isProceedable;
   }
