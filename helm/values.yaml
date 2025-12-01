@@ -108,7 +108,7 @@ jobDefinitions:
 taskFlowManager:
   ingestionTasksFlow:
   - validation
-  - mergeTaskCreation
+  - create-merge-tasks
   - tilesMerging
   - finalize
   exportTasksFlow:
