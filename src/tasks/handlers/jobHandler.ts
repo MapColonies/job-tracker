@@ -1,7 +1,7 @@
 import { Logger } from '@map-colonies/js-logger';
 import { ConflictError, UnprocessableEntityError } from '@map-colonies/error-types';
 import { IJobResponse, ITaskResponse, JobManagerClient, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
-import { IConfig, IJobDefinitionsConfig, TaskType, TaskTypes } from '../../common/interfaces';
+import { IConfig, IJobDefinitionsConfig, IsProceedableResponse, TaskType, TaskTypes } from '../../common/interfaces';
 import { BaseJobHandler } from './baseJobHandler';
 import { TaskHandler } from './taskHandler';
 
@@ -70,18 +70,10 @@ export abstract class JobHandler extends BaseJobHandler {
   }
 
   // Abstract methods that concrete handlers must implement
-  public abstract isProceedable(init: ITaskResponse<unknown>): { result: boolean; reason?: string };
+  public abstract isProceedable(init: ITaskResponse<unknown>): IsProceedableResponse;
 
   protected initializeTaskOperations(): void {
     this.taskWorker = new TaskHandler(this.logger, this.config, this.jobManager, this.job, this.task, this.tasksFlow, this.excludedTypes);
-  }
-
-  protected async getJobInitialTasks(task: ITaskResponse<unknown>): Promise<ITaskResponse<unknown>[] | undefined> {
-    const tasks =
-      task.type === this.jobDefinitions.tasks.init
-        ? [task]
-        : await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.init });
-    return tasks ?? undefined;
   }
 
   protected isReadyForNextTask(): boolean {

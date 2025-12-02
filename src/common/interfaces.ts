@@ -50,3 +50,8 @@ export interface IJobDefinitionsConfig {
 export interface TaskNotificationRequest {
   taskId: string;
 }
+
+export interface IsProceedableResponse {
+  result: boolean;
+  reason?: string;
+}

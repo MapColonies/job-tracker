@@ -2,7 +2,7 @@ import { Logger } from '@map-colonies/js-logger';
 import { IJobResponse, ITaskResponse, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { injectable, inject } from 'tsyringe';
 import { BaseIngestionValidationTaskParams } from '@map-colonies/raster-shared';
-import { IConfig, TaskTypes } from '../../../common/interfaces';
+import { IConfig, IsProceedableResponse, TaskTypes } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
 import { JobHandler } from '../jobHandler';
 
@@ -32,7 +32,7 @@ export class IngestionJobHandler extends JobHandler {
     this.initializeTaskOperations();
   }
 
-  public isProceedable(task: ITaskResponse<BaseIngestionValidationTaskParams>): { result: boolean; reason?: string } {
+  public isProceedable(task: ITaskResponse<BaseIngestionValidationTaskParams>): IsProceedableResponse {
     if (task.type !== this.jobDefinitions.tasks.validation) {
       return { result: true };
     }
@@ -48,10 +48,5 @@ export class IngestionJobHandler extends JobHandler {
       ...(!isValid ? { reason: 'Invalid validation task' } : {}),
     };
     return isProceedable;
-  }
-
-  protected async getJobInitialTasks(): Promise<ITaskResponse<unknown>[] | undefined> {
-    const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.validation });
-    return tasks ?? undefined;
   }
 }
