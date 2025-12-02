@@ -3,7 +3,7 @@ import { Logger } from '@map-colonies/js-logger';
 import { JobManagerClient, OperationStatus, IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import { TaskHandler } from '../../../../src/tasks/handlers/taskHandler';
 import { IConfig, TaskTypes, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
-import { getExportJobMock, getTaskMock } from '../../../mocks/JobMocks';
+import { getExportJobMock, getTaskMock } from '../../../mocks/jobMocks';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
 
 // Test helper functions
@@ -194,79 +194,6 @@ describe('WorkflowTaskOperations', () => {
 
       // When: checking if task creation should be skipped
       const result = operations.shouldSkipTaskCreation(nonExcludedTaskType);
-
-      // Then: should return false
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('getInitTasks', () => {
-    it('should return init tasks when found', async () => {
-      // Given: init tasks exist
-      const mockInitTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED });
-      mockJobManager.findTasks.mockResolvedValue([mockInitTask]);
-
-      // When: finding init tasks
-      const result = await operations.getInitTasks();
-
-      // Then: should return init tasks and call job manager with correct parameters
-      expect(result).toEqual([mockInitTask]);
-      expect(mockJobManager.findTasks).toHaveBeenCalledWith({
-        jobId: mockJob.id,
-        type: jobDefinitionsConfig.tasks.init,
-      });
-    });
-
-    it('should return undefined when no init tasks found', async () => {
-      // Given: no init tasks exist
-      mockJobManager.findTasks.mockResolvedValue(null);
-
-      // When: finding init tasks
-      const result = await operations.getInitTasks();
-
-      // Then: should return undefined
-      expect(result).toBeUndefined();
-    });
-  });
-
-  describe('isInitialWorkflowCompleted', () => {
-    it('should return true when all tasks completed and all init tasks are completed', () => {
-      // Given: all tasks completed and init tasks completed
-      mockJob.completedTasks = 10;
-      mockJob.taskCount = 10;
-      const completedInitTasks = [
-        getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED }),
-        getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED }),
-      ];
-
-      // When: checking if initial workflow is completed
-      const result = operations.isInitialWorkflowCompleted(completedInitTasks);
-
-      // Then: should return true
-      expect(result).toBe(true);
-    });
-
-    it('should return false when not all tasks completed', () => {
-      // Given: not all tasks completed
-      mockJob.completedTasks = 5;
-      mockJob.taskCount = 10;
-      const completedInitTasks = [getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED })];
-
-      // When: checking if initial workflow is completed
-      const result = operations.isInitialWorkflowCompleted(completedInitTasks);
-
-      // Then: should return false
-      expect(result).toBe(false);
-    });
-
-    it('should return false when all tasks completed but init tasks are not completed', () => {
-      // Given: all tasks completed but init tasks not completed
-      mockJob.completedTasks = 10;
-      mockJob.taskCount = 10;
-      const incompleteInitTasks = [getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.IN_PROGRESS })];
-
-      // When: checking if initial workflow is completed
-      const result = operations.isInitialWorkflowCompleted(incompleteInitTasks);
 
       // Then: should return false
       expect(result).toBe(false);

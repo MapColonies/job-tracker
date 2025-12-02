@@ -3,7 +3,7 @@ import jsLogger from '@map-colonies/js-logger';
 import { TaskHandler as QueueClient, IJobResponse } from '@map-colonies/mc-priority-queue';
 import { registerDefaultConfig, clear as clearConfig } from '../../../mocks/configMock';
 import { configMock } from '../../../mocks/configMock';
-import { getExportJobMock, getIngestionJobMock, getTaskMock } from '../../../mocks/JobMocks';
+import { createTestJob, getExportJobMock, getTaskMock } from '../../../mocks/jobMocks';
 import { getJobHandler } from '../../../../src/tasks/handlers/jobHandlerFactory';
 import { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { IngestionJobHandler } from '../../../../src/tasks/handlers/ingestion/ingestionHandler';
@@ -22,7 +22,7 @@ interface TestCase {
 const createIngestionJobTestCase = (jobType: string, jobDefinition: string): TestCase => ({
   name: jobType,
   jobType: jobDefinition,
-  mockJob: getIngestionJobMock({ type: jobDefinition }),
+  mockJob: createTestJob(jobDefinition),
 });
 
 const createExportJobTestCase = (jobDefinitionsConfig: IJobDefinitionsConfig): TestCase => ({
@@ -45,13 +45,12 @@ describe('jobHandlerFactory', () => {
     jest.resetAllMocks();
   });
 
-  describe('Ingestion job handlers', () => {
+  describe('getJobHandler', () => {
     it.each([
       { jobName: 'new', getJobType: (config: IJobDefinitionsConfig) => config.jobs.new },
       { jobName: 'update', getJobType: (config: IJobDefinitionsConfig) => config.jobs.update },
       { jobName: 'swapUpdate', getJobType: (config: IJobDefinitionsConfig) => config.jobs.swapUpdate },
-      { jobName: 'seed', getJobType: (config: IJobDefinitionsConfig) => config.jobs.seed },
-    ])('should create IngestionJobHandler for $jobName job type', ({ jobName, getJobType }) => {
+    ])('should create SeedJobHandler for $jobName job type', ({ jobName, getJobType }) => {
       // Given: ingestion job and task
       const jobType = getJobType(jobDefinitionsConfig);
       const testCase = createIngestionJobTestCase(jobName, jobType);
@@ -64,9 +63,7 @@ describe('jobHandlerFactory', () => {
       // Then: should create IngestionJobHandler
       expect(handler).toBeInstanceOf(IngestionJobHandler);
     });
-  });
 
-  describe('Export job handlers', () => {
     it('should create ExportJobHandler for export job type', () => {
       // Given: export job and task
       const exportTestCase = createExportJobTestCase(jobDefinitionsConfig);

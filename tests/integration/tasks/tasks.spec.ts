@@ -1,6 +1,6 @@
 import nock from 'nock';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
-import _ from 'lodash';
+import _, { create } from 'lodash';
 import { StatusCodes as httpStatusCodes } from 'http-status-codes';
 import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams } from '@map-colonies/raster-shared';
 import { ExportFinalizeType } from '@map-colonies/raster-shared';
@@ -8,8 +8,8 @@ import { trace } from '@opentelemetry/api';
 import jsLogger from '@map-colonies/js-logger';
 import { configMock, init, setValue } from '../../mocks/configMock';
 import { getApp } from '../../../src/app';
-import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../src/common/interfaces';
-import { getExportJobMock, getIngestionJobMock, getSeedingJobMock, getTaskMock } from '../../mocks/JobMocks';
+import { IJobManagerConfig, IjobDefinitionsConfigMock } from '../../../src/common/interfaces';
+import { createTestJob, getExportJobMock, getSeedingJobMock, getTaskMock } from '../../mocks/jobMocks';
 import { calculateJobPercentage } from '../../../src/utils/jobUtils';
 import { SERVICES } from '../../../src/common/constants';
 import { registerExternalValues } from '../../../src/containerConfig';
@@ -19,7 +19,7 @@ import { getTestContainerConfig, resetContainer } from './helpers/containerConfi
 describe('tasks', function () {
   let requestSender: TasksRequestSender;
   let jobManagerConfigMock: IJobManagerConfig;
-  let jobDefinitionsConfigMock: IJobDefinitionsConfig;
+  let jobDefinitionsConfigMock: IjobDefinitionsConfigMock;
 
   beforeEach(function () {
     const [app] = getApp({
@@ -37,7 +37,7 @@ describe('tasks', function () {
 
     requestSender = new TasksRequestSender(app);
     jobManagerConfigMock = configMock.get<IJobManagerConfig>('jobManagement.config');
-    jobDefinitionsConfigMock = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
+    jobDefinitionsConfigMock = configMock.get<IjobDefinitionsConfigMock>('jobDefinitions');
     nock.cleanAll();
   });
 
@@ -52,7 +52,7 @@ describe('tasks', function () {
   describe('Happy Path', function () {
     it('should return 200 and create polygon parts task when getting tiles merging completed task', async () => {
       // mocks
-      const mockIngestionJob = getIngestionJobMock();
+      const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
       const mockInitTask = getTaskMock(mockIngestionJob.id, {
         type: jobDefinitionsConfigMock.tasks.init,
@@ -80,7 +80,7 @@ describe('tasks', function () {
 
     it('should return 200 and create polygon-parts task when getting completed init task that finished after merge tasks', async () => {
       // mocks
-      const mockIngestionJob = getIngestionJobMock();
+      const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
       const mockInitTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockInitTask.id }).reply(httpStatusCodes.OK, [mockInitTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
@@ -105,7 +105,7 @@ describe('tasks', function () {
 
     it('should return 200 and create finalize task when getting polygon parts completed task', async () => {
       // mocks
-      const mockIngestionJob = getIngestionJobMock();
+      const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
       const mockInitTask = getTaskMock(mockIngestionJob.id, {
         type: jobDefinitionsConfigMock.tasks.init,
         status: OperationStatus.COMPLETED,
@@ -137,7 +137,7 @@ describe('tasks', function () {
 
     it('should return 200 and fail job when getting failed task whose type is not in suspendingTaskTypes list', async () => {
       // mocks
-      const mockIngestionJob = getIngestionJobMock();
+      const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.FAILED });
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .get(`/jobs/${mockIngestionJob.id}`)
@@ -567,7 +567,7 @@ describe('tasks', function () {
 
     it('should return 200 and suspend job when getting failed task whose type is in suspendingTaskTypes list', async () => {
       // mocks
-      const mockIngestionJob = getIngestionJobMock();
+      const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.polygonParts, status: OperationStatus.FAILED });
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .get(`/jobs/${mockIngestionJob.id}`)
@@ -586,7 +586,7 @@ describe('tasks', function () {
 
     it("should return 200 when getting completed task who'se job's init task status is in progress", async () => {
       // mocks
-      const mockIngestionJob = getIngestionJobMock();
+      const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
       mockIngestionJob.completedTasks = 4;
       mockIngestionJob.inProgressTasks = 1;
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
@@ -840,7 +840,7 @@ describe('tasks', function () {
       'should return 200 and create finalize task with job-type-specific parameters for $jobType ingestion',
       async ({ jobTypeKey, expectedParameters }) => {
         // mocks
-        const mockIngestionJob = getIngestionJobMock({ type: jobDefinitionsConfigMock.jobs[jobTypeKey] });
+        const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs[jobTypeKey]);
         const mockPolygonPartsTask = getTaskMock(mockIngestionJob.id, {
           type: jobDefinitionsConfigMock.tasks.polygonParts,
           status: OperationStatus.COMPLETED,
@@ -880,7 +880,7 @@ describe('tasks', function () {
 
     it('should return 200 and handle ConflictError gracefully when task already exists', async () => {
       // mocks
-      const mockIngestionJob = getIngestionJobMock();
+      const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
       const mockInitTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
 
@@ -934,7 +934,7 @@ describe('tasks', function () {
       {
         taskType: 'init',
         jobType: 'ingestion',
-        getJobMock: () => getIngestionJobMock(),
+        getJobMock: () => createTestJob(),
         taskTypeKey: 'init' as const,
         reason: 'Init task failed due to invalid parameters',
       },
@@ -1000,7 +1000,7 @@ describe('tasks', function () {
 
     it('should return 200 and apply suspension logic for polygon-parts task failures', async () => {
       // mocks
-      const mockIngestionJob = getIngestionJobMock();
+      const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
       const mockPolygonPartsTask = getTaskMock(mockIngestionJob.id, {
         type: jobDefinitionsConfigMock.tasks.polygonParts,
         status: OperationStatus.FAILED,
@@ -1043,7 +1043,7 @@ describe('tasks', function () {
     // All requests with status code 4XX-5XX
     it('should return 404 if the task given does not exists', async () => {
       // mocks
-      const mockIngestionJob = getIngestionJobMock();
+      const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post(`/tasks/find`, { id: mockMergeTask.id })
@@ -1057,7 +1057,7 @@ describe('tasks', function () {
 
     it('should return 428 if the task given is neither in "Completed" nor "Failed" status', async () => {
       // mocks
-      const mockIngestionJob = getIngestionJobMock();
+      const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.PENDING });
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(httpStatusCodes.OK, [mockMergeTask]);
       // action
