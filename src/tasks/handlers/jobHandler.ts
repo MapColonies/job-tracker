@@ -1,7 +1,7 @@
 import { Logger } from '@map-colonies/js-logger';
-import { ConflictError, UnprocessableEntityError } from '@map-colonies/error-types';
+import { ConflictError } from '@map-colonies/error-types';
 import { IJobResponse, ITaskResponse, JobManagerClient, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
-import { IConfig, IJobDefinitionsConfig, IsProceedableResponse, TaskType, TaskTypes } from '../../common/interfaces';
+import { IConfig, IJobDefinitionsConfig, IsProceedableResponse, TaskTypes } from '../../common/interfaces';
 import { BaseJobHandler } from './baseJobHandler';
 import { TaskHandler } from './taskHandler';
 
@@ -69,9 +69,6 @@ export abstract class JobHandler extends BaseJobHandler {
     }
   }
 
-  // Abstract methods that concrete handlers must implement
-  public abstract isProceedable(init: ITaskResponse<unknown>): IsProceedableResponse;
-
   protected initializeTaskOperations(): void {
     this.taskWorker = new TaskHandler(this.logger, this.config, this.jobManager, this.job, this.task, this.tasksFlow, this.excludedTypes);
   }
@@ -122,4 +119,7 @@ export abstract class JobHandler extends BaseJobHandler {
     this.job.taskCount++;
     await this.updateJobProgress();
   }
+
+  // Abstract methods that concrete handlers must implement
+  public abstract isProceedable(init: ITaskResponse<unknown>): IsProceedableResponse;
 }
