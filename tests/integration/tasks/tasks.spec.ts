@@ -50,7 +50,7 @@ describe('tasks', function () {
   });
 
   describe('Happy Path', function () {
-    it('should return 200 and create polygon parts task when getting tiles merging completed task', async () => {
+    it('should return 200 and create relevant next task when getting tiles merging completed task', async () => {
       // mocks
       const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
@@ -934,7 +934,7 @@ describe('tasks', function () {
       {
         taskType: 'init',
         jobType: 'ingestion',
-        getJobMock: () => createTestJob(),
+        getJobMock: () => createTestJob(jobDefinitionsConfigMock.),
         taskTypeKey: 'init' as const,
         reason: 'Init task failed due to invalid parameters',
       },

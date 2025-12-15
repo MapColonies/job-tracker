@@ -26,7 +26,7 @@ describe('IngestionJobHandler', () => {
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.swapUpdate) },
   ];
 
-  const testCaseHandlerLog = '$jobType handler';
+  const testCaseHandlerLog = '$mockJob.type handler';
 
   beforeEach(() => {
     registerDefaultConfig();
