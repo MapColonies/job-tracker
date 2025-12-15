@@ -7,20 +7,27 @@ import { mockJobManager, queueClientMock } from '../../../mocks/mockJobManager';
 import { getJobHandler } from '../../../../src/tasks/handlers/jobHandlerFactory';
 
 describe('BaseJobHandler', () => {
-  let mockJob: IJobResponse<unknown, unknown>;
   let mockTask: ITaskResponse<unknown>;
+  let testCases: {
+    mockJob: IJobResponse<unknown, unknown>;
+  }[] = [];
 
   const mockLogger = jsLogger({ enabled: false });
 
   registerDefaultConfig();
-
   const jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
-  const jobTypes = Object.values<string>(jobDefinitionsConfig.jobs);
+  testCases = [
+    { mockJob: createTestJob(jobDefinitionsConfig.jobs.new) },
+    { mockJob: createTestJob(jobDefinitionsConfig.jobs.update) },
+    { mockJob: createTestJob(jobDefinitionsConfig.jobs.swapUpdate) },
+    { mockJob: createTestJob(jobDefinitionsConfig.jobs.export) },
+    { mockJob: createTestJob(jobDefinitionsConfig.jobs.seed) },
+  ];
+
+  const testCaseHandlerLog = '$jobType handler';
 
   beforeEach(() => {
     registerDefaultConfig();
-    // Extract config values
-    mockJob = createTestJob(jobDefinitionsConfig.jobs.new);
   });
 
   afterEach(() => {
@@ -29,9 +36,10 @@ describe('BaseJobHandler', () => {
   });
 
   describe('completeJob', () => {
-    it.each(jobTypes)('should update job status to completed with 100% progress - %s handler', async (type) => {
-      mockJob = { ...mockJob, type, completedTasks: 10, taskCount: 10 };
-      const handler = getJobHandler(type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
+    it.each(testCases)(`should update job status to completed with 100% progress - ${testCaseHandlerLog}`, async (testCase) => {
+      let { mockJob } = testCase;
+      mockJob = { ...mockJob, completedTasks: 10, taskCount: 10 };
+      const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
 
       // When: completing job
       await handler.completeJob();
@@ -45,8 +53,9 @@ describe('BaseJobHandler', () => {
   });
 
   describe('failJob', () => {
-    it.each(jobTypes)('should fail job with provided reason - %s handler', async (type) => {
-      const handler = getJobHandler(type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
+    it.each(testCases)(`should fail job with provided reason - ${testCaseHandlerLog}`, async (testCase) => {
+      const { mockJob } = testCase;
+      const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
       // Given: specific failure reason
       const reason = 'Task failed reason';
 
@@ -60,8 +69,9 @@ describe('BaseJobHandler', () => {
       });
     });
 
-    it.each(jobTypes)('should fail job with default reason when none provided', async (type) => {
-      const handler = getJobHandler(type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
+    it.each(testCases)(`should fail job with default reason when none provided - ${testCaseHandlerLog}`, async (testCase) => {
+      const { mockJob } = testCase;
+      const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
 
       // When: failing job without reason
       await handler.failJob();
@@ -75,8 +85,9 @@ describe('BaseJobHandler', () => {
   });
 
   describe('suspendJob', () => {
-    it.each(jobTypes)('should suspend job with provided reason - %s handler', async (type) => {
-      const handler = getJobHandler(type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
+    it.each(testCases)(`should suspend job with provided reason - ${testCaseHandlerLog}`, async (testCase) => {
+      const { mockJob } = testCase;
+      const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
       // Given: specific suspension reason
       const reason = 'Task suspend reason';
 
@@ -90,8 +101,9 @@ describe('BaseJobHandler', () => {
       });
     });
 
-    it.each(jobTypes)('should suspend job with default reason when none provided - %s handler', async (type) => {
-      const handler = getJobHandler(type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
+    it.each(testCases)(`should suspend job with default reason when none provided - ${testCaseHandlerLog}`, async (testCase) => {
+      const { mockJob } = testCase;
+      const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
       // When: suspending job without reason
       await handler.suspendJob();
 
@@ -104,10 +116,11 @@ describe('BaseJobHandler', () => {
   });
 
   describe('updateJobProgress', () => {
-    it.each(jobTypes)('should update job progress based on completed/total tasks - %s handler', async (type) => {
+    it.each(testCases)(`should update job progress based on completed/total tasks - ${testCaseHandlerLog}`, async (testCase) => {
+      let { mockJob } = testCase;
       // Given: job with 5/10 tasks completed (50%)
       mockJob = { ...mockJob, completedTasks: 5, taskCount: 10 };
-      const handler = getJobHandler(type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
+      const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
 
       // When: updating job progress
       await handler.updateJobProgress();
@@ -120,13 +133,14 @@ describe('BaseJobHandler', () => {
   });
 
   describe('isJobCompleted', () => {
-    it.each(jobTypes)('should return true when all tasks are completed - %s handler', (type) => {
-      mockJob = { ...mockJob, type, completedTasks: 10, taskCount: 10 };
+    it.each(testCases)(`should return true when all tasks are completed - ${testCaseHandlerLog}`, (testCase) => {
+      let { mockJob } = testCase;
+      mockJob = { ...mockJob, completedTasks: 10, taskCount: 10 };
       mockTask = getTaskMock<unknown>(mockJob.id, {
         type: jobDefinitionsConfig.tasks.finalize,
         status: OperationStatus.COMPLETED,
       });
-      const handler = getJobHandler(type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
+      const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
 
       // When: checking if job is completed
       const result = handler.isJobCompleted(mockTask.type);
@@ -135,13 +149,14 @@ describe('BaseJobHandler', () => {
       expect(result).toBe(true);
     });
 
-    it.each(jobTypes)('should return false when not all of the tasks are completed - %s handler', (type) => {
+    it.each(testCases)(`should return false when not all of the tasks are completed - ${testCaseHandlerLog}`, (testCase) => {
+      let { mockJob } = testCase;
       mockJob = { ...mockJob, completedTasks: 5, taskCount: 10 };
       mockTask = getTaskMock<unknown>(mockJob.id, {
         type: jobDefinitionsConfig.tasks.finalize,
         status: OperationStatus.COMPLETED,
       });
-      const handler = getJobHandler(type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
+      const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
 
       // When: checking if job is completed
       const result = handler.isJobCompleted(mockTask.type);

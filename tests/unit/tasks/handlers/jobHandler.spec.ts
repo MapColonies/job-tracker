@@ -15,6 +15,11 @@ describe('JobHandler', () => {
 
   const jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
   const jobTypes = Object.values<string>(jobDefinitionsConfig.jobs);
+  const testCases = [
+    { mockJob: createTestJob(jobDefinitionsConfig.jobs.new), taskType: jobDefinitionsConfig.tasks.merge },
+    { mockJob: createTestJob(jobDefinitionsConfig.jobs.update), taskType: jobDefinitionsConfig.tasks.merge },
+    { mockJob: createTestJob(jobDefinitionsConfig.jobs.swapUpdate), taskType: jobDefinitionsConfig.tasks.merge },
+  ];
 
   beforeEach(() => {
     registerDefaultConfig();
@@ -28,14 +33,15 @@ describe('JobHandler', () => {
   });
 
   describe('handleFailedTask', () => {
-    it.each(jobTypes)('should fail job when task type is failed - %s handler', async (type) => {
+    it.each(testCases)('should fail job when task type is failed - %s handler', async (testCase) => {
+      let { mockJob, taskType } = testCase;
       mockTask = getTaskMock(mockJob.id, {
-        type: jobDefinitionsConfig.tasks.merge,
+        type: taskType,
         status: OperationStatus.FAILED,
         reason: 'Task fail reason',
       });
 
-      const handler = getJobHandler(type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
+      const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
 
       // When: handling failed task
       await handler.handleFailedTask();
