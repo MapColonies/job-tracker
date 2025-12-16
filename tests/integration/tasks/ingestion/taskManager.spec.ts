@@ -1,32 +1,40 @@
 import nock from 'nock';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
-import _, { create } from 'lodash';
 import { StatusCodes as httpStatusCodes } from 'http-status-codes';
-import { BaseIngestionValidationTaskParams, ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams } from '@map-colonies/raster-shared';
-import { ExportFinalizeType } from '@map-colonies/raster-shared';
+import { BaseIngestionValidationTaskParams } from '@map-colonies/raster-shared';
 import { trace } from '@opentelemetry/api';
 import jsLogger from '@map-colonies/js-logger';
-import { configMock, init, registerDefaultConfig, setValue } from '../../../mocks/configMock';
+import { configMock, registerDefaultConfig } from '../../../mocks/configMock';
 import { getApp } from '../../../../src/app';
-import { createTestJob, getExportJobMock, getSeedingJobMock, getTaskMock } from '../../../mocks/jobMocks';
+import { createTestJob, getTaskMock } from '../../../mocks/jobMocks';
 import { calculateJobPercentage } from '../../../../src/utils/jobUtils';
 import { SERVICES } from '../../../../src/common/constants';
 import { registerExternalValues } from '../../../../src/containerConfig';
 import { TasksRequestSender } from '../helpers/requestSender';
 import { getTestContainerConfig, resetContainer } from '../helpers/containerConfig';
 import { IJobDefinitionsConfig, IJobManagerConfig } from '../../../../src/common/interfaces';
+import _ from 'lodash';
 
 describe('tasksManager', function () {
   let requestSender: TasksRequestSender;
   let jobManagerConfigMock: IJobManagerConfig;
-  
+
   registerDefaultConfig();
   const jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
 
-  const testCases = [
-    { mockJob: createTestJob(jobDefinitionsConfig.jobs.new) },
-    { mockJob: createTestJob(jobDefinitionsConfig.jobs.update) },
-    { mockJob: createTestJob(jobDefinitionsConfig.jobs.swapUpdate) },
+  const parameterTestCases = [
+    {
+      mockJob: createTestJob(jobDefinitionsConfig.jobs.new),
+      expectedFinalizeParameters: { insertedToCatalog: false, insertedToGeoServer: false, insertedToMapproxy: false },
+    },
+    {
+      mockJob: createTestJob(jobDefinitionsConfig.jobs.update),
+      expectedFinalizeParameters: { updatedInCatalog: false },
+    },
+    {
+      mockJob: createTestJob(jobDefinitionsConfig.jobs.swapUpdate),
+      expectedFinalizeParameters: { updatedInCatalog: false, updatedInMapproxy: false },
+    },
   ];
 
   beforeEach(function () {
@@ -57,8 +65,9 @@ describe('tasksManager', function () {
   });
 
   describe('Happy Path', function () {
-    it.only.each(testCases)('should return 200 and create "merge-tasks-creation" as next task type when "validation" task completed and is valid', async (testCase) => {
-      let { mockJob } = testCase;
+    it.each(parameterTestCases)('should return 200 and create "merge-tasks-creation" as next task type when "validation" task completed and is valid', async (parameterTestCase) => {
+      let { mockJob } = parameterTestCase;
+      mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
       const mockValidationTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
         type: jobDefinitionsConfig.tasks.validation,
         status: OperationStatus.COMPLETED,
@@ -66,1010 +75,397 @@ describe('tasksManager', function () {
       });
 
       nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .post(`/tasks/find`, { jobId: mockJob.id, type: mockValidationTask.type })
+        .post(`/tasks/find`, { id: mockValidationTask.id })
         .reply(httpStatusCodes.OK, [mockValidationTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .get(`/jobs/${mockJob.id}`)
         .query({ shouldReturnTasks: false })
         .reply(httpStatusCodes.OK, mockJob);
-      // nock(jobManagerConfigMock.jobManagerBaseUrl)
-      //   .post(`/jobs/${mockJob.id}/tasks`, _.matches({ type: jobDefinitionsConfig.tasks.mergeTaskCreation }))
-      //   .reply(httpStatusCodes.CREATED);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/jobs/${mockJob.id}/tasks`, { type: jobDefinitionsConfig.tasks.mergeTaskCreation, parameters: {}, blockDuplication: true }).reply(httpStatusCodes.OK);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockJob.id}`).reply(httpStatusCodes.OK);
+
       // action
-      const response = await requestSender.handleTaskNotification(mockJob.id);
+      const response = await requestSender.handleTaskNotification(mockValidationTask.id);
       // expectation
       expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
 
-    // it('should return 200 and create polygon-parts task when getting completed init task that finished after merge tasks', async () => {
-    //   // mocks
-    //   const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
-    //   const mockInitTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockInitTask.id }).reply(httpStatusCodes.OK, [mockInitTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post(`/tasks/find`, { jobId: mockIngestionJob.id, type: mockInitTask.type })
-    //     .reply(httpStatusCodes.OK, [mockInitTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockIngestionJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockIngestionJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockIngestionJob.id}`).reply(httpStatusCodes.OK);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post(`/jobs/${mockIngestionJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts }))
-    //     .reply(httpStatusCodes.CREATED);
+    it.each(parameterTestCases)('should create finalize task with relevant parameters on merge task notify - $mockJob.type', async ({ mockJob, expectedFinalizeParameters }) => {
+      // Arrange
+      mockJob = { ...mockJob, completedTasks: 10, taskCount: 10 };
+      const mockMergeTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+        type: jobDefinitionsConfig.tasks.merge,
+        status: OperationStatus.COMPLETED,
+      });
 
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockInitTask.id);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { id: mockMergeTask.id })
+        .reply(httpStatusCodes.OK, [mockMergeTask]);
 
-    //   // expectation
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockJob);
 
-    // it('should return 200 and create finalize task when getting polygon parts completed task', async () => {
-    //   // mocks
-    //   const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
-    //   const mockInitTask = getTaskMock(mockIngestionJob.id, {
-    //     type: jobDefinitionsConfigMock.tasks.init,
-    //     status: OperationStatus.COMPLETED,
-    //   });
-    //   const mockPolygonPartsTask = getTaskMock(mockIngestionJob.id, {
-    //     type: jobDefinitionsConfigMock.tasks.polygonParts,
-    //     status: OperationStatus.COMPLETED,
-    //   });
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post(`/tasks/find`, { jobId: mockIngestionJob.id, type: mockInitTask.type })
-    //     .reply(httpStatusCodes.OK, [mockInitTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post('/tasks/find', { id: mockPolygonPartsTask.id })
-    //     .reply(httpStatusCodes.OK, [mockPolygonPartsTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockIngestionJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockIngestionJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post(`/jobs/${mockIngestionJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.finalize }))
-    //     .reply(httpStatusCodes.CREATED);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockIngestionJob.id}`).reply(httpStatusCodes.OK);
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockPolygonPartsTask.id);
-    //   // expectation
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post(`/jobs/${mockJob.id}/tasks`, {
+          type: jobDefinitionsConfig.tasks.finalize,
+          parameters: expectedFinalizeParameters,
+          blockDuplication: true,
+        })
+        .reply(httpStatusCodes.OK);
 
-    // it('should return 200 and fail job when getting failed task whose type is not in suspendingTaskTypes list', async () => {
-    //   // mocks
-    //   const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
-    //   const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.FAILED });
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockIngestionJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockIngestionJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(httpStatusCodes.OK, [mockMergeTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .put(`/jobs/${mockIngestionJob.id}`, _.matches({ status: OperationStatus.FAILED }))
-    //     .reply(httpStatusCodes.OK);
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockMergeTask.id);
-    //   // expectation
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+      nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockJob.id}`).reply(httpStatusCodes.OK);
 
-    // it('should return 200 and create polygonParts task when getting completed init task of export job when task count and completed task are equal', async () => {
-    //   // mocks
-    //   const mockExportJob = getExportJobMock();
-    //   const mockInitTask = getTaskMock(mockExportJob.id, {
-    //     type: jobDefinitionsConfigMock.tasks.init,
-    //     status: OperationStatus.COMPLETED,
-    //   });
-    //   const exportPolygonPartsTaskParams = {};
-    //   const mockFullProcessFinalizeTaskParams = {
-    //     parameters: exportPolygonPartsTaskParams,
-    //     type: jobDefinitionsConfigMock.tasks.polygonParts,
-    //     blockDuplication: false,
-    //   };
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockExportJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockExportJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockInitTask.id }).reply(httpStatusCodes.OK, [mockInitTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post(`/tasks/find`, { jobId: mockExportJob.id, type: mockInitTask.type })
-    //     .reply(httpStatusCodes.OK, [mockInitTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post(`/jobs/${mockExportJob.id}/tasks`, mockFullProcessFinalizeTaskParams)
-    //     .reply(httpStatusCodes.CREATED);
-    //   const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockInitTask.id);
-    //   // expectation
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+      // Act
+      const response = await requestSender.handleTaskNotification(mockMergeTask.id);
 
-    // it('should return 200 and create finalize task when getting completed polygonParts task of export job when task count and completed task are equal', async () => {
-    //   // mocks
-    //   const mockExportJob = getExportJobMock();
-    //   const mockPolygonPartsTask = getTaskMock(mockExportJob.id, {
-    //     type: jobDefinitionsConfigMock.tasks.polygonParts,
-    //     status: OperationStatus.COMPLETED,
-    //   });
-    //   const fullProcessingFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
-    //     type: ExportFinalizeType.Full_Processing,
-    //     gpkgModified: false,
-    //     gpkgUploadedToS3: false,
-    //     callbacksSent: false,
-    //   };
-    //   const mockFullProcessFinalizeTaskParams = {
-    //     parameters: fullProcessingFinalizeTaskParams,
-    //     type: jobDefinitionsConfigMock.tasks.finalize,
-    //     blockDuplication: false,
-    //   };
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockExportJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockExportJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post('/tasks/find', { id: mockPolygonPartsTask.id })
-    //     .reply(httpStatusCodes.OK, [mockPolygonPartsTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post(`/tasks/find`, { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
-    //     .reply(httpStatusCodes.OK, [mockPolygonPartsTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post(`/jobs/${mockExportJob.id}/tasks`, mockFullProcessFinalizeTaskParams)
-    //     .reply(httpStatusCodes.CREATED);
-    //   const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockPolygonPartsTask.id);
-    //   // expectation
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+      // Assert
+      expect(response.status).toBe(httpStatusCodes.OK);
+      expect(response).toSatisfyApiSpec();
+    });
 
-    // it('should return 200 and update job progress only when getting completed init task of export job when task count and completed task are not equal', async () => {
-    //   // mocks
-    //   const mockExportJob = getExportJobMock({ completedTasks: 4 });
-    //   const mockInitTask = getTaskMock(mockExportJob.id, {
-    //     type: jobDefinitionsConfigMock.tasks.init,
-    //     status: OperationStatus.COMPLETED,
-    //   });
+    it.each(parameterTestCases)('should create finalize task with relevant parameters for job handler on merge-tasks-creation notify - $mockJob.type', async ({ mockJob, expectedFinalizeParameters }) => {
+      // Arrange
+      mockJob = { ...mockJob, completedTasks: 10, taskCount: 10 };
+      const mockMergeTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+        type: jobDefinitionsConfig.tasks.mergeTaskCreation,
+        status: OperationStatus.COMPLETED,
+      });
 
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockExportJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockExportJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockInitTask.id }).reply(httpStatusCodes.OK, [mockInitTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post(`/tasks/find`, { jobId: mockExportJob.id, type: mockInitTask.type })
-    //     .reply(httpStatusCodes.OK, [mockInitTask]);
-    //   const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockInitTask.id);
-    //   // expectation
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
 
-    // it('should return 200 and create polygon-parts task when getting completed export merging task and init is completed', async () => {
-    //   // mocks
-    //   const mockExportJob = getExportJobMock();
-    //   const mockExportingTask = getTaskMock(mockExportJob.id, {
-    //     type: jobDefinitionsConfigMock.tasks.export,
-    //     status: OperationStatus.COMPLETED,
-    //   });
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { id: mockMergeTask.id })
+        .reply(httpStatusCodes.OK, [mockMergeTask]);
 
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockExportJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockExportJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockExportingTask.id }).reply(httpStatusCodes.OK, [mockExportingTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post('/tasks/find', { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
-    //     .reply(httpStatusCodes.OK, [mockExportingTask]);
-    //   const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post(`/jobs/${mockExportJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts }))
-    //     .reply(httpStatusCodes.CREATED);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockJob);
 
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockExportingTask.id);
-    //   // expectation
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post(`/jobs/${mockJob.id}/tasks`, {
+          type: jobDefinitionsConfig.tasks.finalize,
+          parameters: expectedFinalizeParameters,
+          blockDuplication: true,
+        })
+        .reply(httpStatusCodes.OK);
 
-    // it('should return 200 when getting completed task whose job have no init task', async () => {
-    //   // mocks
-    //   const mockExportJob = getExportJobMock();
-    //   const mockMergeTask = getTaskMock(mockExportJob.id, { type: jobDefinitionsConfigMock.tasks.export, status: OperationStatus.COMPLETED });
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(httpStatusCodes.OK, [mockMergeTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockExportJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockExportJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post('/tasks/find', { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
-    //     .reply(httpStatusCodes.NOT_FOUND);
-    //   const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK); // update job progress on notify - but nothing will really update since same task count.
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockMergeTask.id);
-    //   // expectation
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+      nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockJob.id}`).reply(httpStatusCodes.OK);
 
-    // it('should return 200 and create finalize task when getting failed task of export job', async () => {
-    //   // mocks
-    //   const mockExportJob = getExportJobMock();
-    //   const mockExportTask = getTaskMock(mockExportJob.id, {
-    //     type: jobDefinitionsConfigMock.tasks.export,
-    //     status: OperationStatus.FAILED,
-    //     reason: 'reason',
-    //   });
+      // Act
+      const response = await requestSender.handleTaskNotification(mockMergeTask.id);
 
-    //   const mockExportErrorFinalizeTaskParams = {
-    //     parameters: { callbacksSent: false, type: ExportFinalizeType.Error_Callback },
-    //     type: jobDefinitionsConfigMock.tasks.finalize,
-    //     blockDuplication: false,
-    //   };
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockExportJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockExportJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockExportTask.id }).reply(httpStatusCodes.OK, [mockExportTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post(`/jobs/${mockExportJob.id}/tasks`, mockExportErrorFinalizeTaskParams)
-    //     .reply(httpStatusCodes.CREATED);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .put(`/jobs/${mockExportJob.id}`, { status: OperationStatus.FAILED, reason: mockExportTask.reason })
-    //     .reply(httpStatusCodes.OK);
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockExportTask.id);
-    //   // expectation
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+      // Assert
+      expect(response.status).toBe(httpStatusCodes.OK);
+      expect(response).toSatisfyApiSpec();
+    });
 
-    // it('should return 200 and complete job when getting completed export finalize task', async () => {
-    //   const mockExportJob = getExportJobMock();
-    //   const fullProccessingFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
-    //     type: ExportFinalizeType.Full_Processing,
-    //     gpkgModified: true,
-    //     gpkgUploadedToS3: true,
-    //     callbacksSent: true,
-    //   };
-    //   const mockFinalizeTask = getTaskMock(mockExportJob.id, {
-    //     type: jobDefinitionsConfigMock.tasks.finalize,
-    //     status: OperationStatus.COMPLETED,
-    //     parameters: fullProccessingFinalizeTaskParams,
-    //   });
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockExportJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockExportJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(httpStatusCodes.OK, [mockFinalizeTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .put(`/jobs/${mockExportJob.id}`, _.matches({ status: OperationStatus.COMPLETED }))
-    //     .reply(httpStatusCodes.OK);
+    it.each(parameterTestCases)('should complete job when entire task are completed on finalize task notify - $mockJob.type', async ({ mockJob }) => {
+      // Arrange
+      mockJob = { ...mockJob, completedTasks: 10, taskCount: 10 };
+      const mockMergeTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+        type: jobDefinitionsConfig.tasks.finalize,
+        status: OperationStatus.COMPLETED,
+      });
 
-    //   const response = await requestSender.handleTaskNotification(mockFinalizeTask.id);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { id: mockMergeTask.id })
+        .reply(httpStatusCodes.OK, [mockMergeTask]);
 
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockJob);
 
-    // it('should return 200 and fail export job when error callback export finalize task type is failing', async () => {
-    //   const mockExportJob = getExportJobMock();
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .put(`/jobs/${mockJob.id}`, { status: OperationStatus.COMPLETED, percentage: 100 })
+        .reply(httpStatusCodes.OK);
 
-    //   const mockExportErrorFinalizeTaskParams: ExportFinalizeErrorCallbackParams = { callbacksSent: false, type: ExportFinalizeType.Error_Callback };
-    //   const mockFinalizeTask = getTaskMock(mockExportJob.id, {
-    //     type: jobDefinitionsConfigMock.tasks.finalize,
-    //     status: OperationStatus.FAILED,
-    //     reason: 'error reason',
-    //     parameters: mockExportErrorFinalizeTaskParams,
-    //   });
+      // Act
+      const response = await requestSender.handleTaskNotification(mockMergeTask.id);
 
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(httpStatusCodes.OK, [mockFinalizeTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockExportJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockExportJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .put(`/jobs/${mockExportJob.id}`, { status: OperationStatus.FAILED, reason: mockFinalizeTask.reason })
-    //     .reply(httpStatusCodes.OK);
+      // Assert
+      expect(response.status).toBe(httpStatusCodes.OK);
+      expect(response).toSatisfyApiSpec();
+    });
 
-    //   const response = await requestSender.handleTaskNotification(mockFinalizeTask.id);
+    it.each(parameterTestCases)('should update progress and not create next task type if not all of the merge task are completed on merge tasks creation notify - $mockJob.type', async ({ mockJob }) => {
+      // Arrange
+      mockJob = { ...mockJob, completedTasks: 5, taskCount: 10 };
+      const mockMergeTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+        type: jobDefinitionsConfig.tasks.mergeTaskCreation,
+        status: OperationStatus.COMPLETED,
+      });
 
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { id: mockMergeTask.id })
+        .reply(httpStatusCodes.OK, [mockMergeTask]);
 
-    // it('should return 200 and fail export job when full processing export finalize task type is failing', async () => {
-    //   // mocks
-    //   const mockExportJob = getExportJobMock();
-    //   const mockReason = 'finalize task failed';
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockJob);
 
-    //   const mockExportFullProcessingFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
-    //     type: ExportFinalizeType.Full_Processing,
-    //     gpkgModified: true,
-    //     gpkgUploadedToS3: false,
-    //     callbacksSent: false,
-    //   };
-    //   const mockFinalizeTask = getTaskMock(mockExportJob.id, {
-    //     type: jobDefinitionsConfigMock.tasks.finalize,
-    //     status: OperationStatus.FAILED,
-    //     reason: mockReason,
-    //     parameters: mockExportFullProcessingFinalizeTaskParams,
-    //   });
+      const expectedPercentage = calculateJobPercentage(mockJob.completedTasks, mockJob.taskCount);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .put(`/jobs/${mockJob.id}`, (body) => {
+          expect(body.percentage).toBe(expectedPercentage);
+          return true;
+        })
+        .reply(httpStatusCodes.OK);
 
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(httpStatusCodes.OK, [mockFinalizeTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockExportJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockExportJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .put(`/jobs/${mockExportJob.id}`, { status: OperationStatus.FAILED, reason: mockReason })
-    //     .reply(httpStatusCodes.OK);
+      // Act
+      const response = await requestSender.handleTaskNotification(mockMergeTask.id);
 
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockFinalizeTask.id);
+      // Assert
+      expect(response.status).toBe(httpStatusCodes.OK);
+      expect(response).toSatisfyApiSpec();
+    });
 
-    //   // expectation
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+    it.each(parameterTestCases)('should update progress and not create next task type if not all of the merge task are completed on merge task notify - $mockJob.type', async ({ mockJob }) => {
+      // Arrange
+      mockJob = { ...mockJob, completedTasks: 5, taskCount: 10 };
+      const mockMergeTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+        type: jobDefinitionsConfig.tasks.merge,
+        status: OperationStatus.COMPLETED,
+      });
 
-    // it('should return 200 update job percentage when export finalize ErrorCallback completed', async () => {
-    //   // mocks
-    //   const mockExportJob = getExportJobMock({ failedTasks: 1, taskCount: 6, status: OperationStatus.FAILED });
-    //   const mockExportErrorCallbackTaskParams: ExportFinalizeErrorCallbackParams = {
-    //     type: ExportFinalizeType.Error_Callback,
-    //     callbacksSent: false,
-    //   };
-    //   const mockFinalizeTask = getTaskMock(mockExportJob.id, {
-    //     type: jobDefinitionsConfigMock.tasks.finalize,
-    //     status: OperationStatus.COMPLETED,
-    //     parameters: mockExportErrorCallbackTaskParams,
-    //   });
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { id: mockMergeTask.id })
+        .reply(httpStatusCodes.OK, [mockMergeTask]);
 
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(httpStatusCodes.OK, [mockFinalizeTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockExportJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockExportJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .put(`/jobs/${mockExportJob.id}`, { percentage: calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount) })
-    //     .reply(httpStatusCodes.OK);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockJob);
 
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockFinalizeTask.id);
+      const expectedPercentage = calculateJobPercentage(mockJob.completedTasks, mockJob.taskCount);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .put(`/jobs/${mockJob.id}`, (body) => {
+          expect(body.percentage).toBe(expectedPercentage);
+          return true;
+        })
+        .reply(httpStatusCodes.OK);
 
-    //   // expectation
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+      // Act
+      const response = await requestSender.handleTaskNotification(mockMergeTask.id);
 
-    // it('should return 200 complete job and and create following task', async () => {
-    //   // mocks
-    //   const mockExportJob = getExportJobMock();
-    //   setValue('taskFlowManager.exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);
-    //   init();
-    //   const mockExportErrorCallbackTaskParams: ExportFinalizeFullProcessingParams = {
-    //     type: ExportFinalizeType.Full_Processing,
-    //     gpkgModified: true,
-    //     gpkgUploadedToS3: false,
-    //     callbacksSent: false,
-    //   };
-    //   const mockFinalizeTask = getTaskMock(mockExportJob.id, {
-    //     type: jobDefinitionsConfigMock.tasks.finalize,
-    //     status: OperationStatus.COMPLETED,
-    //     parameters: mockExportErrorCallbackTaskParams,
-    //   });
+      // Assert
+      expect(response.status).toBe(httpStatusCodes.OK);
+      expect(response).toSatisfyApiSpec();
+    });
 
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(httpStatusCodes.OK, [mockFinalizeTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockExportJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockExportJob);
+    it.each(parameterTestCases)('should suspend job on completed but invalid validation task notify - $mockJob.type', async ({ mockJob }) => {
+      // Arrange
+      mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
+      const mockValidationTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+        type: jobDefinitionsConfig.tasks.validation,
+        status: OperationStatus.COMPLETED,
+        parameters: { isValid: false }
+      });
 
-    //   // Mock the init tasks lookup that baseCanProceed performs
-    //   const mockInitTask = getTaskMock(mockExportJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post('/tasks/find', { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
-    //     .reply(httpStatusCodes.OK, [mockInitTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { id: mockValidationTask.id })
+        .reply(httpStatusCodes.OK, [mockValidationTask]);
 
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post(`/jobs/${mockExportJob.id}/tasks`, { type: jobDefinitionsConfigMock.tasks.polygonParts, parameters: {}, blockDuplication: false })
-    //     .reply(httpStatusCodes.OK);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .put(`/jobs/${mockExportJob.id}`, { percentage: calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1) })
-    //     .reply(httpStatusCodes.OK);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockJob);
 
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockFinalizeTask.id);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .put(`/jobs/${mockJob.id}`, { status: OperationStatus.SUSPENDED, reason: "Invalid validation task" })
+        .reply(httpStatusCodes.OK);
 
-    //   // expectation
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
 
-    // it('should return 200 complete export job for notified export finalize task completed', async () => {
-    //   const mockExportJob = getExportJobMock();
+      // Act
+      const response = await requestSender.handleTaskNotification(mockValidationTask.id);
 
-    //   const mockExportFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
-    //     gpkgModified: false,
-    //     gpkgUploadedToS3: true,
-    //     callbacksSent: true,
-    //     type: ExportFinalizeType.Full_Processing,
-    //   };
-    //   const mockFinalizeTask = getTaskMock(mockExportJob.id, {
-    //     type: jobDefinitionsConfigMock.tasks.finalize,
-    //     status: OperationStatus.COMPLETED,
-    //     parameters: mockExportFinalizeTaskParams,
-    //   });
+      // Assert
+      expect(response.status).toBe(httpStatusCodes.OK);
+      expect(response).toSatisfyApiSpec();
+    });
 
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(httpStatusCodes.OK, [mockFinalizeTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockExportJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockExportJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .put(`/jobs/${mockExportJob.id}`, _.matches({ status: OperationStatus.COMPLETED }))
-    //     .reply(httpStatusCodes.OK);
+    it.each(parameterTestCases)('should fail job on failed validation task notify - $mockJob.type', async ({ mockJob }) => {
+      // Arrange
+      mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
+      const mockFailedValidationTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+        type: jobDefinitionsConfig.tasks.validation,
+        status: OperationStatus.FAILED,
+        reason: "Validation task failed"
+      });
 
-    //   const response = await requestSender.handleTaskNotification(mockFinalizeTask.id);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { id: mockFailedValidationTask.id })
+        .reply(httpStatusCodes.OK, [mockFailedValidationTask]);
 
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockJob);
 
-    // it('should return 200 and create finalize task on a successful export merge', async () => {
-    //   // mocks
-    //   const mockExportJob = getExportJobMock();
-    //   const mockExportTask = getTaskMock(mockExportJob.id, {
-    //     type: jobDefinitionsConfigMock.tasks.polygonParts,
-    //     status: OperationStatus.COMPLETED,
-    //   });
-    //   const fullProccessingFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
-    //     type: ExportFinalizeType.Full_Processing,
-    //     gpkgModified: false,
-    //     gpkgUploadedToS3: false,
-    //     callbacksSent: false,
-    //   };
-    //   const mockTaskParameters = {
-    //     parameters: fullProccessingFinalizeTaskParams,
-    //     type: jobDefinitionsConfigMock.tasks.finalize,
-    //     blockDuplication: false,
-    //   };
-    //   const mockInitTask = getTaskMock(mockExportJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .put(`/jobs/${mockJob.id}`, { status: OperationStatus.FAILED, reason: mockFailedValidationTask.reason })
+        .reply(httpStatusCodes.OK);
 
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockExportJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockExportJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post('/tasks/find', { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
-    //     .reply(httpStatusCodes.OK, [mockInitTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockExportTask.id }).reply(httpStatusCodes.OK, [mockExportTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/jobs/${mockExportJob.id}/tasks`, mockTaskParameters).reply(httpStatusCodes.CREATED);
-    //   const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockExportTask.id);
-    //   // expectation
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+      // Act
+      const response = await requestSender.handleTaskNotification(mockFailedValidationTask.id);
 
-    // it('should return 200 and suspend job when getting failed task whose type is in suspendingTaskTypes list', async () => {
-    //   // mocks
-    //   const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
-    //   const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.polygonParts, status: OperationStatus.FAILED });
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockIngestionJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockIngestionJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(httpStatusCodes.OK, [mockMergeTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .put(`/jobs/${mockIngestionJob.id}`, _.matches({ status: OperationStatus.SUSPENDED }))
-    //     .reply(httpStatusCodes.OK);
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockMergeTask.id);
-    //   // expectation
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+      // Assert
+      expect(response.status).toBe(httpStatusCodes.OK);
+      expect(response).toSatisfyApiSpec();
+    });
 
-    // it("should return 200 when getting completed task who'se job's init task status is in progress", async () => {
-    //   // mocks
-    //   const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
-    //   mockIngestionJob.completedTasks = 4;
-    //   mockIngestionJob.inProgressTasks = 1;
-    //   const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
-    //   const mockInitTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.IN_PROGRESS });
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(httpStatusCodes.OK, [mockMergeTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockIngestionJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockIngestionJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .post('/tasks/find', { jobId: mockIngestionJob.id, type: jobDefinitionsConfigMock.tasks.init })
-    //     .reply(httpStatusCodes.OK, [mockInitTask]);
-    //   const taskPercentage = calculateJobPercentage(mockIngestionJob.completedTasks, mockIngestionJob.taskCount);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockIngestionJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockMergeTask.id);
-    //   // expectation
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+    it.each(parameterTestCases)('should fail job on failed merge-tasks-creation task notify - $mockJob.type', async ({ mockJob }) => {
+      // Arrange
+      mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
+      const mockFailedMergeTaskCreationTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+        type: jobDefinitionsConfig.tasks.mergeTaskCreation,
+        status: OperationStatus.FAILED,
+        reason: "Failed to create merge tasks"
+      });
 
-    // it('should return 200 when getting completed but not last seeding task', async () => {
-    //   // mocks
-    //   const mockSeedingJob = getSeedingJobMock();
-    //   const mockSeedTask = getTaskMock(mockSeedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockSeedTask.id }).reply(httpStatusCodes.OK, [mockSeedTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockSeedingJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockSeedingJob);
-    //   const taskPercentage = calculateJobPercentage(mockSeedingJob.completedTasks, mockSeedingJob.taskCount);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockSeedingJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockSeedTask.id);
-    //   // expectation
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { id: mockFailedMergeTaskCreationTask.id })
+        .reply(httpStatusCodes.OK, [mockFailedMergeTaskCreationTask]);
 
-    // it('should return 200 when getting last completed seeding task', async () => {
-    //   // mocks
-    //   const mockSeedingJob = getSeedingJobMock({ completedTasks: 5, taskCount: 5 });
-    //   const mockSeedTask = getTaskMock(mockSeedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockSeedTask.id }).reply(httpStatusCodes.OK, [mockSeedTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockSeedingJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockSeedingJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .put(`/jobs/${mockSeedingJob.id}`, { percentage: 100, status: OperationStatus.COMPLETED })
-    //     .reply(httpStatusCodes.OK);
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockSeedTask.id);
-    //   // expectation
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockJob);
 
-    // it('should return 200 when getting failed seeding task', async () => {
-    //   // mocks
-    //   const mockSeedingJob = getSeedingJobMock();
-    //   const mockSeedTask = getTaskMock(mockSeedingJob.id, {
-    //     type: jobDefinitionsConfigMock.tasks.seed,
-    //     status: OperationStatus.FAILED,
-    //     reason: 'some error reason',
-    //   });
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockSeedTask.id }).reply(httpStatusCodes.OK, [mockSeedTask]);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .get(`/jobs/${mockSeedingJob.id}`)
-    //     .query({ shouldReturnTasks: false })
-    //     .reply(httpStatusCodes.OK, mockSeedingJob);
-    //   nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //     .put(`/jobs/${mockSeedingJob.id}`, { status: OperationStatus.FAILED, reason: 'some error reason' })
-    //     .reply(httpStatusCodes.OK);
-    //   // action
-    //   const response = await requestSender.handleTaskNotification(mockSeedTask.id);
-    //   // expectation
-    //   expect(response.status).toBe(httpStatusCodes.OK);
-    //   expect(response).toSatisfyApiSpec();
-    // });
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .put(`/jobs/${mockJob.id}`, { status: OperationStatus.FAILED, reason: mockFailedMergeTaskCreationTask.reason })
+        .reply(httpStatusCodes.OK);
+
+      // Act
+      const response = await requestSender.handleTaskNotification(mockFailedMergeTaskCreationTask.id);
+
+      // Assert
+      expect(response.status).toBe(httpStatusCodes.OK);
+      expect(response).toSatisfyApiSpec();
+    });
+
+    it.each(parameterTestCases)('should fail job on failed merge task notify - $mockJob.type', async ({ mockJob }) => {
+      // Arrange
+      mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
+      const mockFailedMergeTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+        type: jobDefinitionsConfig.tasks.merge,
+        status: OperationStatus.FAILED,
+        reason: "Failed to create merge tasks"
+      });
+
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { id: mockFailedMergeTask.id })
+        .reply(httpStatusCodes.OK, [mockFailedMergeTask]);
+
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockJob);
+
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .put(`/jobs/${mockJob.id}`, { status: OperationStatus.FAILED, reason: mockFailedMergeTask.reason })
+        .reply(httpStatusCodes.OK);
+
+      // Act
+      const response = await requestSender.handleTaskNotification(mockFailedMergeTask.id);
+
+      // Assert
+      expect(response.status).toBe(httpStatusCodes.OK);
+      expect(response).toSatisfyApiSpec();
+    });
+
+    it.each(parameterTestCases)('should fail job on failed finalize task notify - $mockJob.type', async ({ mockJob }) => {
+      // Arrange
+      mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
+      const mockFailedFinalizeTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+        type: jobDefinitionsConfig.tasks.finalize,
+        status: OperationStatus.FAILED,
+        reason: "Failed to create merge tasks"
+      });
+
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { id: mockFailedFinalizeTask.id })
+        .reply(httpStatusCodes.OK, [mockFailedFinalizeTask]);
+
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockJob);
+
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .put(`/jobs/${mockJob.id}`, { status: OperationStatus.FAILED, reason: mockFailedFinalizeTask.reason })
+        .reply(httpStatusCodes.OK);
+
+      // Act
+      const response = await requestSender.handleTaskNotification(mockFailedFinalizeTask.id);
+
+      // Assert
+      expect(response.status).toBe(httpStatusCodes.OK);
+      expect(response).toSatisfyApiSpec();
+    });
   });
 
-  //   describe('Complex Business Logic Scenarios', function () {
-  //     it.each([
-  //       {
-  //         description: 'completed ingestion merge task with completed init task',
-  //         getJobMock: getIngestionJobMock,
-  //         taskType: 'merge',
-  //         blockDuplication: true,
-  //       },
-  //       {
-  //         description: 'completed ingestion init task when completed after merge task',
-  //         getJobMock: getIngestionJobMock,
-  //         taskType: 'init',
-  //         blockDuplication: true,
-  //       },
-  //       {
-  //         description: 'completed export tilesExporting task with completed init task',
-  //         getJobMock: getExportJobMock,
-  //         taskType: 'export',
-  //         blockDuplication: false,
-  //       },
-  //       {
-  //         description: 'completed export init task when completed after tilesExporting task',
-  //         getJobMock: getExportJobMock,
-  //         taskType: 'init',
-  //         blockDuplication: false,
-  //       },
-  //     ])(
-  //       'should return 200 and create polygon-parts task with correct blockDuplication for $description',
-  //       async ({ getJobMock, taskType, blockDuplication }) => {
-  //         // mocks
-  //         const jobMock = getJobMock();
-  //         const taskMock = getTaskMock(jobMock.id, {
-  //           type: jobDefinitionsConfigMock.tasks[taskType as keyof typeof jobDefinitionsConfigMock.tasks],
-  //           status: OperationStatus.COMPLETED,
-  //         });
-  //         const initTaskMock = getTaskMock(jobMock.id, {
-  //           type: jobDefinitionsConfigMock.tasks.init,
-  //           status: OperationStatus.COMPLETED,
-  //         });
+  describe('Bad Path', function () {
+    // All requests with status code of 400
+    it('should return 400 if the endpoint is called with a path parameter that is not a valid uuid', async () => {
+      const response = await requestSender.handleTaskNotification('1');
+      expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
+      expect(response).toSatisfyApiSpec();
+    });
+  });
 
-  //         nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: taskMock.id }).reply(httpStatusCodes.OK, [taskMock]);
-  //         nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //           .post(`/tasks/find`, { jobId: jobMock.id, type: initTaskMock.type })
-  //           .reply(httpStatusCodes.OK, [initTaskMock]);
-  //         nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //           .get(`/jobs/${jobMock.id}`)
-  //           .query({ shouldReturnTasks: false })
-  //           .reply(httpStatusCodes.OK, jobMock);
-  //         nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //           .post(`/jobs/${jobMock.id}/tasks`, {
-  //             parameters: {},
-  //             type: jobDefinitionsConfigMock.tasks.polygonParts,
-  //             blockDuplication,
-  //           })
-  //           .reply(httpStatusCodes.CREATED);
-  //         const taskPercentage = calculateJobPercentage(jobMock.completedTasks, jobMock.taskCount + 1);
-  //         nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${jobMock.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
+  describe('Sad Path', function () {
+    // All requests with status code 4XX-5XX
+    it.each(parameterTestCases)('should return 404 if the task given does not exists', async ({ mockJob }) => {
+      // mocks
+      const mockMergeTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.merge, status: OperationStatus.COMPLETED });
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post(`/tasks/find`, { id: mockMergeTask.id })
+        .reply(httpStatusCodes.NOT_FOUND, 'message: Tasks not found');
+      // action
+      const response = await requestSender.handleTaskNotification(mockMergeTask.id);
+      // expectation
+      expect(response.status).toBe(httpStatusCodes.NOT_FOUND);
+      expect(response).toSatisfyApiSpec();
+    });
 
-  //         // action
-  //         const response = await requestSender.handleTaskNotification(taskMock.id);
+    it.each(parameterTestCases)('should return 428 if the task given is neither in "Completed" nor "Failed" status', async ({ mockJob }) => {
+      // mocks
+      const mockMergeTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.merge, status: OperationStatus.PENDING });
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(httpStatusCodes.OK, [mockMergeTask]);
+      // action
+      const response = await requestSender.handleTaskNotification(mockMergeTask.id);
+      // expectation
+      expect(response.status).toBe(httpStatusCodes.PRECONDITION_REQUIRED);
+      expect(response).toSatisfyApiSpec();
+    });
 
-  //         // expectation
-  //         expect(response.status).toBe(httpStatusCodes.OK);
-  //         expect(response).toSatisfyApiSpec();
-  //       }
-  //     );
+    it.each(parameterTestCases)('should return 200 and handle ConflictError gracefully when task already exists', async ({ mockJob }) => {
+      mockJob = { ...mockJob, completedTasks: 10, taskCount: 10 };
+      // mocks
+      const mockMergeTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.merge, status: OperationStatus.COMPLETED });
 
-  //     it('should return 200 and create export finalize task with Full_Processing type and proper defaults', async () => {
-  //       // mocks
-  //       const mockExportJob = getExportJobMock();
-  //       const mockPolygonPartsTask = getTaskMock(mockExportJob.id, {
-  //         type: jobDefinitionsConfigMock.tasks.polygonParts,
-  //         status: OperationStatus.COMPLETED,
-  //       });
-  //       const mockInitTask = getTaskMock(mockExportJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(httpStatusCodes.OK, [mockMergeTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post(`/jobs/${mockJob.id}/tasks`, _.matches({ type: jobDefinitionsConfig.tasks.finalize }))
+        .reply(httpStatusCodes.CONFLICT, { message: 'Task already exists' });
+      // No job update should happen when there's a conflict
 
-  //       const fullProccessingFinalizeTaskParams = {
-  //         parameters: { type: ExportFinalizeType.Full_Processing, callbacksSent: false, gpkgModified: false, gpkgUploadedToS3: false },
-  //         type: jobDefinitionsConfigMock.tasks.finalize,
-  //         blockDuplication: false,
-  //       };
+      // action
+      const response = await requestSender.handleTaskNotification(mockMergeTask.id);
 
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //         .post('/tasks/find', { id: mockPolygonPartsTask.id })
-  //         .reply(httpStatusCodes.OK, [mockPolygonPartsTask]);
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //         .post(`/tasks/find`, { jobId: mockExportJob.id, type: mockInitTask.type })
-  //         .reply(httpStatusCodes.OK, [mockInitTask]);
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //         .get(`/jobs/${mockExportJob.id}`)
-  //         .query({ shouldReturnTasks: false })
-  //         .reply(httpStatusCodes.OK, mockExportJob);
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //         .post(`/jobs/${mockExportJob.id}/tasks`, fullProccessingFinalizeTaskParams)
-  //         .reply(httpStatusCodes.CREATED);
-  //       const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
+      // expectation
+      expect(response.status).toBe(httpStatusCodes.OK);
+      expect(response).toSatisfyApiSpec();
+    });
 
-  //       // action
-  //       const response = await requestSender.handleTaskNotification(mockPolygonPartsTask.id);
-
-  //       // expectation
-  //       expect(response.status).toBe(httpStatusCodes.OK);
-  //       expect(response).toSatisfyApiSpec();
-  //     });
-
-  //     it('should return 200 and handle workflow continuation when export finalize triggers additional tasks', async () => {
-  //       // mocks
-  //       setValue('taskFlowManager.exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);
-  //       init();
-
-  //       const mockExportJob = getExportJobMock();
-  //       const mockExportFullProcessingFinalizeTaskParams: ExportFinalizeFullProcessingParams = {
-  //         type: ExportFinalizeType.Full_Processing,
-  //         gpkgModified: true,
-  //         gpkgUploadedToS3: false,
-  //         callbacksSent: false,
-  //       };
-  //       const mockFinalizeTask = getTaskMock(mockExportJob.id, {
-  //         type: jobDefinitionsConfigMock.tasks.finalize,
-  //         status: OperationStatus.COMPLETED,
-  //         parameters: mockExportFullProcessingFinalizeTaskParams,
-  //       });
-  //       const mockInitTask = getTaskMock(mockExportJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
-
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(httpStatusCodes.OK, [mockFinalizeTask]);
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //         .get(`/jobs/${mockExportJob.id}`)
-  //         .query({ shouldReturnTasks: false })
-  //         .reply(httpStatusCodes.OK, mockExportJob);
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //         .post('/tasks/find', { jobId: mockExportJob.id, type: jobDefinitionsConfigMock.tasks.init })
-  //         .reply(httpStatusCodes.OK, [mockInitTask]);
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //         .post(`/jobs/${mockExportJob.id}/tasks`, {
-  //           type: jobDefinitionsConfigMock.tasks.polygonParts,
-  //           parameters: {},
-  //           blockDuplication: false,
-  //         })
-  //         .reply(httpStatusCodes.CREATED);
-  //       const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
-
-  //       // action
-  //       const response = await requestSender.handleTaskNotification(mockFinalizeTask.id);
-
-  //       // expectation
-  //       expect(response.status).toBe(httpStatusCodes.OK);
-  //       expect(response).toSatisfyApiSpec();
-  //     });
-
-  //     it.each([
-  //       {
-  //         jobType: 'new',
-  //         jobTypeKey: 'new' as const,
-  //         expectedParameters: { insertedToMapproxy: false, insertedToGeoServer: false, insertedToCatalog: false },
-  //       },
-  //       {
-  //         jobType: 'update',
-  //         jobTypeKey: 'update' as const,
-  //         expectedParameters: { updatedInCatalog: false },
-  //       },
-  //       {
-  //         jobType: 'swapUpdate',
-  //         jobTypeKey: 'swapUpdate' as const,
-  //         expectedParameters: { updatedInCatalog: false, updatedInMapproxy: false },
-  //       },
-  //     ])(
-  //       'should return 200 and create finalize task with job-type-specific parameters for $jobType ingestion',
-  //       async ({ jobTypeKey, expectedParameters }) => {
-  //         // mocks
-  //         const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs[jobTypeKey]);
-  //         const mockPolygonPartsTask = getTaskMock(mockIngestionJob.id, {
-  //           type: jobDefinitionsConfigMock.tasks.polygonParts,
-  //           status: OperationStatus.COMPLETED,
-  //         });
-  //         const mockInitTask = getTaskMock(mockIngestionJob.id, {
-  //           type: jobDefinitionsConfigMock.tasks.init,
-  //           status: OperationStatus.COMPLETED,
-  //         });
-
-  //         nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //           .post('/tasks/find', { id: mockPolygonPartsTask.id })
-  //           .reply(httpStatusCodes.OK, [mockPolygonPartsTask]);
-  //         nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //           .post(`/tasks/find`, { jobId: mockIngestionJob.id, type: mockInitTask.type })
-  //           .reply(httpStatusCodes.OK, [mockInitTask]);
-  //         nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //           .get(`/jobs/${mockIngestionJob.id}`)
-  //           .query({ shouldReturnTasks: false })
-  //           .reply(httpStatusCodes.OK, mockIngestionJob);
-  //         nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //           .post(`/jobs/${mockIngestionJob.id}/tasks`, {
-  //             parameters: expectedParameters,
-  //             type: jobDefinitionsConfigMock.tasks.finalize,
-  //             blockDuplication: true,
-  //           })
-  //           .reply(httpStatusCodes.CREATED);
-  //         nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockIngestionJob.id}`).reply(httpStatusCodes.OK);
-
-  //         // action
-  //         const response = await requestSender.handleTaskNotification(mockPolygonPartsTask.id);
-
-  //         // expectation
-  //         expect(response.status).toBe(httpStatusCodes.OK);
-  //         expect(response).toSatisfyApiSpec();
-  //       }
-  //     );
-
-  //     it('should return 200 and handle ConflictError gracefully when task already exists', async () => {
-  //       // mocks
-  //       const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
-  //       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
-  //       const mockInitTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
-
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(httpStatusCodes.OK, [mockMergeTask]);
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //         .post(`/tasks/find`, { jobId: mockIngestionJob.id, type: mockInitTask.type })
-  //         .reply(httpStatusCodes.OK, [mockInitTask]);
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //         .get(`/jobs/${mockIngestionJob.id}`)
-  //         .query({ shouldReturnTasks: false })
-  //         .reply(httpStatusCodes.OK, mockIngestionJob);
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //         .post(`/jobs/${mockIngestionJob.id}/tasks`, _.matches({ type: jobDefinitionsConfigMock.tasks.polygonParts }))
-  //         .reply(httpStatusCodes.CONFLICT, { message: 'Task already exists' });
-  //       // No job update should happen when there's a conflict
-
-  //       // action
-  //       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
-
-  //       // expectation
-  //       expect(response.status).toBe(httpStatusCodes.OK);
-  //       expect(response).toSatisfyApiSpec();
-  //     });
-
-  //     it('should return 200 and only update job percentage when task is not the last', async () => {
-  //       // mocks
-  //       const mockIngestionJob = getIngestionJobMock({ taskCount: 5, completedTasks: 4 });
-  //       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
-  //       const mockInitTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.init, status: OperationStatus.COMPLETED });
-
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(httpStatusCodes.OK, [mockMergeTask]);
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //         .post(`/tasks/find`, { jobId: mockIngestionJob.id, type: mockInitTask.type })
-  //         .reply(httpStatusCodes.OK, [mockInitTask]);
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //         .get(`/jobs/${mockIngestionJob.id}`)
-  //         .query({ shouldReturnTasks: false })
-  //         .reply(httpStatusCodes.OK, mockIngestionJob);
-  //       const taskPercentage = calculateJobPercentage(mockIngestionJob.completedTasks, mockIngestionJob.taskCount);
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockIngestionJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
-
-  //       // action
-  //       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
-
-  //       // expectation
-  //       expect(response.status).toBe(httpStatusCodes.OK);
-  //       expect(response).toSatisfyApiSpec();
-  //     });
-
-  //     it.each([
-  //       {
-  //         taskType: 'init',
-  //         jobType: 'ingestion',
-  //         getJobMock: () => createTestJob(jobDefinitionsConfigMock.),
-  //         taskTypeKey: 'init' as const,
-  //         reason: 'Init task failed due to invalid parameters',
-  //       },
-  //       {
-  //         taskType: 'tilesMerging',
-  //         jobType: 'ingestion',
-  //         getJobMock: () => getIngestionJobMock(),
-  //         taskTypeKey: 'merge' as const,
-  //         reason: 'Tiles merging failed due to processing error',
-  //       },
-  //       {
-  //         taskType: 'init',
-  //         jobType: 'export',
-  //         getJobMock: () => getExportJobMock(),
-  //         taskTypeKey: 'init' as const,
-  //         reason: 'Export init task failed due to invalid parameters',
-  //       },
-  //       {
-  //         taskType: 'finalize',
-  //         jobType: 'ingestion',
-  //         getJobMock: () => getIngestionJobMock(),
-  //         taskTypeKey: 'finalize' as const,
-  //         reason: 'Finalize task failed during cleanup',
-  //       },
-  //       {
-  //         taskType: 'seeding',
-  //         jobType: 'ingestion',
-  //         getJobMock: () => getSeedingJobMock(),
-  //         taskTypeKey: 'seed' as const,
-  //         reason: 'Seeding process failed due to network error',
-  //       },
-  //     ])(
-  //       'should return 200 and apply correct job failure logic when $taskType task fails in $jobType job',
-  //       async ({ getJobMock, taskTypeKey, reason }) => {
-  //         // mocks
-  //         const jobMock = getJobMock();
-  //         const taskMock = getTaskMock(jobMock.id, {
-  //           type: jobDefinitionsConfigMock.tasks[taskTypeKey],
-  //           status: OperationStatus.FAILED,
-  //           reason,
-  //         });
-
-  //         nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: taskMock.id }).reply(httpStatusCodes.OK, [taskMock]);
-  //         nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //           .get(`/jobs/${jobMock.id}`)
-  //           .query({ shouldReturnTasks: false })
-  //           .reply(httpStatusCodes.OK, jobMock);
-  //         nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //           .put(`/jobs/${jobMock.id}`, {
-  //             status: OperationStatus.FAILED,
-  //             reason,
-  //           })
-  //           .reply(httpStatusCodes.OK);
-
-  //         // action
-  //         const response = await requestSender.handleTaskNotification(taskMock.id);
-
-  //         // expectation
-  //         expect(response.status).toBe(httpStatusCodes.OK);
-  //         expect(response).toSatisfyApiSpec();
-  //       }
-  //     );
-
-  //     it('should return 200 and apply suspension logic for polygon-parts task failures', async () => {
-  //       // mocks
-  //       const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
-  //       const mockPolygonPartsTask = getTaskMock(mockIngestionJob.id, {
-  //         type: jobDefinitionsConfigMock.tasks.polygonParts,
-  //         status: OperationStatus.FAILED,
-  //         reason: 'Polygon parts processing failed',
-  //       });
-
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //         .post('/tasks/find', { id: mockPolygonPartsTask.id })
-  //         .reply(httpStatusCodes.OK, [mockPolygonPartsTask]);
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //         .get(`/jobs/${mockIngestionJob.id}`)
-  //         .query({ shouldReturnTasks: false })
-  //         .reply(httpStatusCodes.OK, mockIngestionJob);
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //         .put(`/jobs/${mockIngestionJob.id}`, {
-  //           status: OperationStatus.SUSPENDED,
-  //           reason: 'Polygon parts processing failed',
-  //         })
-  //         .reply(httpStatusCodes.OK);
-
-  //       // action
-  //       const response = await requestSender.handleTaskNotification(mockPolygonPartsTask.id);
-
-  //       // expectation
-  //       expect(response.status).toBe(httpStatusCodes.OK);
-  //       expect(response).toSatisfyApiSpec();
-  //     });
-  //   });
-
-  //   describe('Bad Path', function () {
-  //     // All requests with status code of 400
-  //     it('should return 400 if the endpoint is called with a path parameter that is not a valid uuid', async () => {
-  //       const response = await requestSender.handleTaskNotification('1');
-  //       expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
-  //       expect(response).toSatisfyApiSpec();
-  //     });
-  //   });
-
-  //   describe('Sad Path', function () {
-  //     // All requests with status code 4XX-5XX
-  //     it('should return 404 if the task given does not exists', async () => {
-  //       // mocks
-  //       const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
-  //       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-  //         .post(`/tasks/find`, { id: mockMergeTask.id })
-  //         .reply(httpStatusCodes.NOT_FOUND, 'message: Tasks not found');
-  //       // action
-  //       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
-  //       // expectation
-  //       expect(response.status).toBe(httpStatusCodes.NOT_FOUND);
-  //       expect(response).toSatisfyApiSpec();
-  //     });
-
-  //     it('should return 428 if the task given is neither in "Completed" nor "Failed" status', async () => {
-  //       // mocks
-  //       const mockIngestionJob = createTestJob(jobDefinitionsConfigMock.jobs.new);
-  //       const mockMergeTask = getTaskMock(mockIngestionJob.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.PENDING });
-  //       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(httpStatusCodes.OK, [mockMergeTask]);
-  //       // action
-  //       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
-  //       // expectation
-  //       expect(response.status).toBe(httpStatusCodes.PRECONDITION_REQUIRED);
-  //       expect(response).toSatisfyApiSpec();
-  //     });
-  //   });
+  });
 });

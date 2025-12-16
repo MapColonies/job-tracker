@@ -1,4 +1,4 @@
-import { JobManagerClient, OperationStatus, IJobResponse, ITaskResponse, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
+import { JobManagerClient, OperationStatus, ITaskResponse, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
 import { BaseIngestionValidationTaskParams } from '@map-colonies/raster-shared';
 import jsLogger from '@map-colonies/js-logger';
 import { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
