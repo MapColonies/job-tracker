@@ -128,10 +128,7 @@ describe('tasks', function () {
       });
 
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: taskMock.id }).reply(httpStatusCodes.OK, [taskMock]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .get(`/jobs/${jobMock.id}`)
-        .query({ shouldReturnTasks: false })
-        .reply(httpStatusCodes.OK, jobMock);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${jobMock.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, jobMock);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .put(`/jobs/${jobMock.id}`, {
           status: OperationStatus.FAILED,

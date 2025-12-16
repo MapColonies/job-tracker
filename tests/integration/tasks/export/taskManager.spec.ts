@@ -5,6 +5,7 @@ import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams }
 import { ExportFinalizeType } from '@map-colonies/raster-shared';
 import { trace } from '@opentelemetry/api';
 import jsLogger from '@map-colonies/js-logger';
+import _ from 'lodash';
 import { configMock, init, setValue } from '../../../mocks/configMock';
 import { getApp } from '../../../../src/app';
 import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
@@ -14,7 +15,6 @@ import { SERVICES } from '../../../../src/common/constants';
 import { registerExternalValues } from '../../../../src/containerConfig';
 import { TasksRequestSender } from '../helpers/requestSender';
 import { getTestContainerConfig, resetContainer } from '../helpers/containerConfig';
-import _ from 'lodash';
 
 describe('tasks', function () {
   let requestSender: TasksRequestSender;
@@ -403,7 +403,6 @@ describe('tasks', function () {
         type: jobDefinitionsConfig.tasks.finalize,
         blockDuplication: false,
       };
-      const mockInitTask = getTaskMock(mockExportJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED });
 
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .get(`/jobs/${mockExportJob.id}`)
@@ -419,66 +418,6 @@ describe('tasks', function () {
       expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
-
-    //     it('should return 200 when getting completed but not last seeding task', async () => {
-    //       // mocks
-    //       const mockSeedingJob = getSeedingJobMock();
-    //       const mockSeedTask = getTaskMock(mockSeedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
-    //       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockSeedTask.id }).reply(httpStatusCodes.OK, [mockSeedTask]);
-    //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //         .get(`/jobs/${mockSeedingJob.id}`)
-    //         .query({ shouldReturnTasks: false })
-    //         .reply(httpStatusCodes.OK, mockSeedingJob);
-    //       const taskPercentage = calculateJobPercentage(mockSeedingJob.completedTasks, mockSeedingJob.taskCount);
-    //       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockSeedingJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
-    //       // action
-    //       const response = await requestSender.handleTaskNotification(mockSeedTask.id);
-    //       // expectation
-    //       expect(response.status).toBe(httpStatusCodes.OK);
-    //       expect(response).toSatisfyApiSpec();
-    //     });
-
-    //     it('should return 200 when getting last completed seeding task', async () => {
-    //       // mocks
-    //       const mockSeedingJob = getSeedingJobMock({ completedTasks: 5, taskCount: 5 });
-    //       const mockSeedTask = getTaskMock(mockSeedingJob.id, { type: jobDefinitionsConfigMock.tasks.seed, status: OperationStatus.COMPLETED });
-    //       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockSeedTask.id }).reply(httpStatusCodes.OK, [mockSeedTask]);
-    //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //         .get(`/jobs/${mockSeedingJob.id}`)
-    //         .query({ shouldReturnTasks: false })
-    //         .reply(httpStatusCodes.OK, mockSeedingJob);
-    //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //         .put(`/jobs/${mockSeedingJob.id}`, { percentage: 100, status: OperationStatus.COMPLETED })
-    //         .reply(httpStatusCodes.OK);
-    //       // action
-    //       const response = await requestSender.handleTaskNotification(mockSeedTask.id);
-    //       // expectation
-    //       expect(response.status).toBe(httpStatusCodes.OK);
-    //       expect(response).toSatisfyApiSpec();
-    //     });
-
-    //     it('should return 200 when getting failed seeding task', async () => {
-    //       // mocks
-    //       const mockSeedingJob = getSeedingJobMock();
-    //       const mockSeedTask = getTaskMock(mockSeedingJob.id, {
-    //         type: jobDefinitionsConfigMock.tasks.seed,
-    //         status: OperationStatus.FAILED,
-    //         reason: 'some error reason',
-    //       });
-    //       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockSeedTask.id }).reply(httpStatusCodes.OK, [mockSeedTask]);
-    //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //         .get(`/jobs/${mockSeedingJob.id}`)
-    //         .query({ shouldReturnTasks: false })
-    //         .reply(httpStatusCodes.OK, mockSeedingJob);
-    //       nock(jobManagerConfigMock.jobManagerBaseUrl)
-    //         .put(`/jobs/${mockSeedingJob.id}`, { status: OperationStatus.FAILED, reason: 'some error reason' })
-    //         .reply(httpStatusCodes.OK);
-    //       // action
-    //       const response = await requestSender.handleTaskNotification(mockSeedTask.id);
-    //       // expectation
-    //       expect(response.status).toBe(httpStatusCodes.OK);
-    //       expect(response).toSatisfyApiSpec();
-    //     });
   });
 
   describe('Complex Business Logic Scenarios', function () {
@@ -502,10 +441,6 @@ describe('tasks', function () {
         const jobMock = getJobMock();
         const taskMock = getTaskMock(jobMock.id, {
           type: jobDefinitionsConfig.tasks[taskType as keyof typeof jobDefinitionsConfig.tasks],
-          status: OperationStatus.COMPLETED,
-        });
-        const initTaskMock = getTaskMock(jobMock.id, {
-          type: jobDefinitionsConfig.tasks.init,
           status: OperationStatus.COMPLETED,
         });
 
@@ -540,7 +475,6 @@ describe('tasks', function () {
         type: jobDefinitionsConfig.tasks.polygonParts,
         status: OperationStatus.COMPLETED,
       });
-      const mockInitTask = getTaskMock(mockExportJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED });
 
       const fullProccessingFinalizeTaskParams = {
         parameters: { type: ExportFinalizeType.Full_Processing, callbacksSent: false, gpkgModified: false, gpkgUploadedToS3: false },
@@ -586,7 +520,6 @@ describe('tasks', function () {
         status: OperationStatus.COMPLETED,
         parameters: mockExportFullProcessingFinalizeTaskParams,
       });
-      const mockInitTask = getTaskMock(mockExportJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED });
 
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(httpStatusCodes.OK, [mockFinalizeTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
