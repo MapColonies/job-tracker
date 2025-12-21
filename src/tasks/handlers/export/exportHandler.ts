@@ -44,8 +44,4 @@ export class ExportJobHandler extends JobHandler {
       return super.handleFailedTask();
     }
   }
-
-  public isProceedable(): boolean {
-    return true;
-  }
 }

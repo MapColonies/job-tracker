@@ -238,7 +238,7 @@ describe('IngestionJobHandler', () => {
       });
       const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
 
-      const result = handler.isProceedable(mockTask);
+      const result = handler.isProceedable();
 
       expect(result).toBeTruthy();
     });
@@ -256,7 +256,7 @@ describe('IngestionJobHandler', () => {
         });
         const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
 
-        const result = handler.isProceedable(mockTask);
+        const result = handler.isProceedable();
 
         expect(result).toBeFalsy();
       }
@@ -271,9 +271,9 @@ describe('IngestionJobHandler', () => {
       });
       const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
 
-      const action = () => handler.isProceedable(mockTask);
+      const action = () => handler.isProceedable();
 
-      expect(action()).toThrow(BadRequestError);
+      expect(action).toThrow(BadRequestError);
     });
 
     it.each(testCases)(`should return "true" in case task notified task type is not "validation" - ${testCaseHandlerLog}`, (testCase) => {
@@ -285,7 +285,7 @@ describe('IngestionJobHandler', () => {
       });
       const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
 
-      const result = handler.isProceedable(mockTask);
+      const result = handler.isProceedable();
 
       expect(result).toBeTruthy();
     });
@@ -303,7 +303,7 @@ describe('IngestionJobHandler', () => {
         });
         const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
 
-        const result = handler.isProceedable(mockTask);
+        const result = handler.isProceedable();
 
         expect(result).toBeFalsy();
       }

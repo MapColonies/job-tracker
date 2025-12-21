@@ -27,10 +27,6 @@ export class SeedJobHandler extends JobHandler {
     this.initializeTaskOperations();
   }
 
-  public isProceedable(): boolean {
-    return true;
-  }
-
   public isJobCompleted = (): boolean => {
     return this.job.completedTasks === this.job.taskCount;
   };

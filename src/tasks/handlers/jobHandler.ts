@@ -4,6 +4,7 @@ import { IJobResponse, ITaskResponse, JobManagerClient, ICreateTaskBody } from '
 import { IConfig, IJobDefinitionsConfig, TaskTypes } from '../../common/interfaces';
 import { BaseJobHandler } from './baseJobHandler';
 import { TaskHandler } from './taskHandler';
+import { TaskProceedRule } from './interfaces';
 
 /**
  * Base class for workflow-enabled job handlers that handles task flow logic
@@ -12,6 +13,7 @@ export abstract class JobHandler extends BaseJobHandler {
   protected readonly config: IConfig;
   protected readonly jobDefinitions: IJobDefinitionsConfig;
   protected readonly task: ITaskResponse<unknown>;
+  protected readonly proceedRules = new Map<string, TaskProceedRule>();
   protected taskWorker?: TaskHandler;
   protected abstract readonly tasksFlow: TaskTypes;
   protected abstract readonly excludedTypes: TaskTypes;
@@ -39,7 +41,7 @@ export abstract class JobHandler extends BaseJobHandler {
       return;
     }
 
-    const isProceedable = this.isProceedable(this.task); // in case of completed task but with errors
+    const isProceedable = this.isProceedable();
     if (!isProceedable) {
       this.logger.info({
         msg: `job is not proceedable, suspending job id: ${this.job.id}`,
@@ -67,6 +69,13 @@ export abstract class JobHandler extends BaseJobHandler {
     } else {
       await this.failJob(this.task.reason);
     }
+  }
+
+  public isProceedable(): boolean {
+    const rule = this.proceedRules.get(this.task.type);
+    const isProceedable = rule?.isProceedable(this.task, { logger: this.logger, job: this.job }) ?? true;
+
+    return isProceedable;
   }
 
   protected initializeTaskOperations(): void {
@@ -119,7 +128,4 @@ export abstract class JobHandler extends BaseJobHandler {
     this.job.taskCount++;
     await this.updateJobProgress();
   }
-
-  // Abstract methods that concrete handlers must implement
-  public abstract isProceedable(init: ITaskResponse<unknown>): boolean;
 }

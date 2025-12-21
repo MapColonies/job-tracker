@@ -1,14 +1,15 @@
 import { Logger } from '@map-colonies/js-logger';
-import { IJobResponse, ITaskResponse, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
+import { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
 import { injectable, inject } from 'tsyringe';
 import {
   IngestionValidationTaskParams,
   ingestionValidationTaskParamsSchema as baseIngestionValidationTaskParamsSchema,
 } from '@map-colonies/raster-shared';
-import { BadRequestError } from '@map-colonies/error-types';
 import { IConfig, TaskTypes } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
 import { JobHandler } from '../jobHandler';
+import { ValidationProceedRule } from '../../rules/ingestion/validationProceedRule';
+import { TaskProceedRule } from '../interfaces';
 
 export type IngestionValidationTaskParameters = Pick<IngestionValidationTaskParams, 'isValid'>;
 export const ingestionValidationTaskParamsSchema = baseIngestionValidationTaskParamsSchema
@@ -41,28 +42,7 @@ export class IngestionJobHandler extends JobHandler {
 
     // Initialize task operations after setting up the flow properties
     this.initializeTaskOperations();
-  }
 
-  public isProceedable(task: ITaskResponse<IngestionValidationTaskParameters>): boolean {
-    if (task.type !== this.jobDefinitions.tasks.validation) {
-      return true;
-    }
-
-    const result = ingestionValidationTaskParamsSchema.safeParse(task.parameters);
-    if (!result.success) {
-      const errorMessage = `Failed to parse validation task parameters: ${result.error.message}`;
-      this.logger.error({ message: errorMessage });
-      throw new BadRequestError(errorMessage);
-    }
-    const taskParams = result.data;
-
-    this.logger.info({
-      msg: 'Checking if validation task is valid in order to proceed',
-      jobId: this.job.id,
-      jobType: this.job.type,
-    });
-    const isValid = task.status === OperationStatus.COMPLETED && taskParams.isValid;
-
-    return isValid;
+    this.proceedRules.set(this.jobDefinitions.tasks.validation, new ValidationProceedRule() as TaskProceedRule);
   }
 }
