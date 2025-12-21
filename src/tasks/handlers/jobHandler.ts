@@ -1,7 +1,7 @@
 import { Logger } from '@map-colonies/js-logger';
 import { ConflictError } from '@map-colonies/error-types';
 import { IJobResponse, ITaskResponse, JobManagerClient, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
-import { IConfig, IJobDefinitionsConfig, IsProceedableResponse, TaskTypes } from '../../common/interfaces';
+import { IConfig, IJobDefinitionsConfig, TaskTypes } from '../../common/interfaces';
 import { BaseJobHandler } from './baseJobHandler';
 import { TaskHandler } from './taskHandler';
 
@@ -40,14 +40,14 @@ export abstract class JobHandler extends BaseJobHandler {
     }
 
     const isProceedable = this.isProceedable(this.task); // in case of completed task but with errors
-    if (!isProceedable.result) {
+    if (!isProceedable) {
       this.logger.info({
         msg: `job is not proceedable, suspending job id: ${this.job.id}`,
         jobId: this.job.id,
         taskId: this.task.id,
-        reason: isProceedable.reason,
+        reason: this.task.reason,
       });
-      await this.suspendJob(isProceedable.reason);
+      await this.suspendJob(this.task.reason);
       return;
     }
 
@@ -121,5 +121,5 @@ export abstract class JobHandler extends BaseJobHandler {
   }
 
   // Abstract methods that concrete handlers must implement
-  public abstract isProceedable(init: ITaskResponse<unknown>): IsProceedableResponse;
+  public abstract isProceedable(init: ITaskResponse<unknown>): boolean;
 }

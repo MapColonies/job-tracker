@@ -1,13 +1,13 @@
 import { JobManagerClient, OperationStatus, ITaskResponse, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
-import { BaseIngestionValidationTaskParams } from '@map-colonies/raster-shared';
 import jsLogger from '@map-colonies/js-logger';
 import { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { createTestJob, getTaskMock } from '../../../mocks/jobMocks';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
 import { TaskHandler } from '../../../../src/tasks/handlers/taskHandler';
-import { IngestionJobHandler } from '../../../../src/tasks/handlers/ingestion/ingestionHandler';
+import { IngestionJobHandler, IngestionValidationTaskParameters } from '../../../../src/tasks/handlers/ingestion/ingestionHandler';
 import { getJobHandler } from '../../../../src/tasks/handlers/jobHandlerFactory';
 import { mockJobManager, queueClientMock } from '../../../mocks/mockJobManager';
+import { BadRequestError } from '@map-colonies/error-types';
 
 describe('IngestionJobHandler', () => {
   let mockTask: ITaskResponse<unknown>;
@@ -35,8 +35,6 @@ describe('IngestionJobHandler', () => {
     shouldSkipTaskCreationSpy = jest.spyOn(TaskHandler.prototype, 'shouldSkipTaskCreation');
     isProceedableMock = jest.spyOn(IngestionJobHandler.prototype, 'isProceedable');
     findTaskSpy = jest.spyOn(JobManagerClient.prototype, 'findTasks');
-
-    // mockJob = createTestJob(jobDefinitionsConfig.jobs.new);
   });
 
   afterEach(() => {
@@ -48,7 +46,7 @@ describe('IngestionJobHandler', () => {
     it.each(testCases)(`should create next task type for "validation" task if its completed and valid - ${testCaseHandlerLog}`, async (testCase) => {
       let { mockJob } = testCase;
       mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
-      mockTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+      mockTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
         type: jobDefinitionsConfig.tasks.validation,
         status: OperationStatus.COMPLETED,
         parameters: { isValid: true },
@@ -81,7 +79,7 @@ describe('IngestionJobHandler', () => {
       async (testCase) => {
         let { mockJob } = testCase;
         mockJob = { ...mockJob, completedTasks: 0, taskCount: 1 };
-        mockTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+        mockTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
           type: jobDefinitionsConfig.tasks.validation,
           status: OperationStatus.COMPLETED,
           parameters: { isValid: false },
@@ -91,16 +89,38 @@ describe('IngestionJobHandler', () => {
 
         getNextTaskTypeSpy.mockReturnValue(nextTaskType);
         mockJobManager.findTasks.mockResolvedValue([mockTask]);
-        const suspendedReason = 'Invalid validation task';
-        isProceedableMock.mockImplementation(() => {
-          return { result: false, reason: suspendedReason };
-        });
+        isProceedableMock.mockReturnValue(false);
 
         const action = async () => handler.handleCompletedNotification();
 
         await expect(action()).resolves.not.toThrow();
         expect(mockJobManager.updateJob).toHaveBeenCalledTimes(1);
-        expect(mockJobManager.updateJob).toHaveBeenCalledWith(mockJob.id, { status: OperationStatus.SUSPENDED, reason: suspendedReason });
+        expect(mockJobManager.updateJob).toHaveBeenCalledWith(mockJob.id, { status: OperationStatus.SUSPENDED, reason: mockTask.reason });
+        expect(mockJobManager.createTaskForJob).not.toHaveBeenCalled();
+      }
+    );
+
+    it.each(testCases)(
+      `should suspend job in case of completed "validation" task notify which does not includes the "isValid" parameter - ${testCaseHandlerLog}`,
+      async (testCase) => {
+        let { mockJob } = testCase;
+        mockJob = { ...mockJob, completedTasks: 0, taskCount: 1 };
+        mockTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
+          type: jobDefinitionsConfig.tasks.validation,
+          status: OperationStatus.COMPLETED, // missing "isValid" parameter
+        });
+        const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
+        const nextTaskType = jobDefinitionsConfig.tasks.mergeTaskCreation;
+
+        getNextTaskTypeSpy.mockReturnValue(nextTaskType);
+        mockJobManager.findTasks.mockResolvedValue([mockTask]);
+        isProceedableMock.mockReturnValue(false);
+
+        const action = async () => handler.handleCompletedNotification();
+
+        await expect(action()).resolves.not.toThrow();
+        expect(mockJobManager.updateJob).toHaveBeenCalledTimes(1);
+        expect(mockJobManager.updateJob).toHaveBeenCalledWith(mockJob.id, { status: OperationStatus.SUSPENDED, reason: mockTask.reason });
         expect(mockJobManager.createTaskForJob).not.toHaveBeenCalled();
       }
     );
@@ -211,7 +231,7 @@ describe('IngestionJobHandler', () => {
     it.each(testCases)(`should return "true" in case that validation task is valid - ${testCaseHandlerLog}`, (testCase) => {
       let { mockJob } = testCase;
       mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
-      mockTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+      mockTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
         type: jobDefinitionsConfig.tasks.validation,
         status: OperationStatus.COMPLETED,
         parameters: { isValid: true },
@@ -220,8 +240,7 @@ describe('IngestionJobHandler', () => {
 
       const result = handler.isProceedable(mockTask);
 
-      expect(result.result).toBeTruthy();
-      expect(result.reason).toBeUndefined();
+      expect(result).toBeTruthy();
     });
 
     it.each(testCases)(
@@ -229,24 +248,38 @@ describe('IngestionJobHandler', () => {
       (testCase) => {
         let { mockJob } = testCase;
         mockJob = { ...mockJob, completedTasks: 0, taskCount: 1 };
-        mockTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+        mockTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
           type: jobDefinitionsConfig.tasks.validation,
           status: OperationStatus.COMPLETED,
           parameters: { isValid: false },
+          reason: 'Invalid validation task reason',
         });
         const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
 
         const result = handler.isProceedable(mockTask);
 
-        expect(result.result).toBeFalsy();
-        expect(result.reason).toMatch(/Invalid validation task/);
+        expect(result).toBeFalsy();
       }
     );
+
+    it.each(testCases)(`should return "false" in case that validation task schema is invalid - ${testCaseHandlerLog}`, (testCase) => {
+      let { mockJob } = testCase;
+      mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
+      mockTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
+        type: jobDefinitionsConfig.tasks.validation,
+        status: OperationStatus.COMPLETED, // missing "isValid" parameter
+      });
+      const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
+
+      const action = async () => handler.isProceedable(mockTask);
+
+      expect(action()).rejects.toThrowError(BadRequestError);
+    });
 
     it.each(testCases)(`should return "true" in case task notified task type is not "validation" - ${testCaseHandlerLog}`, (testCase) => {
       let { mockJob } = testCase;
       mockJob = { ...mockJob, completedTasks: 0, taskCount: 1 };
-      mockTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+      mockTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
         type: jobDefinitionsConfig.tasks.merge,
         status: OperationStatus.COMPLETED,
       });
@@ -254,8 +287,26 @@ describe('IngestionJobHandler', () => {
 
       const result = handler.isProceedable(mockTask);
 
-      expect(result.result).toBeTruthy();
-      expect(result.reason).toBeUndefined();
+      expect(result).toBeTruthy();
     });
+
+    it.each(testCases)(
+      `should return "false" in case of failed validation task with "isValid" parameter set to true - ${testCaseHandlerLog}`,
+      (testCase) => {
+        let { mockJob } = testCase;
+        mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
+        mockTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
+          type: jobDefinitionsConfig.tasks.validation,
+          status: OperationStatus.FAILED,
+          parameters: { isValid: true },
+          reason: 'failed reason',
+        });
+        const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
+
+        const result = handler.isProceedable(mockTask);
+
+        expect(result).toBeFalsy();
+      }
+    );
   });
 });

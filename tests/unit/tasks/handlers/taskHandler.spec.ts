@@ -20,7 +20,7 @@ const createMockJobManager = (): jest.Mocked<JobManagerClient> =>
     findTasks: jest.fn(),
   } as unknown as jest.Mocked<JobManagerClient>);
 
-describe('WorkflowTaskOperations', () => {
+describe('TaskHandler', () => {
   let operations: TaskHandler;
   let mockLogger: jest.Mocked<Logger>;
   let mockJobManager: jest.Mocked<JobManagerClient>;
@@ -139,10 +139,7 @@ describe('WorkflowTaskOperations', () => {
       mockTask.type = 'unknownTaskType';
 
       // When: getting next task type
-      const result = operations.getNextTaskType();
-
-      // Then: should return undefined since the current task type is not found in the flow
-      expect(result).toBeUndefined();
+      expect(() => operations.getNextTaskType()).toThrow(BadRequestError);
     });
 
     it('should return next task type when no exclusions apply', () => {

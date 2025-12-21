@@ -6,7 +6,7 @@ import { ExportFinalizeType } from '@map-colonies/raster-shared';
 import { trace } from '@opentelemetry/api';
 import jsLogger from '@map-colonies/js-logger';
 import _ from 'lodash';
-import { configMock, init, setValue } from '../../../mocks/configMock';
+import { configMock, init, registerDefaultConfig, setValue } from '../../../mocks/configMock';
 import { getApp } from '../../../../src/app';
 import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { createTestJob, getExportJobMock, getTaskMock } from '../../../mocks/jobMocks';
@@ -19,7 +19,9 @@ import { getTestContainerConfig, resetContainer } from '../helpers/containerConf
 describe('tasks', function () {
   let requestSender: TasksRequestSender;
   let jobManagerConfigMock: IJobManagerConfig;
-  let jobDefinitionsConfig: IJobDefinitionsConfig;
+
+  registerDefaultConfig();
+  const jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
 
   beforeEach(function () {
     const [app] = getApp({
@@ -37,7 +39,6 @@ describe('tasks', function () {
 
     requestSender = new TasksRequestSender(app);
     jobManagerConfigMock = configMock.get<IJobManagerConfig>('jobManagement.config');
-    jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
     nock.cleanAll();
   });
 

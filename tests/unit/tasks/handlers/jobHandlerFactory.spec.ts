@@ -50,7 +50,7 @@ describe('jobHandlerFactory', () => {
       { jobName: 'new', getJobType: (config: IJobDefinitionsConfig) => config.jobs.new },
       { jobName: 'update', getJobType: (config: IJobDefinitionsConfig) => config.jobs.update },
       { jobName: 'swapUpdate', getJobType: (config: IJobDefinitionsConfig) => config.jobs.swapUpdate },
-    ])('should create SeedJobHandler for $jobName job type', ({ jobName, getJobType }) => {
+    ])('should create IngestionJobHandler for $jobName job type', ({ jobName, getJobType }) => {
       // Given: ingestion job and task
       const jobType = getJobType(jobDefinitionsConfig);
       const testCase = createIngestionJobTestCase(jobName, jobType);

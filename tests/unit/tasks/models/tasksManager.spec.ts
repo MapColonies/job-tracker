@@ -44,7 +44,7 @@ describe('TasksManager', () => {
         const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
         const ingestionJobMock = createTestJob(jobDefinitionsConfigMock.jobs.new);
         const mergeTaskMock = getTaskMock(ingestionJobMock.id, {
-          type: jobDefinitionsConfigMock.tasks.polygonParts,
+          type: jobDefinitionsConfigMock.tasks.validation,
           status: OperationStatus.FAILED,
           reason: 'reason',
         });

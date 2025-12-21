@@ -1,6 +1,6 @@
 import jsLogger from '@map-colonies/js-logger';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
-import { IJobDefinitionsConfig, IsProceedableResponse } from '../../../../src/common/interfaces';
+import { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { createTestJob, getTaskMock } from '../../../mocks/jobMocks';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
 import { mockJobManager, queueClientMock } from '../../../mocks/mockJobManager';
@@ -54,7 +54,9 @@ describe('JobHandler', () => {
   });
 
   describe('handleCompletedNotification', () => {
-    it.each(testCases)(
+    const nonSeedCases = testCases.filter(({ mockJob }) => mockJob.type !== jobDefinitionsConfig.jobs.seed); // removing seed job test case as finalize task type is not handled there
+
+    it.each(nonSeedCases)(
       `should complete job when all of the task are completed and task type is "finalize" - ${testCaseHandlerLog}`,
       async ({ mockJob }) => {
         mockJob = { ...mockJob, completedTasks: 10, taskCount: 10 };
@@ -77,19 +79,15 @@ describe('JobHandler', () => {
       const mockTask = getTaskMock(mockJob.id, { type: taskType, status: OperationStatus.COMPLETED }); // cannot check on finalize task type as it has no next type to create
 
       const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
-      const isProceedableResponse: IsProceedableResponse = {
-        result: false,
-        reason: 'suspnded reason',
-      };
       jest.spyOn(TaskHandler.prototype, 'getNextTaskType').mockReturnValue('mockNextTaskType');
-      jest.spyOn(handler, 'isProceedable').mockReturnValue({ result: false, reason: 'suspnded reason' });
+      jest.spyOn(handler, 'isProceedable').mockReturnValue(false);
 
       // When: handling completed notification
       await handler.handleCompletedNotification();
 
       expect(mockJobManager.updateJob).toHaveBeenCalledWith(mockJob.id, {
         status: OperationStatus.SUSPENDED,
-        reason: isProceedableResponse.reason,
+        reason: mockTask.reason,
       });
     });
 

@@ -1,7 +1,6 @@
 import nock from 'nock';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { StatusCodes as httpStatusCodes } from 'http-status-codes';
-import { BaseIngestionValidationTaskParams } from '@map-colonies/raster-shared';
 import { trace } from '@opentelemetry/api';
 import jsLogger from '@map-colonies/js-logger';
 import _ from 'lodash';
@@ -14,6 +13,7 @@ import { registerExternalValues } from '../../../../src/containerConfig';
 import { TasksRequestSender } from '../helpers/requestSender';
 import { getTestContainerConfig, resetContainer } from '../helpers/containerConfig';
 import { IJobDefinitionsConfig, IJobManagerConfig } from '../../../../src/common/interfaces';
+import { IngestionValidationTaskParameters } from '../../../../src/tasks/handlers/ingestion/ingestionHandler';
 
 describe('tasksManager', function () {
   let requestSender: TasksRequestSender;
@@ -70,7 +70,7 @@ describe('tasksManager', function () {
       async (parameterTestCase) => {
         let { mockJob } = parameterTestCase;
         mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
-        const mockValidationTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+        const mockValidationTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
           type: jobDefinitionsConfig.tasks.validation,
           status: OperationStatus.COMPLETED,
           parameters: { isValid: true },
@@ -101,7 +101,7 @@ describe('tasksManager', function () {
       async ({ mockJob, expectedFinalizeParameters }) => {
         // Arrange
         mockJob = { ...mockJob, completedTasks: 10, taskCount: 10 };
-        const mockMergeTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+        const mockMergeTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
           type: jobDefinitionsConfig.tasks.merge,
           status: OperationStatus.COMPLETED,
         });
@@ -137,7 +137,7 @@ describe('tasksManager', function () {
       async ({ mockJob, expectedFinalizeParameters }) => {
         // Arrange
         mockJob = { ...mockJob, completedTasks: 10, taskCount: 10 };
-        const mockMergeTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+        const mockMergeTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
           type: jobDefinitionsConfig.tasks.mergeTaskCreation,
           status: OperationStatus.COMPLETED,
         });
@@ -171,7 +171,7 @@ describe('tasksManager', function () {
     it.each(parameterTestCases)('should complete job when entire task are completed on finalize task notify - $mockJob.type', async ({ mockJob }) => {
       // Arrange
       mockJob = { ...mockJob, completedTasks: 10, taskCount: 10 };
-      const mockMergeTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+      const mockMergeTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
         type: jobDefinitionsConfig.tasks.finalize,
         status: OperationStatus.COMPLETED,
       });
@@ -197,7 +197,7 @@ describe('tasksManager', function () {
       async ({ mockJob }) => {
         // Arrange
         mockJob = { ...mockJob, completedTasks: 5, taskCount: 10 };
-        const mockMergeTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+        const mockMergeTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
           type: jobDefinitionsConfig.tasks.mergeTaskCreation,
           status: OperationStatus.COMPLETED,
         });
@@ -231,7 +231,7 @@ describe('tasksManager', function () {
       async ({ mockJob }) => {
         // Arrange
         mockJob = { ...mockJob, completedTasks: 5, taskCount: 10 };
-        const mockMergeTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+        const mockMergeTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
           type: jobDefinitionsConfig.tasks.merge,
           status: OperationStatus.COMPLETED,
         });
@@ -263,7 +263,7 @@ describe('tasksManager', function () {
     it.each(parameterTestCases)('should suspend job on completed but invalid validation task notify - $mockJob.type', async ({ mockJob }) => {
       // Arrange
       mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
-      const mockValidationTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+      const mockValidationTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
         type: jobDefinitionsConfig.tasks.validation,
         status: OperationStatus.COMPLETED,
         parameters: { isValid: false },
@@ -274,7 +274,7 @@ describe('tasksManager', function () {
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockJob);
 
       nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .put(`/jobs/${mockJob.id}`, { status: OperationStatus.SUSPENDED, reason: 'Invalid validation task' })
+        .put(`/jobs/${mockJob.id}`, { status: OperationStatus.SUSPENDED, reason: '' })
         .reply(httpStatusCodes.OK);
 
       // Act
@@ -285,10 +285,10 @@ describe('tasksManager', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it.each(parameterTestCases)('should fail job on failed validation task notify - $mockJob.type', async ({ mockJob }) => {
+    it.each(parameterTestCases)('should suspend job on failed validation task notify - $mockJob.type', async ({ mockJob }) => {
       // Arrange
       mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
-      const mockFailedValidationTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+      const mockFailedValidationTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
         type: jobDefinitionsConfig.tasks.validation,
         status: OperationStatus.FAILED,
         reason: 'Validation task failed',
@@ -301,7 +301,7 @@ describe('tasksManager', function () {
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockJob);
 
       nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .put(`/jobs/${mockJob.id}`, { status: OperationStatus.FAILED, reason: mockFailedValidationTask.reason })
+        .put(`/jobs/${mockJob.id}`, { status: OperationStatus.SUSPENDED, reason: mockFailedValidationTask.reason })
         .reply(httpStatusCodes.OK);
 
       // Act
@@ -312,10 +312,78 @@ describe('tasksManager', function () {
       expect(response).toSatisfyApiSpec();
     });
 
+    it.each(parameterTestCases)(
+      'should suspend job on failed validation task notify regardless isValid param set to true  - $mockJob.type',
+      async ({ mockJob }) => {
+        // Arrange
+        mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
+        const mockFailedValidationTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
+          type: jobDefinitionsConfig.tasks.validation,
+          status: OperationStatus.FAILED,
+          reason: 'Validation task failed',
+          parameters: { isValid: true },
+        });
+
+        nock(jobManagerConfigMock.jobManagerBaseUrl)
+          .post('/tasks/find', { id: mockFailedValidationTask.id })
+          .reply(httpStatusCodes.OK, [mockFailedValidationTask]);
+
+        nock(jobManagerConfigMock.jobManagerBaseUrl)
+          .get(`/jobs/${mockJob.id}`)
+          .query({ shouldReturnTasks: false })
+          .reply(httpStatusCodes.OK, mockJob);
+
+        nock(jobManagerConfigMock.jobManagerBaseUrl)
+          .put(`/jobs/${mockJob.id}`, { status: OperationStatus.SUSPENDED, reason: mockFailedValidationTask.reason })
+          .reply(httpStatusCodes.OK);
+
+        // Act
+        const response = await requestSender.handleTaskNotification(mockFailedValidationTask.id);
+
+        // Assert
+        expect(response.status).toBe(httpStatusCodes.OK);
+        expect(response).toSatisfyApiSpec();
+      }
+    );
+
+    it.each(parameterTestCases)(
+      'should suspend job on failed validation task notify regardless  isValid param set to false  - $mockJob.type',
+      async ({ mockJob }) => {
+        // Arrange
+        mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
+        const mockFailedValidationTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
+          type: jobDefinitionsConfig.tasks.validation,
+          status: OperationStatus.FAILED,
+          reason: 'Validation task failed',
+          parameters: { isValid: false },
+        });
+
+        nock(jobManagerConfigMock.jobManagerBaseUrl)
+          .post('/tasks/find', { id: mockFailedValidationTask.id })
+          .reply(httpStatusCodes.OK, [mockFailedValidationTask]);
+
+        nock(jobManagerConfigMock.jobManagerBaseUrl)
+          .get(`/jobs/${mockJob.id}`)
+          .query({ shouldReturnTasks: false })
+          .reply(httpStatusCodes.OK, mockJob);
+
+        nock(jobManagerConfigMock.jobManagerBaseUrl)
+          .put(`/jobs/${mockJob.id}`, { status: OperationStatus.SUSPENDED, reason: mockFailedValidationTask.reason })
+          .reply(httpStatusCodes.OK);
+
+        // Act
+        const response = await requestSender.handleTaskNotification(mockFailedValidationTask.id);
+
+        // Assert
+        expect(response.status).toBe(httpStatusCodes.OK);
+        expect(response).toSatisfyApiSpec();
+      }
+    );
+
     it.each(parameterTestCases)('should fail job on failed merge-tasks-creation task notify - $mockJob.type', async ({ mockJob }) => {
       // Arrange
       mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
-      const mockFailedMergeTaskCreationTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+      const mockFailedMergeTaskCreationTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
         type: jobDefinitionsConfig.tasks.mergeTaskCreation,
         status: OperationStatus.FAILED,
         reason: 'Failed to create merge tasks',
@@ -342,7 +410,7 @@ describe('tasksManager', function () {
     it.each(parameterTestCases)('should fail job on failed merge task notify - $mockJob.type', async ({ mockJob }) => {
       // Arrange
       mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
-      const mockFailedMergeTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+      const mockFailedMergeTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
         type: jobDefinitionsConfig.tasks.merge,
         status: OperationStatus.FAILED,
         reason: 'Failed to create merge tasks',
@@ -369,7 +437,7 @@ describe('tasksManager', function () {
     it.each(parameterTestCases)('should fail job on failed finalize task notify - $mockJob.type', async ({ mockJob }) => {
       // Arrange
       mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
-      const mockFailedFinalizeTask = getTaskMock<BaseIngestionValidationTaskParams>(mockJob.id, {
+      const mockFailedFinalizeTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
         type: jobDefinitionsConfig.tasks.finalize,
         status: OperationStatus.FAILED,
         reason: 'Failed to create merge tasks',
@@ -392,6 +460,41 @@ describe('tasksManager', function () {
       expect(response.status).toBe(httpStatusCodes.OK);
       expect(response).toSatisfyApiSpec();
     });
+
+    it.each(parameterTestCases)(
+      'should suspend job on task notify if task type exists in suspendingTaskTypes - $mockJob.type',
+      async ({ mockJob }) => {
+        // Arrange
+        for (const taskType of jobDefinitionsConfig.suspendingTaskTypes) {
+          mockJob = { ...mockJob, completedTasks: 0, taskCount: 1 };
+          const mockSuspendingTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
+            type: taskType,
+            status: OperationStatus.FAILED,
+            reason: 'Task suspend reason',
+          });
+
+          nock(jobManagerConfigMock.jobManagerBaseUrl)
+            .post('/tasks/find', { id: mockSuspendingTask.id })
+            .reply(httpStatusCodes.OK, [mockSuspendingTask]);
+
+          nock(jobManagerConfigMock.jobManagerBaseUrl)
+            .get(`/jobs/${mockJob.id}`)
+            .query({ shouldReturnTasks: false })
+            .reply(httpStatusCodes.OK, mockJob);
+
+          nock(jobManagerConfigMock.jobManagerBaseUrl)
+            .put(`/jobs/${mockJob.id}`, { status: OperationStatus.SUSPENDED, reason: mockSuspendingTask.reason })
+            .reply(httpStatusCodes.OK);
+
+          // Act
+          const response = await requestSender.handleTaskNotification(mockSuspendingTask.id);
+
+          // Assert
+          expect(response.status).toBe(httpStatusCodes.OK);
+          expect(response).toSatisfyApiSpec();
+        }
+      }
+    );
   });
 
   describe('Bad Path', function () {
@@ -401,6 +504,58 @@ describe('tasksManager', function () {
       expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
       expect(response).toSatisfyApiSpec();
     });
+
+    it.each(parameterTestCases)(
+      'should return 400 in case of missmatch mapper by job and task type when attempt to create next task',
+      async ({ mockJob }) => {
+        mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
+        // mocks
+        const mockValidationTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.init, status: OperationStatus.COMPLETED }); // init task for ingestion job
+
+        nock(jobManagerConfigMock.jobManagerBaseUrl)
+          .post('/tasks/find', { id: mockValidationTask.id })
+          .reply(httpStatusCodes.OK, [mockValidationTask]);
+        nock(jobManagerConfigMock.jobManagerBaseUrl)
+          .get(`/jobs/${mockJob.id}`)
+          .query({ shouldReturnTasks: false })
+          .reply(httpStatusCodes.OK, mockJob);
+
+        // action
+        const response = await requestSender.handleTaskNotification(mockValidationTask.id);
+
+        // expectation
+        expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
+        expect(response).toSatisfyApiSpec();
+      }
+    );
+
+
+    it.each(parameterTestCases)(
+      'should suspend job in case of completed but invalid validation task parameters schema - $mockJob.type',
+      async ({ mockJob }) => {
+        // Arrange
+        mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
+        const mockValidationTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
+          type: jobDefinitionsConfig.tasks.validation,
+          status: OperationStatus.COMPLETED,
+        }); // does not includes the 'isValid' parameter
+
+        nock(jobManagerConfigMock.jobManagerBaseUrl)
+          .post('/tasks/find', { id: mockValidationTask.id })
+          .reply(httpStatusCodes.OK, [mockValidationTask]);
+
+        nock(jobManagerConfigMock.jobManagerBaseUrl)
+          .get(`/jobs/${mockJob.id}`)
+          .query({ shouldReturnTasks: false })
+          .reply(httpStatusCodes.OK, mockJob);
+        // Act
+        const response = await requestSender.handleTaskNotification(mockValidationTask.id);
+
+        // Assert
+        expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
+        expect(response).toSatisfyApiSpec();
+      }
+    );
   });
 
   describe('Sad Path', function () {
@@ -411,6 +566,32 @@ describe('tasksManager', function () {
       nock(jobManagerConfigMock.jobManagerBaseUrl)
         .post(`/tasks/find`, { id: mockMergeTask.id })
         .reply(httpStatusCodes.NOT_FOUND, 'message: Tasks not found');
+      // action
+      const response = await requestSender.handleTaskNotification(mockMergeTask.id);
+      // expectation
+      expect(response.status).toBe(httpStatusCodes.NOT_FOUND);
+      expect(response).toSatisfyApiSpec();
+    });
+
+    it.each(parameterTestCases)('should return 404 if the task given exists but job cannot be found', async ({ mockJob }) => {
+      // mocks
+      const mockMergeTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.merge, status: OperationStatus.COMPLETED });
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/tasks/find`, { id: mockMergeTask.id }).reply(httpStatusCodes.OK, [mockMergeTask]);
+
+      nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.NOT_FOUND);
+
+      // action
+      const response = await requestSender.handleTaskNotification(mockMergeTask.id);
+      // expectation
+      expect(response.status).toBe(httpStatusCodes.NOT_FOUND);
+      expect(response).toSatisfyApiSpec();
+    });
+
+    it.each(parameterTestCases)('should return 404 in case of the notified tasks cannot be found', async ({ mockJob }) => {
+      // mocks
+      const mockMergeTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.merge, status: OperationStatus.COMPLETED });
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post(`/tasks/find`, { id: mockMergeTask.id }).reply(httpStatusCodes.NOT_FOUND, []);
+
       // action
       const response = await requestSender.handleTaskNotification(mockMergeTask.id);
       // expectation

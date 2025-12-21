@@ -40,12 +40,13 @@ export class TaskHandler {
 
     // Handle case where current task type is not found in the flow
     if (indexOfCurrentTask < 0) {
+      const errMsg = `Current task type ${this.task.type} not found in task flow`;
       this.logger.error({
-        msg: 'Current task type not found in task flow',
+        msg: errMsg,
         taskType: this.task.type,
         tasksFlow: this.tasksFlow,
       });
-      return undefined;
+      throw new BadRequestError(errMsg);
     }
 
     let nextTaskTypeIndex = indexOfCurrentTask + 1;

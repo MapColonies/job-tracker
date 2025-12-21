@@ -1,7 +1,7 @@
 import { Logger } from '@map-colonies/js-logger';
 import { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
 import { injectable, inject } from 'tsyringe';
-import { IConfig, IsProceedableResponse, TaskTypes } from '../../../common/interfaces';
+import { IConfig, TaskTypes } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
 import { JobHandler } from '../jobHandler';
 
@@ -27,8 +27,8 @@ export class SeedJobHandler extends JobHandler {
     this.initializeTaskOperations();
   }
 
-  public isProceedable(): IsProceedableResponse {
-    return { result: true };
+  public isProceedable(): boolean {
+    return true;
   }
 
   public isJobCompleted = (): boolean => {

@@ -24,7 +24,7 @@ describe('BaseJobHandler', () => {
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.seed) },
   ];
 
-  const testCaseHandlerLog = '$jobType handler';
+  const testCaseHandlerLog = '$mockJob.type handler';
 
   beforeEach(() => {
     registerDefaultConfig();
@@ -133,6 +133,8 @@ describe('BaseJobHandler', () => {
   });
 
   describe('isJobCompleted', () => {
+    const nonSeedTestCases = testCases.filter(({ mockJob }) => mockJob.type !== jobDefinitionsConfig.jobs.seed); // removing seed job test case as finalize task type is not handled there
+
     it.each(testCases)(`should return true when all tasks are completed - ${testCaseHandlerLog}`, (testCase) => {
       let { mockJob } = testCase;
       mockJob = { ...mockJob, completedTasks: 10, taskCount: 10 };
@@ -162,6 +164,22 @@ describe('BaseJobHandler', () => {
       const result = handler.isJobCompleted(mockTask.type);
 
       // Then: should return false
+      expect(result).toBe(false);
+    });
+
+    it.each(nonSeedTestCases)(`should return false in case task type is not finalize - ${testCaseHandlerLog}`, (testCase) => {
+      let { mockJob } = testCase;
+      mockJob = { ...mockJob, completedTasks: 10, taskCount: 10 };
+      mockTask = getTaskMock<unknown>(mockJob.id, {
+        type: jobDefinitionsConfig.tasks.merge,
+        status: OperationStatus.COMPLETED,
+      });
+      const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
+
+      // When: checking if job is completed
+      const result = handler.isJobCompleted(mockTask.type);
+
+      // Then: should return true
       expect(result).toBe(false);
     });
   });

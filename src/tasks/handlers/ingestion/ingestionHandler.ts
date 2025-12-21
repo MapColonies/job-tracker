@@ -1,10 +1,21 @@
 import { Logger } from '@map-colonies/js-logger';
 import { IJobResponse, ITaskResponse, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { injectable, inject } from 'tsyringe';
-import { BaseIngestionValidationTaskParams } from '@map-colonies/raster-shared';
-import { IConfig, IsProceedableResponse, TaskTypes } from '../../../common/interfaces';
+import {
+  IngestionValidationTaskParams,
+  ingestionValidationTaskParamsSchema as baseIngestionValidationTaskParamsSchema,
+} from '@map-colonies/raster-shared';
+import { IConfig, TaskTypes } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
 import { JobHandler } from '../jobHandler';
+import { BadRequestError } from '@map-colonies/error-types';
+
+export type IngestionValidationTaskParameters = Pick<IngestionValidationTaskParams, 'isValid'>;
+export const ingestionValidationTaskParamsSchema = baseIngestionValidationTaskParamsSchema
+  .pick({
+    isValid: true,
+  })
+  .required({ isValid: true });
 
 @injectable()
 export class IngestionJobHandler extends JobHandler {
@@ -32,21 +43,26 @@ export class IngestionJobHandler extends JobHandler {
     this.initializeTaskOperations();
   }
 
-  public isProceedable(task: ITaskResponse<BaseIngestionValidationTaskParams>): IsProceedableResponse {
+  public isProceedable(task: ITaskResponse<IngestionValidationTaskParameters>): boolean {
     if (task.type !== this.jobDefinitions.tasks.validation) {
-      return { result: true };
+      return true;
     }
+
+    const result = ingestionValidationTaskParamsSchema.safeParse(task.parameters);
+    if (!result.success) {
+      const errorMessage = `Failed to parse validation task parameters: ${result.error}`;
+      this.logger.error({ message: errorMessage });
+      throw new BadRequestError(errorMessage);
+    }
+    const taskParams = result.data;
 
     this.logger.info({
       msg: 'Checking if validation task is valid in order to proceed',
       jobId: this.job.id,
       jobType: this.job.type,
     });
-    const isValid = task.status === OperationStatus.COMPLETED && task.parameters.isValid;
-    const isProceedable = {
-      result: isValid,
-      ...(!isValid ? { reason: 'Invalid validation task' } : {}),
-    };
-    return isProceedable;
+    const isValid = task.status === OperationStatus.COMPLETED && taskParams.isValid;
+
+    return isValid;
   }
 }

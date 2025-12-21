@@ -99,7 +99,7 @@ const registerDefaultConfig = (): void => {
         export: 'tilesExporting',
         seed: 'TilesSeeding',
       },
-      suspendingTaskTypes: ['polygon-parts'],
+      suspendingTaskTypes: ['validation'],
     },
     taskFlowManager: {
       ingestionTasksFlow: ['validation', 'create-merge-tasks', 'tilesMerging', 'finalize'],
