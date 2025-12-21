@@ -1,5 +1,6 @@
 import { JobManagerClient, OperationStatus, ITaskResponse, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
 import jsLogger from '@map-colonies/js-logger';
+import { BadRequestError } from '@map-colonies/error-types';
 import { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { createTestJob, getTaskMock } from '../../../mocks/jobMocks';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
@@ -7,7 +8,6 @@ import { TaskHandler } from '../../../../src/tasks/handlers/taskHandler';
 import { IngestionJobHandler, IngestionValidationTaskParameters } from '../../../../src/tasks/handlers/ingestion/ingestionHandler';
 import { getJobHandler } from '../../../../src/tasks/handlers/jobHandlerFactory';
 import { mockJobManager, queueClientMock } from '../../../mocks/mockJobManager';
-import { BadRequestError } from '@map-colonies/error-types';
 
 describe('IngestionJobHandler', () => {
   let mockTask: ITaskResponse<unknown>;
@@ -271,9 +271,9 @@ describe('IngestionJobHandler', () => {
       });
       const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
 
-      const action = async () => handler.isProceedable(mockTask);
+      const action = () => handler.isProceedable(mockTask);
 
-      expect(action()).rejects.toThrowError(BadRequestError);
+      expect(action()).toThrow(BadRequestError);
     });
 
     it.each(testCases)(`should return "true" in case task notified task type is not "validation" - ${testCaseHandlerLog}`, (testCase) => {

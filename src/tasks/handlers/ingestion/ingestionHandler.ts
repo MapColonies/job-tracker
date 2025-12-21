@@ -5,10 +5,10 @@ import {
   IngestionValidationTaskParams,
   ingestionValidationTaskParamsSchema as baseIngestionValidationTaskParamsSchema,
 } from '@map-colonies/raster-shared';
+import { BadRequestError } from '@map-colonies/error-types';
 import { IConfig, TaskTypes } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
 import { JobHandler } from '../jobHandler';
-import { BadRequestError } from '@map-colonies/error-types';
 
 export type IngestionValidationTaskParameters = Pick<IngestionValidationTaskParams, 'isValid'>;
 export const ingestionValidationTaskParamsSchema = baseIngestionValidationTaskParamsSchema
@@ -50,7 +50,7 @@ export class IngestionJobHandler extends JobHandler {
 
     const result = ingestionValidationTaskParamsSchema.safeParse(task.parameters);
     if (!result.success) {
-      const errorMessage = `Failed to parse validation task parameters: ${result.error}`;
+      const errorMessage = `Failed to parse validation task parameters: ${result.error.message}`;
       this.logger.error({ message: errorMessage });
       throw new BadRequestError(errorMessage);
     }

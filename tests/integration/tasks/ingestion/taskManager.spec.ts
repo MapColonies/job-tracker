@@ -529,7 +529,6 @@ describe('tasksManager', function () {
       }
     );
 
-
     it.each(parameterTestCases)(
       'should suspend job in case of completed but invalid validation task parameters schema - $mockJob.type',
       async ({ mockJob }) => {
