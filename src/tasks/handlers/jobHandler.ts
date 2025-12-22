@@ -55,6 +55,7 @@ export abstract class JobHandler extends BaseJobHandler {
 
     const shouldSkipTaskCreation = this.taskWorker?.shouldSkipTaskCreation(nextTaskType);
     const isReadyForNextTask = this.isReadyForNextTask();
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!isReadyForNextTask || shouldSkipTaskCreation) {
       await this.handleSkipTask(nextTaskType);
       return;
