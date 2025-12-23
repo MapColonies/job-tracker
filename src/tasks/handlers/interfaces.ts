@@ -1,3 +1,7 @@
+import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
+import { Logger } from '@map-colonies/js-logger';
+import { TaskType } from '../../common/interfaces';
+
 /**
  * Interface for handling job-level operations
  */
@@ -23,7 +27,17 @@ export interface IJobHandler {
   updateJobProgress: () => Promise<void>;
 
   /**
-   * Check if all tasks in the job are completed
+   * Check if finalize task is completed along with all other tasks
    */
-  isJobCompleted: () => boolean;
+  isJobCompleted: (taskType: TaskType) => boolean;
+}
+
+export interface TaskProceedRule<T = unknown> {
+  isProceedable: (
+    task: ITaskResponse<T>,
+    context: {
+      logger: Logger;
+      job: IJobResponse<unknown, unknown>;
+    }
+  ) => boolean;
 }

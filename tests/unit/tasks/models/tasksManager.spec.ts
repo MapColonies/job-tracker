@@ -2,7 +2,7 @@ import { NotFoundError } from '@map-colonies/error-types';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { ExportFinalizeErrorCallbackParams, ExportFinalizeType } from '@map-colonies/raster-shared';
 import { registerDefaultConfig, clear as clearConfig } from '../../../mocks/configMock';
-import { getExportJobMock, getIngestionJobMock, getSeedingJobMock, getTaskMock } from '../../../mocks/JobMocks';
+import { createTestJob, getExportJobMock, getSeedingJobMock, getTaskMock } from '../../../mocks/jobMocks';
 import { IrrelevantOperationStatusError } from '../../../../src/common/errors';
 import { setupTasksManagerTest, TasksModelTestContext } from './tasksManagerSetup';
 
@@ -24,7 +24,7 @@ describe('TasksManager', () => {
       it("should fail the job if the given task's status is 'Failed' and task shouldn't suspend job", async () => {
         // mocks
         const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
-        const ingestionJobMock = getIngestionJobMock();
+        const ingestionJobMock = createTestJob(jobDefinitionsConfigMock.jobs.new);
         const mergeTaskMock = getTaskMock(ingestionJobMock.id, {
           type: jobDefinitionsConfigMock.tasks.merge,
           status: OperationStatus.FAILED,
@@ -42,9 +42,9 @@ describe('TasksManager', () => {
       it("should suspend the job if the given task's status is 'Failed' and task is in suspendingTaskTypes list", async () => {
         // mocks
         const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
-        const ingestionJobMock = getIngestionJobMock();
+        const ingestionJobMock = createTestJob(jobDefinitionsConfigMock.jobs.new);
         const mergeTaskMock = getTaskMock(ingestionJobMock.id, {
-          type: jobDefinitionsConfigMock.tasks.polygonParts,
+          type: jobDefinitionsConfigMock.tasks.validation,
           status: OperationStatus.FAILED,
           reason: 'reason',
         });
@@ -151,7 +151,7 @@ describe('TasksManager', () => {
       it('should throw NotFoundError if the given task does not exist', async () => {
         // mocks
         const { tasksManager, mockFindTasks, jobDefinitionsConfigMock } = testContext;
-        const ingestionJobMock = getIngestionJobMock();
+        const ingestionJobMock = createTestJob(jobDefinitionsConfigMock.jobs.new);
         const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.COMPLETED });
 
         mockFindTasks.mockResolvedValueOnce(null);
@@ -162,7 +162,7 @@ describe('TasksManager', () => {
       it("should throw IrrelevantOperationStatusError if the given task's status is neither 'Completed' nor 'Failed'", async () => {
         // mocks
         const { tasksManager, mockFindTasks, jobDefinitionsConfigMock } = testContext;
-        const ingestionJobMock = getIngestionJobMock();
+        const ingestionJobMock = createTestJob(jobDefinitionsConfigMock.jobs.new);
         const mergeTaskMock = getTaskMock(ingestionJobMock.id, { type: jobDefinitionsConfigMock.tasks.merge, status: OperationStatus.PENDING });
 
         mockFindTasks.mockResolvedValueOnce([mergeTaskMock]);

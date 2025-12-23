@@ -1,6 +1,8 @@
 import { Logger } from '@map-colonies/js-logger';
 import { IJobResponse, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
+import { TaskTypes } from '@map-colonies/raster-shared';
 import { calculateJobPercentage } from '../../utils/jobUtils';
+import { TaskType } from '../../common/interfaces';
 import { IJobHandler } from './interfaces';
 
 /**
@@ -49,8 +51,8 @@ export abstract class BaseJobHandler implements IJobHandler {
     await this.jobManager.updateJob(this.job.id, { percentage: actualPercentage });
   };
 
-  public isJobCompleted = (): boolean => {
-    return this.job.completedTasks === this.job.taskCount;
+  public isJobCompleted = (taskType: TaskType): boolean => {
+    return this.job.completedTasks === this.job.taskCount && taskType === TaskTypes.Finalize;
   };
 
   // Abstract methods that concrete handlers must implement

@@ -1,13 +1,21 @@
 import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { faker } from '@faker-js/faker';
+import { JobType } from '../../src/common/interfaces';
 
-export const getIngestionJobMock = (override?: Partial<IJobResponse<unknown, unknown>>): IJobResponse<unknown, unknown> => {
+export const createTestJob = (jobType: JobType, overrides?: Partial<IJobResponse<unknown, unknown>>): IJobResponse<unknown, unknown> => {
+  return getMockJob(jobType, {
+    completedTasks: 5,
+    taskCount: 10,
+    ...overrides,
+  });
+};
+export const getMockJob = (jobType: JobType, override?: Partial<IJobResponse<unknown, unknown>>): IJobResponse<unknown, unknown> => {
   const defaultJobMock = {
     id: faker.string.uuid(),
     resourceId: 'test',
     version: '1.0',
-    type: 'Ingestion_New',
+    type: jobType,
     description: '',
     status: OperationStatus.IN_PROGRESS,
     percentage: 100,
@@ -73,7 +81,7 @@ export const getSeedingJobMock = (override?: Partial<IJobResponse<unknown, unkno
     id: faker.string.uuid(),
     resourceId: 'test',
     version: '1.0',
-    type: 'tilesSeeding',
+    type: 'TilesSeeding',
     description: '',
     status: OperationStatus.IN_PROGRESS,
     percentage: 87,
@@ -101,12 +109,12 @@ export const getSeedingJobMock = (override?: Partial<IJobResponse<unknown, unkno
   return { ...defaultJobMock, ...override };
 };
 
-export const getTaskMock = (jobId: string, override?: Partial<Omit<IJobResponse<unknown, unknown>, 'jobId'>>): ITaskResponse<unknown> => {
+export const getTaskMock = <T>(jobId: string, override?: Partial<Omit<ITaskResponse<T>, 'jobId'>>): ITaskResponse<T> => {
   const defaultTaskMock = {
     id: faker.string.uuid(),
     jobId,
     description: '',
-    parameters: {},
+    parameters: {} as T,
     created: faker.date.anytime().toString(),
     updated: faker.date.anytime().toString(),
     type: '',

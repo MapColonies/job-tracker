@@ -1,5 +1,5 @@
 type ValueOf<T> = T[keyof T];
-type JobType = ValueOf<IJobDefinitionsConfig['jobs']>;
+export type JobType = ValueOf<IJobDefinitionsConfig['jobs']>;
 export type TaskType = ValueOf<IJobDefinitionsConfig['tasks']>;
 export type TaskTypes = TaskType[];
 export type JobAndTask = `${JobType}_${TaskType}`;
@@ -37,7 +37,9 @@ export interface IJobDefinitionsConfig {
   tasks: {
     polygonParts: string;
     finalize: string;
+    mergeTaskCreation: string;
     merge: string;
+    validation: string;
     init: string;
     export: string;
     seed: string;

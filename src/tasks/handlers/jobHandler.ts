@@ -4,6 +4,7 @@ import { IJobResponse, ITaskResponse, JobManagerClient, ICreateTaskBody } from '
 import { IConfig, IJobDefinitionsConfig, TaskTypes } from '../../common/interfaces';
 import { BaseJobHandler } from './baseJobHandler';
 import { TaskHandler } from './taskHandler';
+import { TaskProceedRule } from './interfaces';
 
 /**
  * Base class for workflow-enabled job handlers that handles task flow logic
@@ -12,6 +13,7 @@ export abstract class JobHandler extends BaseJobHandler {
   protected readonly config: IConfig;
   protected readonly jobDefinitions: IJobDefinitionsConfig;
   protected readonly task: ITaskResponse<unknown>;
+  protected readonly proceedRules = new Map<string, TaskProceedRule>();
   protected taskWorker?: TaskHandler;
   protected abstract readonly tasksFlow: TaskTypes;
   protected abstract readonly excludedTypes: TaskTypes;
@@ -39,10 +41,22 @@ export abstract class JobHandler extends BaseJobHandler {
       return;
     }
 
-    const initTasksOfJob = await this.taskWorker?.getInitTasks();
-    const canProceed = this.areInitialTasksReady(initTasksOfJob);
+    const isProceedable = this.isProceedable();
+    if (!isProceedable) {
+      this.logger.info({
+        msg: `job is not proceedable, suspending job id: ${this.job.id}`,
+        jobId: this.job.id,
+        taskId: this.task.id,
+        reason: this.task.reason,
+      });
+      await this.suspendJob(this.task.reason);
+      return;
+    }
 
-    if (!canProceed || (this.taskWorker?.shouldSkipTaskCreation(nextTaskType) ?? false)) {
+    const shouldSkipTaskCreation = this.taskWorker?.shouldSkipTaskCreation(nextTaskType);
+    const isReadyForNextTask = this.isReadyForNextTask();
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+    if (!isReadyForNextTask || shouldSkipTaskCreation) {
       await this.handleSkipTask(nextTaskType);
       return;
     }
@@ -58,35 +72,29 @@ export abstract class JobHandler extends BaseJobHandler {
     }
   }
 
+  public isProceedable(): boolean {
+    const rule = this.proceedRules.get(this.task.type);
+    const isProceedable = rule?.isProceedable(this.task, { logger: this.logger, job: this.job }) ?? true;
+
+    return isProceedable;
+  }
+
   protected initializeTaskOperations(): void {
     this.taskWorker = new TaskHandler(this.logger, this.config, this.jobManager, this.job, this.task, this.tasksFlow, this.excludedTypes);
   }
 
-  private areInitialTasksReady(initTasksOfJob: ITaskResponse<unknown>[] | undefined): boolean {
-    if (initTasksOfJob === undefined || initTasksOfJob.length === 0) {
-      this.logger.warn({
-        msg: `Cannot proceed with task creation for job ${this.job.id}, init tasks were not found`,
-        jobId: this.job.id,
-        taskId: this.task.id,
-        taskType: this.task.type,
-        jobType: this.job.type,
-      });
-      return false;
-    } else {
-      const isInitialWorkflowCompleted = this.taskWorker?.isInitialWorkflowCompleted(initTasksOfJob) ?? false;
-      this.logger.info({
-        msg: `checking if init tasks completed for job ${this.job.id}`,
-        jobId: this.job.id,
-        taskId: this.task.id,
-        taskType: this.task.type,
-        isInitialWorkflowCompleted,
-      });
-      return isInitialWorkflowCompleted;
-    }
+  protected isReadyForNextTask(): boolean {
+    this.logger.info({
+      msg: `Checking if job is ready to for the next type ${this.job.id}`,
+      jobId: this.job.id,
+      taskId: this.task.id,
+      taskType: this.task.type,
+    });
+    return this.job.completedTasks === this.job.taskCount;
   }
 
   private async handleNoNextTask(): Promise<void> {
-    if (this.isJobCompleted()) {
+    if (this.isJobCompleted(this.task.type)) {
       this.logger.info({ msg: 'Completing job', jobId: this.job.id });
       await this.completeJob();
     } else {

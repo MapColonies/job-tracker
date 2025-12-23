@@ -1,6 +1,6 @@
 import { BadRequestError } from '@map-colonies/error-types';
 import { Logger } from '@map-colonies/js-logger';
-import { IJobResponse, ITaskResponse, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
+import { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
 import { IConfig, IJobDefinitionsConfig, JobAndTask, TaskTypes, TaskType as TaskTypeItem } from '../../common/interfaces';
 import { createTaskParametersMapper } from '../../common/mappers';
 
@@ -40,12 +40,13 @@ export class TaskHandler {
 
     // Handle case where current task type is not found in the flow
     if (indexOfCurrentTask < 0) {
+      const errMsg = `Current task type ${this.task.type} not found in task flow`;
       this.logger.error({
-        msg: 'Current task type not found in task flow',
+        msg: errMsg,
         taskType: this.task.type,
         tasksFlow: this.tasksFlow,
       });
-      return undefined;
+      throw new BadRequestError(errMsg);
     }
 
     let nextTaskTypeIndex = indexOfCurrentTask + 1;
@@ -65,14 +66,5 @@ export class TaskHandler {
 
   public shouldSkipTaskCreation(taskType: string): boolean {
     return this.excludedTypes.includes(taskType);
-  }
-
-  public async getInitTasks(): Promise<ITaskResponse<unknown>[] | undefined> {
-    const tasks = await this.jobManager.findTasks({ jobId: this.job.id, type: this.jobDefinitions.tasks.init });
-    return tasks ?? undefined;
-  }
-
-  public isInitialWorkflowCompleted(initTasks: ITaskResponse<unknown>[]): boolean {
-    return this.job.completedTasks === this.job.taskCount && initTasks.every((task) => task.status === OperationStatus.COMPLETED);
   }
 }
