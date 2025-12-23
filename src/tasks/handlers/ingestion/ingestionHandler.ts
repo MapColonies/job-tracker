@@ -1,10 +1,22 @@
 import { Logger } from '@map-colonies/js-logger';
-import { IJobResponse, ITaskResponse, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
+import { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
 import { injectable, inject } from 'tsyringe';
-import { BaseIngestionValidationTaskParams } from '@map-colonies/raster-shared';
-import { IConfig, IsProceedableResponse, TaskTypes } from '../../../common/interfaces';
+import {
+  IngestionValidationTaskParams,
+  ingestionValidationTaskParamsSchema as baseIngestionValidationTaskParamsSchema,
+} from '@map-colonies/raster-shared';
+import { IConfig, TaskTypes } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
 import { JobHandler } from '../jobHandler';
+import { ValidationProceedRule } from '../../rules/ingestion/validationProceedRule';
+import { TaskProceedRule } from '../interfaces';
+
+export type IngestionValidationTaskParameters = Pick<IngestionValidationTaskParams, 'isValid'>;
+export const ingestionValidationTaskParamsSchema = baseIngestionValidationTaskParamsSchema
+  .pick({
+    isValid: true,
+  })
+  .required({ isValid: true });
 
 @injectable()
 export class IngestionJobHandler extends JobHandler {
@@ -30,23 +42,7 @@ export class IngestionJobHandler extends JobHandler {
 
     // Initialize task operations after setting up the flow properties
     this.initializeTaskOperations();
-  }
 
-  public isProceedable(task: ITaskResponse<BaseIngestionValidationTaskParams>): IsProceedableResponse {
-    if (task.type !== this.jobDefinitions.tasks.validation) {
-      return { result: true };
-    }
-
-    this.logger.info({
-      msg: 'Checking if validation task is valid in order to proceed',
-      jobId: this.job.id,
-      jobType: this.job.type,
-    });
-    const isValid = task.status === OperationStatus.COMPLETED && task.parameters.isValid;
-    const isProceedable = {
-      result: isValid,
-      ...(!isValid ? { reason: 'Invalid validation task' } : {}),
-    };
-    return isProceedable;
+    this.proceedRules.set(this.jobDefinitions.tasks.validation, new ValidationProceedRule() as TaskProceedRule);
   }
 }
