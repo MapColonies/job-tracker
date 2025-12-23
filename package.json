@@ -1,6 +1,6 @@
 {
   "name": "job-tracker",
-  "version": "3.2.2",
+  "version": "4.0.0-alpha",
   "description": "This is a service that exposes a dedicated API for jobs and tasks states tracking",
   "main": "./src/index.ts",
   "scripts": {

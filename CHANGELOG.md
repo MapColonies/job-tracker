@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.0.0-alpha](https://github.com/MapColonies/job-tracker/compare/v3.2.2...v4.0.0-alpha) (2025-12-23)
+
+
+### Features
+
+* added procesable task logic ([ac8cb54](https://github.com/MapColonies/job-tracker/commit/ac8cb547d71ca5ac2af3201ae462a4cdb7ddf8c1))
+* added support for proceedable job and change is job completed logic ([87058c1](https://github.com/MapColonies/job-tracker/commit/87058c14002c40c752fb34cbe7ae8875d05d0065))
+* added support for seed workflow with seed job handler ([0569f70](https://github.com/MapColonies/job-tracker/commit/0569f7035e204120ea3c1b8b5af96010225adbb9))
+* implement initial task ready logic for ingestion workflow ([4aabb9f](https://github.com/MapColonies/job-tracker/commit/4aabb9ffce637459b5473d4a00ce891e71cc291a))
+* implemented validation workflow for ingestion ([5dfa660](https://github.com/MapColonies/job-tracker/commit/5dfa6600b644be19ec4a3e3e76b507adf6681072))
+* support new ingestion workflow ([08b6334](https://github.com/MapColonies/job-tracker/commit/08b6334954065427e1c9b0e8129598170fadfb03))
+
+
+### Bug Fixes
+
+* pr comments ([41311de](https://github.com/MapColonies/job-tracker/commit/41311defd37dfddebe8a10fcc39b7dd2cf2c02ee))
+
 ### [3.2.2](https://github.com/MapColonies/job-tracker/compare/v3.2.1...v3.2.2) (2025-10-20)
 
 
