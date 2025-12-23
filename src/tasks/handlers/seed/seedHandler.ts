@@ -23,7 +23,6 @@ export class SeedJobHandler extends JobHandler {
     this.excludedTypes = [this.jobDefinitions.tasks.seed];
     this.blockedDuplicationTypes = [];
 
-    // Initialize task operations after setting up the flow properties
     this.initializeTaskOperations();
   }
 

@@ -40,7 +40,6 @@ export class IngestionJobHandler extends JobHandler {
       this.jobDefinitions.tasks.finalize,
     ];
 
-    // Initialize task operations after setting up the flow properties
     this.initializeTaskOperations();
 
     this.proceedRules.set(this.jobDefinitions.tasks.validation, new ValidationProceedRule() as TaskProceedRule);

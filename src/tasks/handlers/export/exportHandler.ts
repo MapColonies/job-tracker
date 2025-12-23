@@ -24,7 +24,6 @@ export class ExportJobHandler extends JobHandler {
     this.excludedTypes = [this.jobDefinitions.tasks.export];
     this.blockedDuplicationTypes = [this.jobDefinitions.tasks.export];
 
-    // Initialize task operations after setting up the flow properties
     this.initializeTaskOperations();
   }
 
