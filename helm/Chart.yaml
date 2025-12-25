@@ -4,3 +4,7 @@ description: A Helm chart for job-tracker service
 type: application
 version: 3.2.2
 appVersion: 3.2.2
+dependencies:
+  - name: mclabels
+    version: 1.0.1
+    repository: oci://acrarolibotnonprod.azurecr.io/helm/infra

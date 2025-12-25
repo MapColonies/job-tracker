@@ -34,12 +34,14 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define "job-tracker.labels" -}}
+app.kubernetes.io/name: {{ include "job-tracker.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
 helm.sh/chart: {{ include "job-tracker.chart" . }}
-{{ include "job-tracker.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{ include "mclabels.labels" . }}
 {{- end }}
 
 {{/*
@@ -55,6 +57,7 @@ Selector labels
 {{- define "job-tracker.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "job-tracker.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{ include "mclabels.selectorLabels" . }}
 {{- end }}
 
 {{/*
