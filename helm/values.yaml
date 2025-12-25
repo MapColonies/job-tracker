@@ -16,6 +16,9 @@ mclabels:
   partOf: core
   owner: raster
   gisDomain: raster
+  prometheus:
+    enabled: true
+    port: 8080
 
 enabled: true
 environment: development
