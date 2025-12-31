@@ -112,3 +112,6 @@ jest_html_reporters.html
 reports
 
 local*.json
+
+#Chart
+Chart.lock
