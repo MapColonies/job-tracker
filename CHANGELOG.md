@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.0.0-alpha.0](https://github.com/MapColonies/job-tracker/compare/v3.2.2...v4.0.0-alpha.0) (2025-12-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* ingestion tasks workflow (MAPCO-8344) (#29)
+
+### Features
+
+* ingestion tasks workflow (MAPCO-8344) ([#29](https://github.com/MapColonies/job-tracker/issues/29)) ([67de6d6](https://github.com/MapColonies/job-tracker/commit/67de6d6e744206944385d265c6d46b18f37105ef)), closes [#31](https://github.com/MapColonies/job-tracker/issues/31)
+
 ### [3.2.2](https://github.com/MapColonies/job-tracker/compare/v3.2.1...v3.2.2) (2025-10-20)
 
 
