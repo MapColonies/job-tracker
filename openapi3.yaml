@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: job-tracker
   description: A service that exposes a dedicated API for jobs and tasks states tracking
-  version: 4.0.0-alpha.1
+  version: 4.0.0-alpha.2
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
