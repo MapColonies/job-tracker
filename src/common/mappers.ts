@@ -1,9 +1,4 @@
-import {
-  IngestionNewFinalizeTaskParams,
-  IngestionUpdateFinalizeTaskParams,
-  IngestionSwapUpdateFinalizeTaskParams,
-} from '@map-colonies/mc-model-types';
-import { ExportFinalizeType, ExportFinalizeFullProcessingParams } from '@map-colonies/raster-shared';
+import { ExportFinalizeType, ExportFinalizeFullProcessingParams, IngestionNewFinalizeTaskParams, IngestionUpdateFinalizeTaskParams, IngestionSwapUpdateFinalizeTaskParams } from '@map-colonies/raster-shared';
 import { JobAndTask, IJobDefinitionsConfig } from './interfaces';
 
 export const createTaskParametersMapper = (jobDefinitions: IJobDefinitionsConfig): Map<JobAndTask, Record<PropertyKey, unknown>> => {
@@ -14,6 +9,7 @@ export const createTaskParametersMapper = (jobDefinitions: IJobDefinitionsConfig
     [
       `${jobDefinitions.jobs.new}_${jobDefinitions.tasks.finalize}`,
       {
+        processParts: false,
         insertedToCatalog: false,
         insertedToGeoServer: false,
         insertedToMapproxy: false,
@@ -22,12 +18,14 @@ export const createTaskParametersMapper = (jobDefinitions: IJobDefinitionsConfig
     [
       `${jobDefinitions.jobs.update}_${jobDefinitions.tasks.finalize}`,
       {
+        processParts: false,
         updatedInCatalog: false,
       } satisfies IngestionUpdateFinalizeTaskParams,
     ],
     [
       `${jobDefinitions.jobs.swapUpdate}_${jobDefinitions.tasks.finalize}`,
       {
+        processParts: false,
         updatedInCatalog: false,
         updatedInMapproxy: false,
       } satisfies IngestionSwapUpdateFinalizeTaskParams,
