@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.0.0-alpha.1](https://github.com/MapColonies/job-tracker/compare/v4.0.0-alpha.0...v4.0.0-alpha.1) (2026-01-04)
+
+
+### Features
+
+* added process parts stage for ingestion finalize task parameters (MAPCO-8346) ([#34](https://github.com/MapColonies/job-tracker/issues/34)) ([bf64085](https://github.com/MapColonies/job-tracker/commit/bf640853f5c62ec047cf54dc424215bfa9af7ebe))
+
 ## [4.0.0-alpha.0](https://github.com/MapColonies/job-tracker/compare/v3.2.2...v4.0.0-alpha.0) (2025-12-31)
 
 
