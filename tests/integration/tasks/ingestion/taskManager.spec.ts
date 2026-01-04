@@ -25,15 +25,15 @@ describe('tasksManager', function () {
   const parameterTestCases = [
     {
       mockJob: createTestJob(jobDefinitionsConfig.jobs.new),
-      expectedFinalizeParameters: { processParts: false, insertedToCatalog: false, insertedToGeoServer: false, insertedToMapproxy: false },
+      expectedFinalizeParameters: { processedParts: false, insertedToCatalog: false, insertedToGeoServer: false, insertedToMapproxy: false },
     },
     {
       mockJob: createTestJob(jobDefinitionsConfig.jobs.update),
-      expectedFinalizeParameters: { processParts: false, updatedInCatalog: false },
+      expectedFinalizeParameters: { processedParts: false, updatedInCatalog: false },
     },
     {
       mockJob: createTestJob(jobDefinitionsConfig.jobs.swapUpdate),
-      expectedFinalizeParameters: { processParts: false, updatedInCatalog: false, updatedInMapproxy: false },
+      expectedFinalizeParameters: { processedParts: false, updatedInCatalog: false, updatedInMapproxy: false },
     },
   ];
 

@@ -15,7 +15,7 @@ export const createTaskParametersMapper = (jobDefinitions: IJobDefinitionsConfig
     [
       `${jobDefinitions.jobs.new}_${jobDefinitions.tasks.finalize}`,
       {
-        processParts: false,
+        processedParts: false,
         insertedToCatalog: false,
         insertedToGeoServer: false,
         insertedToMapproxy: false,
@@ -24,14 +24,14 @@ export const createTaskParametersMapper = (jobDefinitions: IJobDefinitionsConfig
     [
       `${jobDefinitions.jobs.update}_${jobDefinitions.tasks.finalize}`,
       {
-        processParts: false,
+        processedParts: false,
         updatedInCatalog: false,
       } satisfies IngestionUpdateFinalizeTaskParams,
     ],
     [
       `${jobDefinitions.jobs.swapUpdate}_${jobDefinitions.tasks.finalize}`,
       {
-        processParts: false,
+        processedParts: false,
         updatedInCatalog: false,
         updatedInMapproxy: false,
       } satisfies IngestionSwapUpdateFinalizeTaskParams,
