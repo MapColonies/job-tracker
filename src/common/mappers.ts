@@ -1,4 +1,10 @@
-import { ExportFinalizeType, ExportFinalizeFullProcessingParams, IngestionNewFinalizeTaskParams, IngestionUpdateFinalizeTaskParams, IngestionSwapUpdateFinalizeTaskParams } from '@map-colonies/raster-shared';
+import {
+  ExportFinalizeType,
+  ExportFinalizeFullProcessingParams,
+  IngestionNewFinalizeTaskParams,
+  IngestionUpdateFinalizeTaskParams,
+  IngestionSwapUpdateFinalizeTaskParams,
+} from '@map-colonies/raster-shared';
 import { JobAndTask, IJobDefinitionsConfig } from './interfaces';
 
 export const createTaskParametersMapper = (jobDefinitions: IJobDefinitionsConfig): Map<JobAndTask, Record<PropertyKey, unknown>> => {
