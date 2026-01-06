@@ -52,7 +52,7 @@ describe('IngestionJobHandler', () => {
         parameters: { isValid: true },
       });
       const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
-      const nextTaskType = jobDefinitionsConfig.tasks.mergeTaskCreation;
+      const nextTaskType = jobDefinitionsConfig.tasks.createTasks;
 
       getNextTaskTypeSpy.mockReturnValue(nextTaskType);
       findTaskSpy.mockImplementation(() => [mockTask]);
@@ -85,7 +85,7 @@ describe('IngestionJobHandler', () => {
           parameters: { isValid: false },
         });
         const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
-        const nextTaskType = jobDefinitionsConfig.tasks.mergeTaskCreation;
+        const nextTaskType = jobDefinitionsConfig.tasks.createTasks;
 
         getNextTaskTypeSpy.mockReturnValue(nextTaskType);
         mockJobManager.findTasks.mockResolvedValue([mockTask]);
@@ -110,7 +110,7 @@ describe('IngestionJobHandler', () => {
           status: OperationStatus.COMPLETED, // missing "isValid" parameter
         });
         const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
-        const nextTaskType = jobDefinitionsConfig.tasks.mergeTaskCreation;
+        const nextTaskType = jobDefinitionsConfig.tasks.createTasks;
 
         getNextTaskTypeSpy.mockReturnValue(nextTaskType);
         mockJobManager.findTasks.mockResolvedValue([mockTask]);
@@ -130,7 +130,7 @@ describe('IngestionJobHandler', () => {
       async (testCase) => {
         let { mockJob } = testCase;
         mockJob = { ...mockJob, completedTasks: 4, taskCount: 4 };
-        mockTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.mergeTaskCreation, status: OperationStatus.COMPLETED });
+        mockTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.createTasks, status: OperationStatus.COMPLETED });
         const handler = getJobHandler(mockJob.type, jobDefinitionsConfig, mockLogger, queueClientMock, configMock, mockJob, mockTask);
         const nextTaskType = jobDefinitionsConfig.tasks.finalize;
 

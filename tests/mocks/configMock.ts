@@ -91,7 +91,7 @@ const registerDefaultConfig = (): void => {
       },
       tasks: {
         validation: 'validation',
-        mergeTaskCreation: 'create-merge-tasks',
+        createTasks: 'create-tasks',
         init: 'init',
         merge: 'tilesMerging',
         polygonParts: 'polygon-parts',
@@ -102,7 +102,7 @@ const registerDefaultConfig = (): void => {
       suspendingTaskTypes: ['validation'],
     },
     taskFlowManager: {
-      ingestionTasksFlow: ['validation', 'create-merge-tasks', 'tilesMerging', 'finalize'],
+      ingestionTasksFlow: ['validation', 'create-tasks', 'tilesMerging', 'finalize'],
       exportTasksFlow: ['init', 'tilesExporting', 'polygon-parts', 'finalize'],
       seedTasksFlow: ['TilesSeeding'],
     },

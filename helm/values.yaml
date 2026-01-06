@@ -101,7 +101,7 @@ jobDefinitions:
       type: ''
     init:
       type: ''
-    mergeTaskCreation:
+    createTasks:
       type: ''
     merge:
       type: ''

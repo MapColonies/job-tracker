@@ -34,7 +34,7 @@ data:
   JOB_DEFINITIONS_TASK_VALIDATION: {{ $jobDefinitions.tasks.validation.type | quote }}
   JOB_DEFINITIONS_TASK_MERGE: {{ $jobDefinitions.tasks.merge.type | quote }}
   JOB_DEFINITIONS_TASK_POLYGON_PARTS: {{ $jobDefinitions.tasks.polygonParts.type | quote }}
-  JOB_DEFINITIONS_TASK_MERGE_TASK_CREATION: {{ $jobDefinitions.tasks.mergeTaskCreation.type | quote }}
+  JOB_DEFINITIONS_TASK_CREATE_TASKS: {{ $jobDefinitions.tasks.createTasks.type | quote }}
   JOB_DEFINITIONS_TASK_EXPORT: {{ $jobDefinitions.tasks.export.type | quote }}
   JOB_DEFINITIONS_TASK_FINALIZE: {{ $jobDefinitions.tasks.finalize.type | quote }}
   JOB_DEFINITIONS_TASK_SEED: {{ $jobDefinitions.tasks.seed.type | quote }}

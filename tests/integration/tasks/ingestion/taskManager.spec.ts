@@ -84,7 +84,7 @@ describe('tasksManager', function () {
           .query({ shouldReturnTasks: false })
           .reply(httpStatusCodes.OK, mockJob);
         nock(jobManagerConfigMock.jobManagerBaseUrl)
-          .post(`/jobs/${mockJob.id}/tasks`, { type: jobDefinitionsConfig.tasks.mergeTaskCreation, parameters: {}, blockDuplication: true })
+          .post(`/jobs/${mockJob.id}/tasks`, { type: jobDefinitionsConfig.tasks.createTasks, parameters: {}, blockDuplication: true })
           .reply(httpStatusCodes.OK);
         nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockJob.id}`).reply(httpStatusCodes.OK);
 
@@ -138,7 +138,7 @@ describe('tasksManager', function () {
         // Arrange
         mockJob = { ...mockJob, completedTasks: 10, taskCount: 10 };
         const mockMergeTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
-          type: jobDefinitionsConfig.tasks.mergeTaskCreation,
+          type: jobDefinitionsConfig.tasks.createTasks,
           status: OperationStatus.COMPLETED,
         });
 
@@ -198,7 +198,7 @@ describe('tasksManager', function () {
         // Arrange
         mockJob = { ...mockJob, completedTasks: 5, taskCount: 10 };
         const mockMergeTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
-          type: jobDefinitionsConfig.tasks.mergeTaskCreation,
+          type: jobDefinitionsConfig.tasks.createTasks,
           status: OperationStatus.COMPLETED,
         });
 
@@ -383,24 +383,24 @@ describe('tasksManager', function () {
     it.each(parameterTestCases)('should fail job on failed merge-tasks-creation task notify - $mockJob.type', async ({ mockJob }) => {
       // Arrange
       mockJob = { ...mockJob, completedTasks: 1, taskCount: 1 };
-      const mockFailedMergeTaskCreationTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
-        type: jobDefinitionsConfig.tasks.mergeTaskCreation,
+      const mockFailedcreateTasksTask = getTaskMock<IngestionValidationTaskParameters>(mockJob.id, {
+        type: jobDefinitionsConfig.tasks.createTasks,
         status: OperationStatus.FAILED,
         reason: 'Failed to create merge tasks',
       });
 
       nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .post('/tasks/find', { id: mockFailedMergeTaskCreationTask.id })
-        .reply(httpStatusCodes.OK, [mockFailedMergeTaskCreationTask]);
+        .post('/tasks/find', { id: mockFailedcreateTasksTask.id })
+        .reply(httpStatusCodes.OK, [mockFailedcreateTasksTask]);
 
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockJob);
 
       nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .put(`/jobs/${mockJob.id}`, { status: OperationStatus.FAILED, reason: mockFailedMergeTaskCreationTask.reason })
+        .put(`/jobs/${mockJob.id}`, { status: OperationStatus.FAILED, reason: mockFailedcreateTasksTask.reason })
         .reply(httpStatusCodes.OK);
 
       // Act
-      const response = await requestSender.handleTaskNotification(mockFailedMergeTaskCreationTask.id);
+      const response = await requestSender.handleTaskNotification(mockFailedcreateTasksTask.id);
 
       // Assert
       expect(response.status).toBe(httpStatusCodes.OK);
