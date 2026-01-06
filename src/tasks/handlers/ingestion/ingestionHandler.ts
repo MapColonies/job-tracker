@@ -34,11 +34,7 @@ export class IngestionJobHandler extends JobHandler {
     super(logger, config, jobManagerClient, job, task);
     this.tasksFlow = this.config.get<TaskTypes>('taskFlowManager.ingestionTasksFlow');
     this.excludedTypes = [this.jobDefinitions.tasks.merge];
-    this.blockedDuplicationTypes = [
-      this.jobDefinitions.tasks.validation,
-      this.jobDefinitions.tasks.mergeTaskCreation,
-      this.jobDefinitions.tasks.finalize,
-    ];
+    this.blockedDuplicationTypes = [this.jobDefinitions.tasks.validation, this.jobDefinitions.tasks.createTasks, this.jobDefinitions.tasks.finalize];
 
     this.initializeTaskOperations();
 

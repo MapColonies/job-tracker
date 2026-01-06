@@ -64,7 +64,7 @@
     "tasks": {
       "validation": "JOB_DEFINITIONS_TASK_VALIDATION",
       "init": "JOB_DEFINITIONS_TASK_INIT",
-      "mergeTaskCreation": "JOB_DEFINITIONS_TASK_MERGE_TASK_CREATION",
+      "createTasks": "JOB_DEFINITIONS_TASK_CREATE_TASKS",
       "merge": "JOB_DEFINITIONS_TASK_MERGE",
       "polygonParts": "JOB_DEFINITIONS_TASK_POLYGON_PARTS",
       "export": "JOB_DEFINITIONS_TASK_EXPORT",

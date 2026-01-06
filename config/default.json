@@ -53,7 +53,7 @@
       "init": "init",
       "merge": "tilesMerging",
       "polygonParts": "polygon-parts",
-      "mergeTaskCreation": "create-merge-tasks",
+      "createTasks": "create-tasks",
       "export": "tilesExporting",
       "finalize": "finalize",
       "seed": "TilesSeeding"

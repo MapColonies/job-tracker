@@ -9,9 +9,9 @@ import { JobAndTask, IJobDefinitionsConfig } from './interfaces';
 
 export const createTaskParametersMapper = (jobDefinitions: IJobDefinitionsConfig): Map<JobAndTask, Record<PropertyKey, unknown>> => {
   return new Map<JobAndTask, Record<PropertyKey, unknown>>([
-    [`${jobDefinitions.jobs.new}_${jobDefinitions.tasks.mergeTaskCreation}`, {}],
-    [`${jobDefinitions.jobs.update}_${jobDefinitions.tasks.mergeTaskCreation}`, {}],
-    [`${jobDefinitions.jobs.swapUpdate}_${jobDefinitions.tasks.mergeTaskCreation}`, {}],
+    [`${jobDefinitions.jobs.new}_${jobDefinitions.tasks.createTasks}`, {}],
+    [`${jobDefinitions.jobs.update}_${jobDefinitions.tasks.createTasks}`, {}],
+    [`${jobDefinitions.jobs.swapUpdate}_${jobDefinitions.tasks.createTasks}`, {}],
     [
       `${jobDefinitions.jobs.new}_${jobDefinitions.tasks.finalize}`,
       {
