@@ -49,7 +49,7 @@
     "@map-colonies/mc-priority-queue": "^8.2.1",
     "@map-colonies/mc-utils": "^3.2.0",
     "@map-colonies/openapi-express-viewer": "^3.0.0",
-    "@map-colonies/raster-shared": "^7.10.0-alpha.2",
+    "@map-colonies/raster-shared": "^7.10.0",
     "@map-colonies/read-pkg": "0.0.1",
     "@map-colonies/telemetry": "^6.0.0",
     "@opentelemetry/api": "^1.7.0",
