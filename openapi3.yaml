@@ -6,6 +6,9 @@ info:
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
+
+security: []
+
 paths:
   /tasks/{taskId}/notify:
     parameters:
