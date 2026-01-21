@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.0.0](https://github.com/MapColonies/job-tracker/compare/v4.0.0...v5.0.0) (2026-01-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* infrastructure-maintenance and node upgrade to v24 ([#39](https://github.com/MapColonies/job-tracker/issues/39))
+
+### Miscellaneous Chores
+
+* infrastructure-maintenance and node upgrade to v24 ([#39](https://github.com/MapColonies/job-tracker/issues/39)) ([5963a66](https://github.com/MapColonies/job-tracker/commit/5963a66236f83c5a571c9831b0f88824b5670ecf))
+
 ## [4.0.0](https://github.com/MapColonies/job-tracker/compare/v4.0.0-alpha.3...v4.0.0) (2026-01-19)
 
 ## [4.0.0-alpha.3](https://github.com/MapColonies/job-tracker/compare/v4.0.0-alpha.2...v4.0.0-alpha.3) (2026-01-06)
