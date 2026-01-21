@@ -5,7 +5,10 @@ info:
   version: 4.0.0
   license:
     name: MIT
-    url: https://opensource.org/licenses/MIT
+    url: https://opensource.org/licenses/MIT\
+
+security: []
+
 paths:
   /tasks/{taskId}/notify:
     parameters:
