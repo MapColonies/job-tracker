@@ -47,7 +47,7 @@
     "@map-colonies/js-logger": "^1.0.1",
     "@map-colonies/mc-model-types": "^17.8.0",
     "@map-colonies/mc-priority-queue": "^8.2.1",
-    "@map-colonies/mc-utils": "^3.2.0",
+    "@map-colonies/mc-utils": "^3.5.6",
     "@map-colonies/openapi-express-viewer": "^3.0.0",
     "@map-colonies/raster-shared": "^7.10.1",
     "@map-colonies/read-pkg": "0.0.1",
