@@ -1,6 +1,5 @@
-import { JobManagerClient } from '@map-colonies/mc-priority-queue';
+import { JobManagerClient, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import jsLogger from '@map-colonies/js-logger';
-import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { TasksManager } from '../../../../src/tasks/models/tasksManager';
 import { configMock } from '../../../mocks/configMock';
 import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../../src/common/interfaces';

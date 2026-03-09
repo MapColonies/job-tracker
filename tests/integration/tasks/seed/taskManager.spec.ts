@@ -1,4 +1,4 @@
-import nock from 'nock';
+import nock, { cleanAll, isDone, pendingMocks } from 'nock';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { StatusCodes as httpStatusCodes } from 'http-status-codes';
 import { trace } from '@opentelemetry/api';
@@ -40,14 +40,14 @@ describe('tasks', function () {
     requestSender = new TasksRequestSender(app);
     jobManagerConfigMock = configMock.get<IJobManagerConfig>('jobManagement.config');
     jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
-    nock.cleanAll();
+    cleanAll();
   });
 
   afterEach(function () {
     resetContainer();
     jest.restoreAllMocks();
-    if (!nock.isDone()) {
-      throw new Error(`Not all nock interceptors were used: ${JSON.stringify(nock.pendingMocks())}`);
+    if (!isDone()) {
+      throw new Error(`Not all nock interceptors were used: ${JSON.stringify(pendingMocks())}`);
     }
   });
 

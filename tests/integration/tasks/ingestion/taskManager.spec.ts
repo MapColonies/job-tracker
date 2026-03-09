@@ -1,9 +1,9 @@
-import nock from 'nock';
+import nock, { cleanAll, isDone, pendingMocks } from 'nock';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { StatusCodes as httpStatusCodes } from 'http-status-codes';
 import { trace } from '@opentelemetry/api';
 import jsLogger from '@map-colonies/js-logger';
-import _ from 'lodash';
+import { matches } from 'lodash';
 import { initConfig } from '../../../../src/common/config';
 import { configMock, registerDefaultConfig } from '../../../mocks/configMock';
 import { getApp } from '../../../../src/app';
@@ -58,14 +58,14 @@ describe('tasksManager', function () {
 
     requestSender = new TasksRequestSender(app);
     jobManagerConfigMock = configMock.get<IJobManagerConfig>('jobManagement.config');
-    nock.cleanAll();
+    cleanAll();
   });
 
   afterEach(function () {
     resetContainer();
     jest.restoreAllMocks();
-    if (!nock.isDone()) {
-      throw new Error(`Not all nock interceptors were used: ${JSON.stringify(nock.pendingMocks())}`);
+    if (!isDone()) {
+      throw new Error(`Not all nock interceptors were used: ${JSON.stringify(pendingMocks())}`);
     }
   });
 
@@ -622,7 +622,7 @@ describe('tasksManager', function () {
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(httpStatusCodes.OK, [mockMergeTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .post(`/jobs/${mockJob.id}/tasks`, _.matches({ type: jobDefinitionsConfig.tasks.finalize }))
+        .post(`/jobs/${mockJob.id}/tasks`, matches({ type: jobDefinitionsConfig.tasks.finalize }))
         .reply(httpStatusCodes.CONFLICT, { message: 'Task already exists' });
       // No job update should happen when there's a conflict
 

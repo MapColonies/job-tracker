@@ -1,7 +1,7 @@
-import { Logger } from '@map-colonies/js-logger';
-import { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
+import type { Logger } from '@map-colonies/js-logger';
+import type { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
 import { injectable, inject } from 'tsyringe';
-import { IConfig, TaskTypes } from '../../../common/interfaces';
+import type { IConfig, TaskTypes } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
 import { JobHandler } from '../jobHandler';
 
@@ -26,7 +26,7 @@ export class SeedJobHandler extends JobHandler {
     this.initializeTaskOperations();
   }
 
-  public isJobCompleted = (): boolean => {
+  public override isJobCompleted = (): boolean => {
     return this.job.completedTasks === this.job.taskCount;
   };
 }

@@ -1,8 +1,7 @@
 import { BadRequestError } from '@map-colonies/error-types';
 import jsLogger from '@map-colonies/js-logger';
 import { TaskHandler as QueueClient, IJobResponse } from '@map-colonies/mc-priority-queue';
-import { registerDefaultConfig, clear as clearConfig } from '../../../mocks/configMock';
-import { configMock } from '../../../mocks/configMock';
+import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
 import { createTestJob, getExportJobMock, getTaskMock } from '../../../mocks/jobMocks';
 import { getJobHandler } from '../../../../src/tasks/handlers/jobHandlerFactory';
 import { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
@@ -11,7 +10,7 @@ import { ExportJobHandler } from '../../../../src/tasks/handlers/export/exportHa
 
 // Test helper functions
 const createTestLogger = () => jsLogger({ enabled: false });
-const createMockQueueClient = () => ({} as QueueClient);
+const createMockQueueClient = () => ({}) as QueueClient;
 
 interface TestCase {
   name: string;

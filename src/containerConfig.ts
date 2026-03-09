@@ -18,7 +18,7 @@ import type { ConfigType } from './common/config';
 export const queueClientFactory = (container: DependencyContainer): QueueClient => {
   const logger = container.resolve<Logger>(SERVICES.LOGGER);
   const config = container.resolve<ConfigType>(SERVICES.CONFIG);
-  const queueConfig = config.get('jobManagement.config') as IJobManagerConfig;
+  const queueConfig = config.get('jobManagement.config') as unknown as IJobManagerConfig;
   const httpRetryConfig = config.get('httpRetry') as IHttpRetryConfig;
   return new QueueClient(
     logger,
@@ -39,7 +39,7 @@ export const registerExternalValues = (options?: RegisterOptions): DependencyCon
   const configInstance = getConfig();
 
   const loggerConfig = configInstance.get('telemetry.logger');
-  
+
   const logger = jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, mixin: getOtelMixin() });
 
   const tracer = trace.getTracer(SERVICE_NAME);

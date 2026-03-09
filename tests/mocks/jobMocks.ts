@@ -1,5 +1,4 @@
-import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
-import { OperationStatus } from '@map-colonies/mc-priority-queue';
+import { IJobResponse, ITaskResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
 import { faker } from '@faker-js/faker';
 import { JobType } from '../../src/common/interfaces';
 

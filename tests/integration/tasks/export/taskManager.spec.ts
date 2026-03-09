@@ -1,11 +1,10 @@
-import nock from 'nock';
+import nock, { cleanAll, isDone, pendingMocks } from 'nock';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { StatusCodes as httpStatusCodes } from 'http-status-codes';
-import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams } from '@map-colonies/raster-shared';
-import { ExportFinalizeType } from '@map-colonies/raster-shared';
+import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams, ExportFinalizeType } from '@map-colonies/raster-shared';
 import { trace } from '@opentelemetry/api';
 import jsLogger from '@map-colonies/js-logger';
-import _ from 'lodash';
+import { matches } from 'lodash';
 import { initConfig } from '../../../../src/common/config';
 import { configMock, init, registerDefaultConfig, setValue } from '../../../mocks/configMock';
 import { getApp } from '../../../../src/app';
@@ -44,14 +43,14 @@ describe('tasks', function () {
 
     requestSender = new TasksRequestSender(app);
     jobManagerConfigMock = configMock.get<IJobManagerConfig>('jobManagement.config');
-    nock.cleanAll();
+    cleanAll();
   });
 
   afterEach(function () {
     resetContainer();
     jest.restoreAllMocks();
-    if (!nock.isDone()) {
-      throw new Error(`Not all nock interceptors were used: ${JSON.stringify(nock.pendingMocks())}`);
+    if (!isDone()) {
+      throw new Error(`Not all nock interceptors were used: ${JSON.stringify(pendingMocks())}`);
     }
   });
 
@@ -162,7 +161,7 @@ describe('tasks', function () {
       const taskPercentage = calculateJobPercentage(mockExportJob.completedTasks, mockExportJob.taskCount + 1);
       nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockExportJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .post(`/jobs/${mockExportJob.id}/tasks`, _.matches({ type: jobDefinitionsConfig.tasks.polygonParts }))
+        .post(`/jobs/${mockExportJob.id}/tasks`, matches({ type: jobDefinitionsConfig.tasks.polygonParts }))
         .reply(httpStatusCodes.CREATED);
 
       // action
@@ -223,7 +222,7 @@ describe('tasks', function () {
         .reply(httpStatusCodes.OK, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(httpStatusCodes.OK, [mockFinalizeTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .put(`/jobs/${mockExportJob.id}`, _.matches({ status: OperationStatus.COMPLETED }))
+        .put(`/jobs/${mockExportJob.id}`, matches({ status: OperationStatus.COMPLETED }))
         .reply(httpStatusCodes.OK);
 
       const response = await requestSender.handleTaskNotification(mockFinalizeTask.id);
@@ -382,7 +381,7 @@ describe('tasks', function () {
         .query({ shouldReturnTasks: false })
         .reply(httpStatusCodes.OK, mockExportJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .put(`/jobs/${mockExportJob.id}`, _.matches({ status: OperationStatus.COMPLETED }))
+        .put(`/jobs/${mockExportJob.id}`, matches({ status: OperationStatus.COMPLETED }))
         .reply(httpStatusCodes.OK);
 
       const response = await requestSender.handleTaskNotification(mockFinalizeTask.id);
