@@ -6,6 +6,7 @@ import { ExportFinalizeType } from '@map-colonies/raster-shared';
 import { trace } from '@opentelemetry/api';
 import jsLogger from '@map-colonies/js-logger';
 import _ from 'lodash';
+import { initConfig } from '../../../../src/common/config';
 import { configMock, init, registerDefaultConfig, setValue } from '../../../mocks/configMock';
 import { getApp } from '../../../../src/app';
 import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
@@ -22,6 +23,10 @@ describe('tasks', function () {
 
   registerDefaultConfig();
   const jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
+
+  beforeAll(async function () {
+    await initConfig(true);
+  });
 
   beforeEach(function () {
     const [app] = getApp({

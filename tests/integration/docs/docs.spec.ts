@@ -1,10 +1,16 @@
 import { StatusCodes as httpStatusCodes } from 'http-status-codes';
+import { initConfig } from '../../../src/common/config';
 import { getApp } from '../../../src/app';
 import { getTestContainerConfig } from '../tasks/helpers/containerConfig';
 import { DocsRequestSender } from './helpers/docsRequestSender';
 
 describe('docs', function () {
   let requestSender: DocsRequestSender;
+
+  beforeAll(async function () {
+    await initConfig(true);
+  });
+
   beforeEach(function () {
     const [app] = getApp({
       override: [...getTestContainerConfig()],

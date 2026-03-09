@@ -1,4 +1,3 @@
-import config from 'config';
 import get from 'lodash.get';
 import has from 'lodash.has';
 import { IConfig } from '../../src/common/interfaces';
@@ -14,7 +13,7 @@ const configMock: IConfig = {
 
 const init = (): void => {
   getMock.mockImplementation((key: string): unknown => {
-    return mockConfig[key] ?? config.get(key);
+    return (get as (object: Record<string, unknown>, path: string) => unknown)(mockConfig, key);
   });
 };
 
@@ -32,10 +31,10 @@ const clear = (): void => {
 
 const setConfigValues = (values: Record<string, unknown>): void => {
   getMock.mockImplementation((key: string) => {
-    const value: unknown = (get as (object: Record<string, unknown>, path: string) => unknown)(values, key) ?? config.get(key);
+    const value: unknown = (get as (object: Record<string, unknown>, path: string) => unknown)(values, key);
     return value;
   });
-  hasMock.mockImplementation((key: string) => (has as (object: Record<string, unknown>, path: string) => boolean)(values, key) || config.has(key));
+  hasMock.mockImplementation((key: string) => (has as (object: Record<string, unknown>, path: string) => boolean)(values, key));
 };
 
 const registerDefaultConfig = (): void => {

@@ -1,0 +1,5 @@
+import tsBaseConfig from '@map-colonies/eslint-config/ts-base';
+import jestConfig from '@map-colonies/eslint-config/jest';
+import { defineConfig } from 'eslint/config';
+
+export default defineConfig(jestConfig, tsBaseConfig);

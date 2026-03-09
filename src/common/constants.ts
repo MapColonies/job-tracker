@@ -12,6 +12,7 @@ export const SERVICES = {
   LOGGER: Symbol('Logger'),
   CONFIG: Symbol('Config'),
   TRACER: Symbol('Tracer'),
+  METRICS: Symbol('Metrics'),
   METER: Symbol('Meter'),
   QUEUE_CLIENT: Symbol('QueueClient'),
 } satisfies Record<string, symbol>;

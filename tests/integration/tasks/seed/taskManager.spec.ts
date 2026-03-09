@@ -3,6 +3,7 @@ import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { StatusCodes as httpStatusCodes } from 'http-status-codes';
 import { trace } from '@opentelemetry/api';
 import jsLogger from '@map-colonies/js-logger';
+import { initConfig } from '../../../../src/common/config';
 import { configMock } from '../../../mocks/configMock';
 import { getApp } from '../../../../src/app';
 import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
@@ -17,6 +18,10 @@ describe('tasks', function () {
   let requestSender: TasksRequestSender;
   let jobManagerConfigMock: IJobManagerConfig;
   let jobDefinitionsConfig: IJobDefinitionsConfig;
+
+  beforeAll(async function () {
+    await initConfig(true);
+  });
 
   beforeEach(function () {
     const [app] = getApp({

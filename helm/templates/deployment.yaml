@@ -6,7 +6,6 @@
 {{- $cloudProviderDockerRegistryUrl := include "job-tracker.cloudProviderDockerRegistryUrl" . -}}
 {{- $cloudProviderImagePullSecretName := include "job-tracker.cloudProviderImagePullSecretName" . -}}
 {{- $imageTag := include "job-tracker.tag" . -}}
-{{- $metrics := (include "common.metrics.merged" .) | fromYaml }}
 {{- if .Values.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -37,10 +36,6 @@ spec:
       annotations:
       {{- if .Values.resetOnConfigChange }}
         checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-      {{- end }}
-      {{ if $metrics.enabled }}
-        prometheus.io/port: {{ $metrics.prometheus.port | quote }}
-        prometheus.io/scrape: {{ $metrics.prometheus.scrape | quote }}
       {{- end }}
       {{- if .Values.podAnnotations }}
       {{- toYaml .Values.podAnnotations | nindent 8 }}

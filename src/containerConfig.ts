@@ -1,23 +1,25 @@
-import config from 'config';
-import { getOtelMixin } from '@map-colonies/telemetry';
+import { getOtelMixin } from '@map-colonies/tracing-utils';
 import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { IHttpRetryConfig } from '@map-colonies/mc-utils';
-import { trace, metrics as OtelMetrics } from '@opentelemetry/api';
+import { trace } from '@opentelemetry/api';
 import { DependencyContainer } from 'tsyringe/dist/typings/types';
-import jsLogger, { Logger, LoggerOptions } from '@map-colonies/js-logger';
-import { Metrics } from '@map-colonies/telemetry';
+import jsLogger from '@map-colonies/js-logger';
+import type { Logger } from '@map-colonies/js-logger';
+import { Registry } from 'prom-client';
 import { instancePerContainerCachingFactory } from 'tsyringe';
 import { SERVICES, SERVICE_NAME } from './common/constants';
-import { tracing } from './common/tracing';
+import { getTracing } from './common/tracing';
 import { tasksRouterFactory, TASKS_ROUTER_SYMBOL } from './tasks/routes/tasksRouter';
 import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
-import { IConfig, IJobManagerConfig } from './common/interfaces';
+import { IJobManagerConfig } from './common/interfaces';
+import { getConfig } from './common/config';
+import type { ConfigType } from './common/config';
 
 export const queueClientFactory = (container: DependencyContainer): QueueClient => {
   const logger = container.resolve<Logger>(SERVICES.LOGGER);
-  const config = container.resolve<IConfig>(SERVICES.CONFIG);
-  const queueConfig = config.get<IJobManagerConfig>('jobManagement.config');
-  const httpRetryConfig = config.get<IHttpRetryConfig>('httpRetry');
+  const config = container.resolve<ConfigType>(SERVICES.CONFIG);
+  const queueConfig = config.get('jobManagement.config') as IJobManagerConfig;
+  const httpRetryConfig = config.get('httpRetry') as IHttpRetryConfig;
   return new QueueClient(
     logger,
     queueConfig.jobManagerBaseUrl,
@@ -34,27 +36,28 @@ export interface RegisterOptions {
 }
 
 export const registerExternalValues = (options?: RegisterOptions): DependencyContainer => {
-  const loggerConfig = config.get<LoggerOptions>('telemetry.logger');
+  const configInstance = getConfig();
+
+  const loggerConfig = configInstance.get('telemetry.logger');
+  
   const logger = jsLogger({ ...loggerConfig, prettyPrint: loggerConfig.prettyPrint, mixin: getOtelMixin() });
 
-  const metrics = new Metrics();
-  metrics.start();
-
   const tracer = trace.getTracer(SERVICE_NAME);
+  const metricsRegistry = new Registry();
 
   const dependencies: InjectionObject<unknown>[] = [
-    { token: SERVICES.CONFIG, provider: { useValue: config } },
+    { token: SERVICES.CONFIG, provider: { useValue: configInstance } },
     { token: SERVICES.LOGGER, provider: { useValue: logger } },
     { token: SERVICES.TRACER, provider: { useValue: tracer } },
+    { token: SERVICES.METRICS, provider: { useValue: metricsRegistry } },
     { token: SERVICES.QUEUE_CLIENT, provider: { useFactory: instancePerContainerCachingFactory(queueClientFactory) } },
-    { token: SERVICES.METER, provider: { useValue: OtelMetrics.getMeterProvider().getMeter(SERVICE_NAME) } },
     { token: TASKS_ROUTER_SYMBOL, provider: { useFactory: tasksRouterFactory } },
     {
       token: 'onSignal',
       provider: {
         useValue: {
           useValue: async (): Promise<void> => {
-            await Promise.all([tracing.stop(), metrics.stop()]);
+            await Promise.all([getTracing().stop()]);
           },
         },
       },

@@ -1,7 +1,6 @@
 global:
   cloudProvider: {}
   tracing: {}
-  metrics: {}
   environment: ''
   jobDefinitions: {}
   serviceUrls: {}
@@ -68,12 +67,11 @@ tracing:
   enabled: false
   url: ''
 
-metrics:
-  enabled: false
-  url: ''
-  prometheus:
-    scrape: false
-    port: 8080
+configManagement:
+  offlineMode: false
+  name: 'job-tracker'
+  version: 'latest'
+  serverUrl: 'http://localhost:8080/api'
 
 image:
   repository: job-tracker
