@@ -21,7 +21,7 @@ describe('tasksManager', function () {
   let jobManagerConfigMock: IJobManagerConfig;
 
   registerDefaultConfig();
-  const jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
+  const jobDefinitionsConfig = configMock.get('jobDefinitions') as IJobDefinitionsConfig;
 
   beforeAll(async function () {
     await initConfig(true);
@@ -57,7 +57,7 @@ describe('tasksManager', function () {
     });
 
     requestSender = new TasksRequestSender(app);
-    jobManagerConfigMock = configMock.get<IJobManagerConfig>('jobManagement.config');
+    jobManagerConfigMock = configMock.get('jobManagement.config') as unknown as IJobManagerConfig;
     cleanAll();
   });
 

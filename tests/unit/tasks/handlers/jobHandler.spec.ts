@@ -12,7 +12,7 @@ describe('JobHandler', () => {
 
   registerDefaultConfig();
 
-  const jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
+  const jobDefinitionsConfig = configMock.get('jobDefinitions') as IJobDefinitionsConfig;
   const testCases = [
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.new), taskType: jobDefinitionsConfig.tasks.merge },
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.update), taskType: jobDefinitionsConfig.tasks.merge },

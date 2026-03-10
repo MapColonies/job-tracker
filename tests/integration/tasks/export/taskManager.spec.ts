@@ -21,7 +21,7 @@ describe('tasks', function () {
   let jobManagerConfigMock: IJobManagerConfig;
 
   registerDefaultConfig();
-  const jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
+  const jobDefinitionsConfig = configMock.get('jobDefinitions') as IJobDefinitionsConfig;
 
   beforeAll(async function () {
     await initConfig(true);
@@ -42,7 +42,7 @@ describe('tasks', function () {
     });
 
     requestSender = new TasksRequestSender(app);
-    jobManagerConfigMock = configMock.get<IJobManagerConfig>('jobManagement.config');
+    jobManagerConfigMock = configMock.get('jobManagement.config') as unknown as IJobManagerConfig;
     cleanAll();
   });
 
@@ -327,7 +327,7 @@ describe('tasks', function () {
       const mockExportJob = getExportJobMock();
       setValue('taskFlowManager.exportTasksFlow', ['init', 'tilesExporting', 'polygon-parts', 'finalize', 'polygon-parts']);
       init();
-      const mockExportErrorCallbackTaskParams: ExportFinalizeFullProcessingParams = {
+      const mockExportFullProcessingTaskParams: ExportFinalizeFullProcessingParams = {
         type: ExportFinalizeType.Full_Processing,
         gpkgModified: true,
         gpkgUploadedToS3: false,
@@ -336,7 +336,7 @@ describe('tasks', function () {
       const mockFinalizeTask = getTaskMock(mockExportJob.id, {
         type: jobDefinitionsConfig.tasks.finalize,
         status: OperationStatus.COMPLETED,
-        parameters: mockExportErrorCallbackTaskParams,
+        parameters: mockExportFullProcessingTaskParams,
       });
 
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockFinalizeTask.id }).reply(httpStatusCodes.OK, [mockFinalizeTask]);

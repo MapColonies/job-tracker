@@ -1,7 +1,8 @@
 import { Logger } from '@map-colonies/js-logger';
 import { ConflictError } from '@map-colonies/error-types';
 import { IJobResponse, ITaskResponse, JobManagerClient, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
-import { IConfig, IJobDefinitionsConfig, TaskTypes } from '../../common/interfaces';
+import { ConfigType } from '@src/common/config';
+import { IJobDefinitionsConfig, TaskTypes } from '../../common/interfaces';
 import { BaseJobHandler } from './baseJobHandler';
 import { TaskHandler } from './taskHandler';
 import { TaskProceedRule } from './interfaces';
@@ -10,7 +11,7 @@ import { TaskProceedRule } from './interfaces';
  * Base class for workflow-enabled job handlers that handles task flow logic
  */
 export abstract class JobHandler extends BaseJobHandler {
-  protected readonly config: IConfig;
+  protected readonly config: ConfigType;
   protected readonly jobDefinitions: IJobDefinitionsConfig;
   protected readonly task: ITaskResponse<unknown>;
   protected readonly proceedRules = new Map<string, TaskProceedRule>();
@@ -21,7 +22,7 @@ export abstract class JobHandler extends BaseJobHandler {
 
   protected constructor(
     logger: Logger,
-    config: IConfig,
+    config: ConfigType,
     jobManager: JobManagerClient,
     job: IJobResponse<unknown, unknown>,
     task: ITaskResponse<unknown>
@@ -30,7 +31,7 @@ export abstract class JobHandler extends BaseJobHandler {
     this.config = config;
     this.task = task;
 
-    this.jobDefinitions = this.config.get<IJobDefinitionsConfig>('jobDefinitions');
+    this.jobDefinitions = this.config.get('jobDefinitions') as IJobDefinitionsConfig;
   }
 
   public async handleCompletedNotification(): Promise<void> {

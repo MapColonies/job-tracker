@@ -28,7 +28,7 @@ function setupQueueClient(useMockQueueClient = false): QueueClientTestContext {
     },
   } as unknown as jest.Mocked<QueueClient>;
 
-  const jobManagerConfig = configMock.get<IJobManagerConfig>('jobManagement.config');
+  const jobManagerConfig = configMock.get('jobManagement.config') as unknown as IJobManagerConfig;
 
   const queueClientInstance = new QueueClient(
     mockLogger,
@@ -69,7 +69,7 @@ export function setupTasksManagerTest(useMockQueueClient = false): TasksModelTes
 
   const queueContext = setupQueueClient(useMockQueueClient);
   const tasksManager = new TasksManager(mockLogger, queueContext.queueClient, configMock);
-  const jobDefinitionsConfigMock = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
+  const jobDefinitionsConfigMock = configMock.get('jobDefinitions') as IJobDefinitionsConfig;
   return {
     tasksManager,
     configMock,

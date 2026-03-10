@@ -15,7 +15,7 @@ describe('BaseJobHandler', () => {
   const mockLogger = jsLogger({ enabled: false });
 
   registerDefaultConfig();
-  const jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
+  const jobDefinitionsConfig = configMock.get('jobDefinitions') as IJobDefinitionsConfig;
   testCases = [
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.new) },
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.update) },

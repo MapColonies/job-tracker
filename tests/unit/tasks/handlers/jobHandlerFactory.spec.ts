@@ -36,7 +36,7 @@ describe('jobHandlerFactory', () => {
 
   beforeEach(() => {
     registerDefaultConfig();
-    jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
+    jobDefinitionsConfig = configMock.get('jobDefinitions') as IJobDefinitionsConfig;
   });
 
   afterEach(() => {

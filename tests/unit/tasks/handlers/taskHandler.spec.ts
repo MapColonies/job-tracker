@@ -1,8 +1,9 @@
 import { BadRequestError } from '@map-colonies/error-types';
 import { Logger } from '@map-colonies/js-logger';
 import { JobManagerClient, OperationStatus, IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
+import { ConfigType } from '@src/common/config';
 import { TaskHandler } from '../../../../src/tasks/handlers/taskHandler';
-import { IConfig, TaskTypes, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
+import { TaskTypes, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { getExportJobMock, getTaskMock } from '../../../mocks/jobMocks';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
 
@@ -26,7 +27,7 @@ describe('TaskHandler', () => {
   let mockJobManager: jest.Mocked<JobManagerClient>;
   let mockJob: IJobResponse<unknown, unknown>;
   let mockTask: ITaskResponse<unknown>;
-  let mockConfig: IConfig;
+  let mockConfig: ConfigType;
   let jobDefinitionsConfig: IJobDefinitionsConfig;
   let taskFlowConfig: { exportTasksFlow: string[] };
 
@@ -35,10 +36,8 @@ describe('TaskHandler', () => {
     mockConfig = configMock;
 
     // Extract config values once per test
-    jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
-    taskFlowConfig = configMock.get<{
-      exportTasksFlow: string[];
-    }>('taskFlowManager');
+    jobDefinitionsConfig = configMock.get('jobDefinitions') as IJobDefinitionsConfig;
+    taskFlowConfig = configMock.get('taskFlowManager') as { exportTasksFlow: string[] };
 
     mockLogger = createMockLogger();
     mockJobManager = createMockJobManager();

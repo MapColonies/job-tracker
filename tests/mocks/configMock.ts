@@ -1,15 +1,13 @@
-import get from 'lodash.get';
-import has from 'lodash.has';
-import { IConfig } from '../../src/common/interfaces';
+import type { ConfigType } from '@src/common/config';
+import { get, set } from 'lodash';
 
 let mockConfig: Record<string, unknown> = {};
 const getMock = jest.fn();
 const hasMock = jest.fn();
 
-const configMock: IConfig = {
+const configMock = {
   get: getMock,
-  has: hasMock,
-};
+} as unknown as ConfigType;
 
 const init = (): void => {
   getMock.mockImplementation((key: string): unknown => {
@@ -19,7 +17,7 @@ const init = (): void => {
 
 const setValue = (key: string | Record<string, unknown>, value?: unknown): void => {
   if (typeof key === 'string') {
-    mockConfig[key] = value;
+    set(mockConfig, key, value);
   } else {
     mockConfig = { ...mockConfig, ...key };
   }
@@ -34,7 +32,6 @@ const setConfigValues = (values: Record<string, unknown>): void => {
     const value: unknown = (get as (object: Record<string, unknown>, path: string) => unknown)(values, key);
     return value;
   });
-  hasMock.mockImplementation((key: string) => (has as (object: Record<string, unknown>, path: string) => boolean)(values, key));
 };
 
 const registerDefaultConfig = (): void => {
@@ -107,6 +104,7 @@ const registerDefaultConfig = (): void => {
     },
   };
 
+  mockConfig = config as unknown as Record<string, unknown>;
   setConfigValues(config);
 };
 

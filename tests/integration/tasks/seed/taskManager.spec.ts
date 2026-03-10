@@ -38,8 +38,8 @@ describe('tasks', function () {
     });
 
     requestSender = new TasksRequestSender(app);
-    jobManagerConfigMock = configMock.get<IJobManagerConfig>('jobManagement.config');
-    jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
+    jobManagerConfigMock = configMock.get('jobManagement.config') as unknown as IJobManagerConfig;
+    jobDefinitionsConfig = configMock.get('jobDefinitions') as IJobDefinitionsConfig;
     cleanAll();
   });
 

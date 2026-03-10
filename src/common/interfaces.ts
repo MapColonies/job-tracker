@@ -3,11 +3,6 @@ export type JobType = ValueOf<IJobDefinitionsConfig['jobs']>;
 export type TaskType = ValueOf<IJobDefinitionsConfig['tasks']>;
 export type TaskTypes = TaskType[];
 export type JobAndTask = `${JobType}_${TaskType}`;
-export interface IConfig {
-  get: <T>(setting: string) => T;
-  has: (setting: string) => boolean;
-}
-
 export interface OpenApiConfig {
   filePath: string;
   basePath: string;
