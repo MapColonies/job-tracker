@@ -1,5 +1,5 @@
-import type { ConfigType } from '@src/common/config';
 import { get, set } from 'lodash';
+import type { ConfigType } from '@src/common/config';
 
 let mockConfig: Record<string, unknown> = {};
 const getMock = jest.fn();
