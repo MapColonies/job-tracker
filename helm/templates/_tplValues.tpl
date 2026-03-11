@@ -57,10 +57,6 @@ Custom definitions
 {{- include "common.tplvalues.merge" ( dict "values" ( list .Values.tracing .Values.global.tracing ) "context" . ) }}
 {{- end -}}
 
-{{- define "common.metrics.merged" -}}
-{{- include "common.tplvalues.merge" ( dict "values" ( list .Values.metrics .Values.global.metrics ) "context" . ) }}
-{{- end -}}
-
 {{/*
   Returns a yaml array of all the tasks types from jobDefinitions that has suspendJobOnFail: true
   */}}
