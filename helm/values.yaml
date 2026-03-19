@@ -4,6 +4,7 @@ global:
   environment: ''
   jobDefinitions: {}
   serviceUrls: {}
+  openTelemetryOptions: {}
   ca:
     secretName: ''
     path: '/usr/local/share/ca-certificates'
@@ -132,6 +133,10 @@ env:
   protocol: TCP
   logLevel: info
   logPrettyPrintEnabled: false
+  openTelemetryOptions:
+    enabled: false
+    url: ''
+    resourceAttributes: {}
   responseCompressionEnabled: true
   requestPayloadLimit: 1mb
   queue:

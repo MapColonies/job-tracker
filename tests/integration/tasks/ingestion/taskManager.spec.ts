@@ -2,7 +2,7 @@ import nock, { cleanAll, isDone, pendingMocks } from 'nock';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { StatusCodes as httpStatusCodes } from 'http-status-codes';
 import { trace } from '@opentelemetry/api';
-import jsLogger from '@map-colonies/js-logger';
+import { jsLogger } from '@map-colonies/js-logger';
 import { matches } from 'lodash';
 import { initConfig } from '../../../../src/common/config';
 import { configMock, registerDefaultConfig } from '../../../mocks/configMock';
@@ -42,15 +42,15 @@ describe('tasksManager', function () {
     },
   ];
 
-  beforeEach(function () {
-    const [app] = getApp({
-      override: [...getTestContainerConfig()],
+  beforeEach(async function () {
+    const [app] = await getApp({
+      override: [...(await getTestContainerConfig())],
       useChild: true,
     });
 
-    registerExternalValues({
+    await registerExternalValues({
       override: [
-        { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
+        { token: SERVICES.LOGGER, provider: { useValue: await jsLogger({ enabled: false }) } },
         { token: SERVICES.CONFIG, provider: { useValue: configMock } },
         { token: SERVICES.TRACER, provider: { useValue: trace.getTracer('testTracer') } },
       ],

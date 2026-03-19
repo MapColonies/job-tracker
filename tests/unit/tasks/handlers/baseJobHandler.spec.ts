@@ -1,4 +1,4 @@
-import jsLogger from '@map-colonies/js-logger';
+import { jsLogger, type Logger } from '@map-colonies/js-logger';
 import { OperationStatus, IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { createTestJob, getTaskMock } from '../../../mocks/jobMocks';
@@ -12,7 +12,10 @@ describe('BaseJobHandler', () => {
     mockJob: IJobResponse<unknown, unknown>;
   }[] = [];
 
-  const mockLogger = jsLogger({ enabled: false });
+  let mockLogger: Logger;
+  beforeAll(async () => {
+    mockLogger = await jsLogger({ enabled: false });
+  });
 
   registerDefaultConfig();
   const jobDefinitionsConfig = configMock.get('jobDefinitions') as IJobDefinitionsConfig;

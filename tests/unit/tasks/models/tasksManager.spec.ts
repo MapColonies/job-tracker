@@ -9,9 +9,9 @@ import { setupTasksManagerTest, TasksModelTestContext } from './tasksManagerSetu
 describe('TasksManager', () => {
   let testContext: TasksModelTestContext;
 
-  beforeEach(function () {
+  beforeEach(async function () {
     registerDefaultConfig();
-    testContext = setupTasksManagerTest(true);
+    testContext = await setupTasksManagerTest(true);
   });
 
   afterEach(() => {

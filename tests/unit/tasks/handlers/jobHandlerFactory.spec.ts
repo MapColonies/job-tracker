@@ -1,5 +1,5 @@
 import { BadRequestError } from '@map-colonies/error-types';
-import jsLogger from '@map-colonies/js-logger';
+import { jsLogger, type Logger } from '@map-colonies/js-logger';
 import { TaskHandler as QueueClient, IJobResponse } from '@map-colonies/mc-priority-queue';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
 import { createTestJob, getExportJobMock, getTaskMock } from '../../../mocks/jobMocks';
@@ -9,7 +9,7 @@ import { IngestionJobHandler } from '../../../../src/tasks/handlers/ingestion/in
 import { ExportJobHandler } from '../../../../src/tasks/handlers/export/exportHandler';
 
 // Test helper functions
-const createTestLogger = () => jsLogger({ enabled: false });
+const createTestLogger = async (): Promise<Logger> => jsLogger({ enabled: false });
 const createMockQueueClient = () => ({}) as QueueClient;
 
 interface TestCase {
@@ -31,8 +31,12 @@ const createExportJobTestCase = (jobDefinitionsConfig: IJobDefinitionsConfig): T
 });
 
 describe('jobHandlerFactory', () => {
-  const logger = createTestLogger();
+  let logger: Logger;
   let jobDefinitionsConfig: IJobDefinitionsConfig;
+
+  beforeAll(async () => {
+    logger = await createTestLogger();
+  });
 
   beforeEach(() => {
     registerDefaultConfig();

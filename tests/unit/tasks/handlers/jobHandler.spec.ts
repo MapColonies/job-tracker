@@ -1,4 +1,5 @@
-import jsLogger from '@map-colonies/js-logger';
+import { jsLogger } from '@map-colonies/js-logger';
+import type { Logger } from '@map-colonies/js-logger';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { createTestJob, getTaskMock } from '../../../mocks/jobMocks';
@@ -8,7 +9,10 @@ import { getJobHandler } from '../../../../src/tasks/handlers/jobHandlerFactory'
 import { TaskHandler } from '../../../../src/tasks/handlers/taskHandler';
 
 describe('JobHandler', () => {
-  const mockLogger = jsLogger({ enabled: false });
+  let mockLogger: Logger;
+  beforeAll(async () => {
+    mockLogger = await jsLogger({ enabled: false });
+  });
 
   registerDefaultConfig();
 

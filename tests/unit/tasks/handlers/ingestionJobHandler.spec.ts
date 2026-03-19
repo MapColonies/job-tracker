@@ -1,5 +1,5 @@
 import { JobManagerClient, OperationStatus, ITaskResponse, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
-import jsLogger from '@map-colonies/js-logger';
+import { jsLogger, type Logger } from '@map-colonies/js-logger';
 import { BadRequestError } from '@map-colonies/error-types';
 import { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { createTestJob, getTaskMock } from '../../../mocks/jobMocks';
@@ -16,7 +16,10 @@ describe('IngestionJobHandler', () => {
   let isProceedableMock: jest.SpyInstance;
   let findTaskSpy: jest.SpyInstance;
 
-  const mockLogger = jsLogger({ enabled: false });
+  let mockLogger: Logger;
+  beforeAll(async () => {
+    mockLogger = await jsLogger({ enabled: false });
+  });
 
   registerDefaultConfig();
   const jobDefinitionsConfig = configMock.get('jobDefinitions') as IJobDefinitionsConfig;

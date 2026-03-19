@@ -1,4 +1,4 @@
-import jsLogger from '@map-colonies/js-logger';
+import { jsLogger } from '@map-colonies/js-logger';
 import { container, instancePerContainerCachingFactory } from 'tsyringe';
 import { trace } from '@opentelemetry/api';
 import { Registry } from 'prom-client';
@@ -8,11 +8,11 @@ import { configMock, getMock, hasMock, registerDefaultConfig } from '../../../mo
 import { TASKS_ROUTER_SYMBOL, tasksRouterFactory } from '../../../../src/tasks/routes/tasksRouter';
 import { queueClientFactory } from '../../../../src/containerConfig';
 
-function getTestContainerConfig(): InjectionObject<unknown>[] {
+async function getTestContainerConfig(): Promise<InjectionObject<unknown>[]> {
   registerDefaultConfig();
 
   return [
-    { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
+    { token: SERVICES.LOGGER, provider: { useValue: await jsLogger({ enabled: false }) } },
     { token: SERVICES.CONFIG, provider: { useValue: configMock } },
     { token: SERVICES.TRACER, provider: { useValue: trace.getTracer('testTracer') } },
     { token: SERVICES.METRICS, provider: { useValue: new Registry() } },
