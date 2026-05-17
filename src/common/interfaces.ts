@@ -43,6 +43,7 @@ export interface IJobDefinitionsConfig {
     init: string;
     export: string;
     seed: string;
+    deletion: string;
   };
   suspendingTaskTypes: string[];
 }
