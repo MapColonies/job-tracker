@@ -66,7 +66,7 @@
       "init": "JOB_DEFINITIONS_TASK_INIT",
       "createTasks": "JOB_DEFINITIONS_TASK_CREATE_TASKS",
       "merge": "JOB_DEFINITIONS_TASK_MERGE",
-      "deletion": "JOB_DEFINITIONS_TASK_DELETION",
+      "tilesDeletion": "JOB_DEFINITIONS_TASK_DELETION",
       "polygonParts": "JOB_DEFINITIONS_TASK_POLYGON_PARTS",
       "export": "JOB_DEFINITIONS_TASK_EXPORT",
       "finalize": "JOB_DEFINITIONS_TASK_FINALIZE",
