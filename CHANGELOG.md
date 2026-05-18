@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.1.0](https://github.com/MapColonies/job-tracker/compare/v5.0.0...v5.1.0) (2026-05-18)
+
+
+### Features
+
+* add deletion task to job definitions and update related configu… ([#66](https://github.com/MapColonies/job-tracker/issues/66)) ([3d03126](https://github.com/MapColonies/job-tracker/commit/3d031262322dab6ec53eb8bb37859062b777665d))
+
 ## [5.0.0](https://github.com/MapColonies/job-tracker/compare/v4.0.0...v5.0.0) (2026-01-21)
 
 
