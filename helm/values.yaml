@@ -105,6 +105,8 @@ jobDefinitions:
       type: ''
     merge:
       type: ''
+    tilesDeletion:
+      type: ''
     polygonParts:
       type: ''
       suspendJobOnFail: false
@@ -120,6 +122,7 @@ taskFlowManager:
   - validation
   - create-merge-tasks
   - tilesMerging
+  - tiles-deletion
   - finalize
   exportTasksFlow:
   - init

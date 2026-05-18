@@ -61,6 +61,7 @@ Start the server
 |`JOB_DEFINITIONS_JOB_SWAP_UPDATE`   |Job name.                                                                 |Ingestion_Swap_Update        |
 |`JOB_DEFINITIONS_TASK_INIT`         |Task name.                                                                |init                         |
 |`JOB_DEFINITIONS_TASK_MERGE`        |Task name.                                                                |merge                        |
+|`JOB_DEFINITIONS_TASK_DELETION`        |Task name.                                                                |merge                        |
 |`JOB_DEFINITIONS_TASK_POLYGON_PARTS`|Task name.                                                                |polygon-parts                |
 |`JOB_DEFINITIONS_TASK_FINALIZE`     |Task name.                                                                |finalize                     |
 |`HTTP_RETRY_ATTEMPTS`               |How many retries should the service make if a request fails.              |5                            |
