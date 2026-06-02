@@ -6,7 +6,7 @@ import { jsLogger } from '@map-colonies/js-logger';
 import { initConfig } from '../../../../src/common/config';
 import { configMock } from '../../../mocks/configMock';
 import { getApp } from '../../../../src/app';
-import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
+import type { IJobManagerConfig, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { getSeedingJobMock, getTaskMock } from '../../../mocks/jobMocks';
 import { calculateJobPercentage } from '../../../../src/utils/jobUtils';
 import { SERVICES } from '../../../../src/common/constants';

@@ -1,6 +1,7 @@
-import { IJobResponse, ITaskResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
+import type { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
+import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { faker } from '@faker-js/faker';
-import { JobType } from '../../src/common/interfaces';
+import type { JobType } from '../../src/common/interfaces';
 
 export const createTestJob = (jobType: JobType, overrides?: Partial<IJobResponse<unknown, unknown>>): IJobResponse<unknown, unknown> => {
   return getMockJob(jobType, {

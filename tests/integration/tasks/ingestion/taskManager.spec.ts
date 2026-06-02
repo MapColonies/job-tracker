@@ -13,8 +13,8 @@ import { SERVICES } from '../../../../src/common/constants';
 import { registerExternalValues } from '../../../../src/containerConfig';
 import { TasksRequestSender } from '../helpers/requestSender';
 import { getTestContainerConfig, resetContainer } from '../helpers/containerConfig';
-import { IJobDefinitionsConfig, IJobManagerConfig } from '../../../../src/common/interfaces';
-import { IngestionValidationTaskParameters } from '../../../../src/tasks/handlers/ingestion/ingestionHandler';
+import type { IJobDefinitionsConfig, IJobManagerConfig } from '../../../../src/common/interfaces';
+import type { IngestionValidationTaskParameters } from '../../../../src/tasks/handlers/ingestion/ingestionHandler';
 
 describe('tasksManager', function () {
   let requestSender: TasksRequestSender;

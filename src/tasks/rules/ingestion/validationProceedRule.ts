@@ -1,8 +1,10 @@
-import { IJobResponse, ITaskResponse, OperationStatus } from '@map-colonies/mc-priority-queue';
-import { Logger } from '@map-colonies/js-logger';
+import type { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
+import { OperationStatus } from '@map-colonies/mc-priority-queue';
+import type { Logger } from '@map-colonies/js-logger';
 import { BadRequestError } from '@map-colonies/error-types';
-import { IngestionValidationTaskParameters, ingestionValidationTaskParamsSchema } from '../../handlers/ingestion/ingestionHandler';
-import { TaskProceedRule } from '../../handlers/interfaces';
+import type { IngestionValidationTaskParameters } from '../../handlers/ingestion/ingestionHandler';
+import { ingestionValidationTaskParamsSchema } from '../../handlers/ingestion/ingestionHandler';
+import type { TaskProceedRule } from '../../handlers/interfaces';
 
 export class ValidationProceedRule implements TaskProceedRule<IngestionValidationTaskParameters> {
   public isProceedable(

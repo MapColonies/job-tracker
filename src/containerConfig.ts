@@ -1,8 +1,8 @@
 import { getOtelMixin } from '@map-colonies/tracing-utils';
 import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
-import { IHttpRetryConfig } from '@map-colonies/mc-utils';
+import type { IHttpRetryConfig } from '@map-colonies/mc-utils';
 import { trace } from '@opentelemetry/api';
-import { DependencyContainer } from 'tsyringe/dist/typings/types';
+import type { DependencyContainer } from 'tsyringe/dist/typings/types';
 import { jsLogger } from '@map-colonies/js-logger';
 import type { Logger } from '@map-colonies/js-logger';
 import { Registry } from 'prom-client';
@@ -10,8 +10,9 @@ import { instancePerContainerCachingFactory } from 'tsyringe';
 import { SERVICES, SERVICE_NAME } from './common/constants';
 import { getTracing } from './common/tracing';
 import { tasksRouterFactory, TASKS_ROUTER_SYMBOL } from './tasks/routes/tasksRouter';
-import { InjectionObject, registerDependencies } from './common/dependencyRegistration';
-import { IJobManagerConfig } from './common/interfaces';
+import type { InjectionObject } from './common/dependencyRegistration';
+import { registerDependencies } from './common/dependencyRegistration';
+import type { IJobManagerConfig } from './common/interfaces';
 import { getConfig } from './common/config';
 import type { ConfigType } from './common/config';
 

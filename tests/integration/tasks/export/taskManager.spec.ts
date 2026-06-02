@@ -1,14 +1,15 @@
 import nock, { cleanAll, isDone, pendingMocks } from 'nock';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { StatusCodes as httpStatusCodes } from 'http-status-codes';
-import { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams, ExportFinalizeType } from '@map-colonies/raster-shared';
+import type { ExportFinalizeErrorCallbackParams, ExportFinalizeFullProcessingParams } from '@map-colonies/raster-shared';
+import { ExportFinalizeType } from '@map-colonies/raster-shared';
 import { trace } from '@opentelemetry/api';
 import { jsLogger } from '@map-colonies/js-logger';
 import { matches } from 'lodash';
 import { initConfig } from '../../../../src/common/config';
 import { configMock, init, registerDefaultConfig, setValue } from '../../../mocks/configMock';
 import { getApp } from '../../../../src/app';
-import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
+import type { IJobManagerConfig, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { createTestJob, getExportJobMock, getTaskMock } from '../../../mocks/jobMocks';
 import { calculateJobPercentage } from '../../../../src/utils/jobUtils';
 import { SERVICES } from '../../../../src/common/constants';

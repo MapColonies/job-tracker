@@ -1,9 +1,10 @@
 import { BadRequestError } from '@map-colonies/error-types';
-import { Logger } from '@map-colonies/js-logger';
-import { JobManagerClient, OperationStatus, IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
-import { ConfigType } from '@src/common/config';
+import type { Logger } from '@map-colonies/js-logger';
+import type { JobManagerClient, IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
+import { OperationStatus } from '@map-colonies/mc-priority-queue';
+import type { ConfigType } from '@src/common/config';
 import { TaskHandler } from '../../../../src/tasks/handlers/taskHandler';
-import { TaskTypes, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
+import type { TaskTypes, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { getExportJobMock, getTaskMock } from '../../../mocks/jobMocks';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
 

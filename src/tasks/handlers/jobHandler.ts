@@ -1,11 +1,11 @@
-import { Logger } from '@map-colonies/js-logger';
+import type { Logger } from '@map-colonies/js-logger';
 import { ConflictError } from '@map-colonies/error-types';
-import { IJobResponse, ITaskResponse, JobManagerClient, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
-import { ConfigType } from '@src/common/config';
-import { IJobDefinitionsConfig, TaskTypes } from '../../common/interfaces';
+import type { IJobResponse, ITaskResponse, JobManagerClient, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
+import type { ConfigType } from '@src/common/config';
+import type { IJobDefinitionsConfig, TaskTypes } from '../../common/interfaces';
 import { BaseJobHandler } from './baseJobHandler';
 import { TaskHandler } from './taskHandler';
-import { TaskProceedRule } from './interfaces';
+import type { TaskProceedRule } from './interfaces';
 
 /**
  * Base class for workflow-enabled job handlers that handles task flow logic

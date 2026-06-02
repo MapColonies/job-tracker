@@ -1,8 +1,9 @@
-import { JobManagerClient, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import type { JobManagerClient } from '@map-colonies/mc-priority-queue';
+import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { jsLogger } from '@map-colonies/js-logger';
 import { TasksManager } from '../../../../src/tasks/models/tasksManager';
 import { configMock } from '../../../mocks/configMock';
-import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
+import type { IJobManagerConfig, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 
 interface QueueClientTestContext {
   mockGetJob: MockGetJob;

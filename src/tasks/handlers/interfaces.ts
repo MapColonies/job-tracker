@@ -1,6 +1,6 @@
-import { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
-import { Logger } from '@map-colonies/js-logger';
-import { TaskType } from '../../common/interfaces';
+import type { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
+import type { Logger } from '@map-colonies/js-logger';
+import type { TaskType } from '../../common/interfaces';
 
 /**
  * Interface for handling job-level operations

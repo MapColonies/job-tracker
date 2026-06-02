@@ -1,10 +1,12 @@
 import { NotFoundError } from '@map-colonies/error-types';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
-import { ExportFinalizeErrorCallbackParams, ExportFinalizeType } from '@map-colonies/raster-shared';
+import type { ExportFinalizeErrorCallbackParams } from '@map-colonies/raster-shared';
+import { ExportFinalizeType } from '@map-colonies/raster-shared';
 import { registerDefaultConfig, clear as clearConfig } from '../../../mocks/configMock';
 import { createTestJob, getExportJobMock, getSeedingJobMock, getTaskMock } from '../../../mocks/jobMocks';
 import { IrrelevantOperationStatusError } from '../../../../src/common/errors';
-import { setupTasksManagerTest, TasksModelTestContext } from './tasksManagerSetup';
+import type { TasksModelTestContext } from './tasksManagerSetup';
+import { setupTasksManagerTest } from './tasksManagerSetup';
 
 describe('TasksManager', () => {
   let testContext: TasksModelTestContext;

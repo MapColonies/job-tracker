@@ -1,7 +1,7 @@
 import { BadRequestError } from '@map-colonies/error-types';
-import { Logger } from '@map-colonies/js-logger';
-import { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
-import { ConfigType } from '@src/common/config';
+import type { Logger } from '@map-colonies/js-logger';
+import type { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
+import type { ConfigType } from '@src/common/config';
 import type { IJobDefinitionsConfig, JobAndTask, TaskTypes, TaskType as TaskTypeItem } from '../../common/interfaces';
 import { createTaskParametersMapper } from '../../common/mappers';
 

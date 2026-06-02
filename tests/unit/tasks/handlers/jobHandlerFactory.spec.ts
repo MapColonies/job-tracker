@@ -1,10 +1,10 @@
 import { BadRequestError } from '@map-colonies/error-types';
 import { jsLogger, type Logger } from '@map-colonies/js-logger';
-import { TaskHandler as QueueClient, IJobResponse } from '@map-colonies/mc-priority-queue';
+import type { TaskHandler as QueueClient, IJobResponse } from '@map-colonies/mc-priority-queue';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
 import { createTestJob, getExportJobMock, getTaskMock } from '../../../mocks/jobMocks';
 import { getJobHandler } from '../../../../src/tasks/handlers/jobHandlerFactory';
-import { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
+import type { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { IngestionJobHandler } from '../../../../src/tasks/handlers/ingestion/ingestionHandler';
 import { ExportJobHandler } from '../../../../src/tasks/handlers/export/exportHandler';
 
