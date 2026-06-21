@@ -1,17 +1,16 @@
 import { BadRequestError } from '@map-colonies/error-types';
-import jsLogger from '@map-colonies/js-logger';
-import { TaskHandler as QueueClient, IJobResponse } from '@map-colonies/mc-priority-queue';
-import { registerDefaultConfig, clear as clearConfig } from '../../../mocks/configMock';
-import { configMock } from '../../../mocks/configMock';
+import { jsLogger, type Logger } from '@map-colonies/js-logger';
+import type { TaskHandler as QueueClient, IJobResponse } from '@map-colonies/mc-priority-queue';
+import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
 import { createTestJob, getExportJobMock, getTaskMock } from '../../../mocks/jobMocks';
 import { getJobHandler } from '../../../../src/tasks/handlers/jobHandlerFactory';
-import { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
+import type { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { IngestionJobHandler } from '../../../../src/tasks/handlers/ingestion/ingestionHandler';
 import { ExportJobHandler } from '../../../../src/tasks/handlers/export/exportHandler';
 
 // Test helper functions
-const createTestLogger = () => jsLogger({ enabled: false });
-const createMockQueueClient = () => ({} as QueueClient);
+const createTestLogger = async (): Promise<Logger> => jsLogger({ enabled: false });
+const createMockQueueClient = () => ({}) as QueueClient;
 
 interface TestCase {
   name: string;
@@ -32,12 +31,16 @@ const createExportJobTestCase = (jobDefinitionsConfig: IJobDefinitionsConfig): T
 });
 
 describe('jobHandlerFactory', () => {
-  const logger = createTestLogger();
+  let logger: Logger;
   let jobDefinitionsConfig: IJobDefinitionsConfig;
+
+  beforeAll(async () => {
+    logger = await createTestLogger();
+  });
 
   beforeEach(() => {
     registerDefaultConfig();
-    jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
+    jobDefinitionsConfig = configMock.get('jobDefinitions') as IJobDefinitionsConfig;
   });
 
   afterEach(() => {

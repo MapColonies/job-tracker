@@ -1,9 +1,9 @@
-import { JobManagerClient } from '@map-colonies/mc-priority-queue';
-import jsLogger from '@map-colonies/js-logger';
+import type { JobManagerClient } from '@map-colonies/mc-priority-queue';
 import { TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import { jsLogger } from '@map-colonies/js-logger';
 import { TasksManager } from '../../../../src/tasks/models/tasksManager';
 import { configMock } from '../../../mocks/configMock';
-import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
+import type { IJobManagerConfig, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 
 interface QueueClientTestContext {
   mockGetJob: MockGetJob;
@@ -13,8 +13,8 @@ interface QueueClientTestContext {
   queueClient: QueueClient;
 }
 
-function setupQueueClient(useMockQueueClient = false): QueueClientTestContext {
-  const mockLogger = jsLogger({ enabled: false });
+async function setupQueueClient(useMockQueueClient = false): Promise<QueueClientTestContext> {
+  const mockLogger = await jsLogger({ enabled: false });
   const mockGetJob = jest.fn() as MockGetJob;
   const mockFindTasks = jest.fn() as MockFindTasks;
   const mockUpdateJob = jest.fn() as MockUpdateJob;
@@ -29,8 +29,7 @@ function setupQueueClient(useMockQueueClient = false): QueueClientTestContext {
     },
   } as unknown as jest.Mocked<QueueClient>;
 
-  const jobManagerConfig = configMock.get<IJobManagerConfig>('jobManagement.config');
-
+  const jobManagerConfig = configMock.get('jobManagement.config') as unknown as IJobManagerConfig;
   const queueClientInstance = new QueueClient(
     mockLogger,
     jobManagerConfig.jobManagerBaseUrl,
@@ -65,12 +64,12 @@ export interface TasksModelTestContext {
   queueClient: QueueClient;
 }
 
-export function setupTasksManagerTest(useMockQueueClient = false): TasksModelTestContext {
-  const mockLogger = jsLogger({ enabled: false });
+export async function setupTasksManagerTest(useMockQueueClient = false): Promise<TasksModelTestContext> {
+  const mockLogger = await jsLogger({ enabled: false });
 
-  const queueContext = setupQueueClient(useMockQueueClient);
+  const queueContext = await setupQueueClient(useMockQueueClient);
   const tasksManager = new TasksManager(mockLogger, queueContext.queueClient, configMock);
-  const jobDefinitionsConfigMock = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
+  const jobDefinitionsConfigMock = configMock.get('jobDefinitions') as IJobDefinitionsConfig;
   return {
     tasksManager,
     configMock,

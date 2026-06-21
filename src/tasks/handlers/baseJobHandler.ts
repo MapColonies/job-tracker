@@ -1,9 +1,10 @@
-import { Logger } from '@map-colonies/js-logger';
-import { IJobResponse, JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
+import type { Logger } from '@map-colonies/js-logger';
+import type { IJobResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
+import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { TaskTypes } from '@map-colonies/raster-shared';
 import { calculateJobPercentage } from '../../utils/jobUtils';
-import { TaskType } from '../../common/interfaces';
-import { IJobHandler } from './interfaces';
+import type { TaskType } from '../../common/interfaces';
+import type { IJobHandler } from './interfaces';
 
 /**
  * Base implementation for job-level operations

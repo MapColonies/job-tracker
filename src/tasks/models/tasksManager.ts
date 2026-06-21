@@ -1,10 +1,11 @@
 import { NotFoundError } from '@map-colonies/error-types';
-import { Logger } from '@map-colonies/js-logger';
+import type { Logger } from '@map-colonies/js-logger';
 import { IFindTaskRequest, ITaskResponse, JobManagerClient, OperationStatus, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 import { inject, injectable } from 'tsyringe';
+import type { ConfigType } from '@src/common/config';
 import { SERVICES } from '../../common/constants';
 import { IrrelevantOperationStatusError } from '../../common/errors';
-import { IConfig, IJobDefinitionsConfig } from '../../common/interfaces';
+import type { IJobDefinitionsConfig } from '../../common/interfaces';
 import { getJobHandler } from '../handlers/jobHandlerFactory';
 
 @injectable()
@@ -15,10 +16,10 @@ export class TasksManager {
   public constructor(
     @inject(SERVICES.LOGGER) private readonly logger: Logger,
     @inject(SERVICES.QUEUE_CLIENT) private readonly queueClient: QueueClient,
-    @inject(SERVICES.CONFIG) private readonly config: IConfig
+    @inject(SERVICES.CONFIG) private readonly config: ConfigType
   ) {
     this.jobManager = this.queueClient.jobManagerClient;
-    this.jobDefinitions = this.config.get<IJobDefinitionsConfig>('jobDefinitions');
+    this.jobDefinitions = this.config.get('jobDefinitions') as IJobDefinitionsConfig;
   }
 
   public async handleTaskNotification(taskId: string): Promise<void> {

@@ -1,9 +1,10 @@
-import nock from 'nock';
+import nock, { cleanAll, isDone, pendingMocks } from 'nock';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { StatusCodes as httpStatusCodes } from 'http-status-codes';
 import { trace } from '@opentelemetry/api';
-import jsLogger from '@map-colonies/js-logger';
-import _ from 'lodash';
+import { jsLogger } from '@map-colonies/js-logger';
+import { matches } from 'lodash';
+import { initConfig } from '../../../../src/common/config';
 import { configMock, registerDefaultConfig } from '../../../mocks/configMock';
 import { getApp } from '../../../../src/app';
 import { createTestJob, getTaskMock } from '../../../mocks/jobMocks';
@@ -12,15 +13,19 @@ import { SERVICES } from '../../../../src/common/constants';
 import { registerExternalValues } from '../../../../src/containerConfig';
 import { TasksRequestSender } from '../helpers/requestSender';
 import { getTestContainerConfig, resetContainer } from '../helpers/containerConfig';
-import { IJobDefinitionsConfig, IJobManagerConfig } from '../../../../src/common/interfaces';
-import { IngestionValidationTaskParameters } from '../../../../src/tasks/handlers/ingestion/ingestionHandler';
+import type { IJobDefinitionsConfig, IJobManagerConfig } from '../../../../src/common/interfaces';
+import type { IngestionValidationTaskParameters } from '../../../../src/tasks/handlers/ingestion/ingestionHandler';
 
 describe('tasksManager', function () {
   let requestSender: TasksRequestSender;
   let jobManagerConfigMock: IJobManagerConfig;
 
   registerDefaultConfig();
-  const jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
+  const jobDefinitionsConfig = configMock.get('jobDefinitions') as IJobDefinitionsConfig;
+
+  beforeAll(async function () {
+    await initConfig(true);
+  });
 
   const parameterTestCases = [
     {
@@ -37,30 +42,30 @@ describe('tasksManager', function () {
     },
   ];
 
-  beforeEach(function () {
-    const [app] = getApp({
-      override: [...getTestContainerConfig()],
+  beforeEach(async function () {
+    const [app] = await getApp({
+      override: [...(await getTestContainerConfig())],
       useChild: true,
     });
 
-    registerExternalValues({
+    await registerExternalValues({
       override: [
-        { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
+        { token: SERVICES.LOGGER, provider: { useValue: await jsLogger({ enabled: false }) } },
         { token: SERVICES.CONFIG, provider: { useValue: configMock } },
         { token: SERVICES.TRACER, provider: { useValue: trace.getTracer('testTracer') } },
       ],
     });
 
     requestSender = new TasksRequestSender(app);
-    jobManagerConfigMock = configMock.get<IJobManagerConfig>('jobManagement.config');
-    nock.cleanAll();
+    jobManagerConfigMock = configMock.get('jobManagement.config') as unknown as IJobManagerConfig;
+    cleanAll();
   });
 
   afterEach(function () {
     resetContainer();
     jest.restoreAllMocks();
-    if (!nock.isDone()) {
-      throw new Error(`Not all nock interceptors were used: ${JSON.stringify(nock.pendingMocks())}`);
+    if (!isDone()) {
+      throw new Error(`Not all nock interceptors were used: ${JSON.stringify(pendingMocks())}`);
     }
   });
 
@@ -617,7 +622,7 @@ describe('tasksManager', function () {
       nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockMergeTask.id }).reply(httpStatusCodes.OK, [mockMergeTask]);
       nock(jobManagerConfigMock.jobManagerBaseUrl).get(`/jobs/${mockJob.id}`).query({ shouldReturnTasks: false }).reply(httpStatusCodes.OK, mockJob);
       nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .post(`/jobs/${mockJob.id}/tasks`, _.matches({ type: jobDefinitionsConfig.tasks.finalize }))
+        .post(`/jobs/${mockJob.id}/tasks`, matches({ type: jobDefinitionsConfig.tasks.finalize }))
         .reply(httpStatusCodes.CONFLICT, { message: 'Task already exists' });
       // No job update should happen when there's a conflict
 

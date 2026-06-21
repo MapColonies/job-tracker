@@ -1,7 +1,8 @@
 import { BadRequestError } from '@map-colonies/error-types';
-import { Logger } from '@map-colonies/js-logger';
-import { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
-import { IConfig, IJobDefinitionsConfig, JobAndTask, TaskTypes, TaskType as TaskTypeItem } from '../../common/interfaces';
+import type { Logger } from '@map-colonies/js-logger';
+import type { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
+import type { ConfigType } from '@src/common/config';
+import type { IJobDefinitionsConfig, JobAndTask, TaskTypes, TaskType as TaskTypeItem } from '../../common/interfaces';
 import { createTaskParametersMapper } from '../../common/mappers';
 
 /**
@@ -14,14 +15,14 @@ export class TaskHandler {
 
   public constructor(
     protected readonly logger: Logger,
-    protected readonly config: IConfig,
+    protected readonly config: ConfigType,
     protected readonly jobManager: JobManagerClient,
     protected readonly job: IJobResponse<unknown, unknown>,
     protected readonly task: ITaskResponse<unknown>,
     protected readonly tasksFlow: TaskTypes,
     protected readonly excludedTypes: TaskTypes
   ) {
-    this.jobDefinitions = this.config.get<IJobDefinitionsConfig>('jobDefinitions');
+    this.jobDefinitions = this.config.get('jobDefinitions') as IJobDefinitionsConfig;
     this.taskParametersMapper = createTaskParametersMapper(this.jobDefinitions);
   }
 
@@ -52,7 +53,11 @@ export class TaskHandler {
     let nextTaskTypeIndex = indexOfCurrentTask + 1;
 
     // Find the next task that should not be skipped, with bounds checking
-    while (nextTaskTypeIndex < this.tasksFlow.length && this.shouldSkipTaskCreation(this.tasksFlow[nextTaskTypeIndex])) {
+    while (nextTaskTypeIndex < this.tasksFlow.length) {
+      const nextTaskType = this.tasksFlow[nextTaskTypeIndex];
+      if (nextTaskType === undefined || !this.shouldSkipTaskCreation(nextTaskType)) {
+        break;
+      }
       nextTaskTypeIndex++;
     }
 

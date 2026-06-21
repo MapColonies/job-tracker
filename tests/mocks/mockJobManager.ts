@@ -1,4 +1,4 @@
-import { JobManagerClient, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import type { JobManagerClient, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
 
 export const mockJobManager = {
   updateJob: jest.fn(),

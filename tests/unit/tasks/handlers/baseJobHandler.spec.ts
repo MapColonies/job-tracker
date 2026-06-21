@@ -1,6 +1,7 @@
-import jsLogger from '@map-colonies/js-logger';
-import { OperationStatus, IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
-import { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
+import { jsLogger, type Logger } from '@map-colonies/js-logger';
+import type { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
+import { OperationStatus } from '@map-colonies/mc-priority-queue';
+import type { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { createTestJob, getTaskMock } from '../../../mocks/jobMocks';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
 import { mockJobManager, queueClientMock } from '../../../mocks/mockJobManager';
@@ -12,10 +13,13 @@ describe('BaseJobHandler', () => {
     mockJob: IJobResponse<unknown, unknown>;
   }[] = [];
 
-  const mockLogger = jsLogger({ enabled: false });
+  let mockLogger: Logger;
+  beforeAll(async () => {
+    mockLogger = await jsLogger({ enabled: false });
+  });
 
   registerDefaultConfig();
-  const jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
+  const jobDefinitionsConfig = configMock.get('jobDefinitions') as IJobDefinitionsConfig;
   testCases = [
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.new) },
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.update) },

@@ -1,8 +1,9 @@
 import { BadRequestError } from '@map-colonies/error-types';
-import { Logger } from '@map-colonies/js-logger';
-import { IJobResponse, ITaskResponse, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
-import { IConfig, IJobDefinitionsConfig } from '../../common/interfaces';
-import { JobHandler } from './jobHandler';
+import type { Logger } from '@map-colonies/js-logger';
+import type { IJobResponse, ITaskResponse, TaskHandler as QueueClient } from '@map-colonies/mc-priority-queue';
+import type { ConfigType } from '@src/common/config';
+import type { IJobDefinitionsConfig } from '../../common/interfaces';
+import type { JobHandler } from './jobHandler';
 import { IngestionJobHandler } from './ingestion/ingestionHandler';
 import { ExportJobHandler } from './export/exportHandler';
 import { SeedJobHandler } from './seed/seedHandler';
@@ -12,7 +13,7 @@ export function getJobHandler(
   jobDefinitions: IJobDefinitionsConfig,
   logger: Logger,
   queueClient: QueueClient,
-  config: IConfig,
+  config: ConfigType,
   job: IJobResponse<unknown, unknown>,
   task: ITaskResponse<unknown>
 ): JobHandler {

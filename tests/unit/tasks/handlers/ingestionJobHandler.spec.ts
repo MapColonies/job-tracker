@@ -1,11 +1,13 @@
-import { JobManagerClient, OperationStatus, ITaskResponse, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
-import jsLogger from '@map-colonies/js-logger';
+import type { ITaskResponse, ICreateTaskBody } from '@map-colonies/mc-priority-queue';
+import { JobManagerClient, OperationStatus } from '@map-colonies/mc-priority-queue';
+import { jsLogger, type Logger } from '@map-colonies/js-logger';
 import { BadRequestError } from '@map-colonies/error-types';
-import { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
+import type { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { createTestJob, getTaskMock } from '../../../mocks/jobMocks';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
 import { TaskHandler } from '../../../../src/tasks/handlers/taskHandler';
-import { IngestionJobHandler, IngestionValidationTaskParameters } from '../../../../src/tasks/handlers/ingestion/ingestionHandler';
+import type { IngestionValidationTaskParameters } from '../../../../src/tasks/handlers/ingestion/ingestionHandler';
+import { IngestionJobHandler } from '../../../../src/tasks/handlers/ingestion/ingestionHandler';
 import { getJobHandler } from '../../../../src/tasks/handlers/jobHandlerFactory';
 import { mockJobManager, queueClientMock } from '../../../mocks/mockJobManager';
 
@@ -16,10 +18,13 @@ describe('IngestionJobHandler', () => {
   let isProceedableMock: jest.SpyInstance;
   let findTaskSpy: jest.SpyInstance;
 
-  const mockLogger = jsLogger({ enabled: false });
+  let mockLogger: Logger;
+  beforeAll(async () => {
+    mockLogger = await jsLogger({ enabled: false });
+  });
 
   registerDefaultConfig();
-  const jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
+  const jobDefinitionsConfig = configMock.get('jobDefinitions') as IJobDefinitionsConfig;
   const testCases = [
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.new) },
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.update) },

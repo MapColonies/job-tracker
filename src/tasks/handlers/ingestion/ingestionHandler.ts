@@ -1,11 +1,12 @@
-import { Logger } from '@map-colonies/js-logger';
-import { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
+import type { Logger } from '@map-colonies/js-logger';
+import type { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
 import { injectable, inject } from 'tsyringe';
 import {
   IngestionValidationTaskParams,
   ingestionValidationTaskParamsSchema as baseIngestionValidationTaskParamsSchema,
 } from '@map-colonies/raster-shared';
-import { IConfig, TaskTypes } from '../../../common/interfaces';
+import type { ConfigType } from '@src/common/config';
+import type { TaskTypes } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
 import { JobHandler } from '../jobHandler';
 import { ValidationProceedRule } from '../../rules/ingestion/validationProceedRule';
@@ -26,13 +27,13 @@ export class IngestionJobHandler extends JobHandler {
 
   public constructor(
     @inject(SERVICES.LOGGER) logger: Logger,
-    @inject(SERVICES.CONFIG) config: IConfig,
+    @inject(SERVICES.CONFIG) config: ConfigType,
     jobManagerClient: JobManagerClient,
     job: IJobResponse<unknown, unknown>,
     task: ITaskResponse<unknown>
   ) {
     super(logger, config, jobManagerClient, job, task);
-    this.tasksFlow = this.config.get<TaskTypes>('taskFlowManager.ingestionTasksFlow');
+    this.tasksFlow = this.config.get('taskFlowManager.ingestionTasksFlow') as unknown as TaskTypes;
     this.excludedTypes = [this.jobDefinitions.tasks.merge, this.jobDefinitions.tasks.tilesDeletion];
     this.blockedDuplicationTypes = [this.jobDefinitions.tasks.validation, this.jobDefinitions.tasks.createTasks, this.jobDefinitions.tasks.finalize];
 

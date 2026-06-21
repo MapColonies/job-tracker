@@ -1,11 +1,12 @@
-import nock from 'nock';
+import nock, { cleanAll, isDone, pendingMocks } from 'nock';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { StatusCodes as httpStatusCodes } from 'http-status-codes';
 import { trace } from '@opentelemetry/api';
-import jsLogger from '@map-colonies/js-logger';
+import { jsLogger } from '@map-colonies/js-logger';
+import { initConfig } from '../../../../src/common/config';
 import { configMock } from '../../../mocks/configMock';
 import { getApp } from '../../../../src/app';
-import { IJobManagerConfig, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
+import type { IJobManagerConfig, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { getSeedingJobMock, getTaskMock } from '../../../mocks/jobMocks';
 import { calculateJobPercentage } from '../../../../src/utils/jobUtils';
 import { SERVICES } from '../../../../src/common/constants';
@@ -18,31 +19,35 @@ describe('tasks', function () {
   let jobManagerConfigMock: IJobManagerConfig;
   let jobDefinitionsConfig: IJobDefinitionsConfig;
 
-  beforeEach(function () {
-    const [app] = getApp({
-      override: [...getTestContainerConfig()],
+  beforeAll(async function () {
+    await initConfig(true);
+  });
+
+  beforeEach(async function () {
+    const [app] = await getApp({
+      override: [...(await getTestContainerConfig())],
       useChild: true,
     });
 
-    registerExternalValues({
+    await registerExternalValues({
       override: [
-        { token: SERVICES.LOGGER, provider: { useValue: jsLogger({ enabled: false }) } },
+        { token: SERVICES.LOGGER, provider: { useValue: await jsLogger({ enabled: false }) } },
         { token: SERVICES.CONFIG, provider: { useValue: configMock } },
         { token: SERVICES.TRACER, provider: { useValue: trace.getTracer('testTracer') } },
       ],
     });
 
     requestSender = new TasksRequestSender(app);
-    jobManagerConfigMock = configMock.get<IJobManagerConfig>('jobManagement.config');
-    jobDefinitionsConfig = configMock.get<IJobDefinitionsConfig>('jobDefinitions');
-    nock.cleanAll();
+    jobManagerConfigMock = configMock.get('jobManagement.config') as unknown as IJobManagerConfig;
+    jobDefinitionsConfig = configMock.get('jobDefinitions') as IJobDefinitionsConfig;
+    cleanAll();
   });
 
   afterEach(function () {
     resetContainer();
     jest.restoreAllMocks();
-    if (!nock.isDone()) {
-      throw new Error(`Not all nock interceptors were used: ${JSON.stringify(nock.pendingMocks())}`);
+    if (!isDone()) {
+      throw new Error(`Not all nock interceptors were used: ${JSON.stringify(pendingMocks())}`);
     }
   });
 
