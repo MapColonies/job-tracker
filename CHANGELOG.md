@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.2.0](https://github.com/MapColonies/job-tracker/compare/v5.1.0...v5.2.0) (2026-06-21)
+
+
+### Features
+
+* boilerplate and dependencies maintenance (MAPCO-10114) ([#63](https://github.com/MapColonies/job-tracker/issues/63)) ([b7df3f6](https://github.com/MapColonies/job-tracker/commit/b7df3f65043363d84da2005e13107fa3ca969b5f))
+
 ## [5.1.0](https://github.com/MapColonies/job-tracker/compare/v5.0.0...v5.1.0) (2026-05-18)
 
 
