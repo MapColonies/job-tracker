@@ -149,6 +149,70 @@ describe('TasksManager', () => {
       });
     });
 
+    describe('Terminated Jobs', () => {
+      it('should not create a next task when a completed task notification arrives for an aborted job', async () => {
+        // mocks
+        const { tasksManager, mockFindTasks, mockGetJob, mockCreateTaskForJob, mockUpdateJob, jobDefinitionsConfigMock } = testContext;
+        const abortedJobMock = createTestJob(jobDefinitionsConfigMock.jobs.update, {
+          status: OperationStatus.ABORTED,
+          completedTasks: 10,
+          taskCount: 10,
+        });
+        const mergeTaskMock = getTaskMock(abortedJobMock.id, {
+          type: jobDefinitionsConfigMock.tasks.merge,
+          status: OperationStatus.COMPLETED,
+        });
+
+        mockFindTasks.mockResolvedValueOnce([mergeTaskMock]);
+        mockGetJob.mockResolvedValue(abortedJobMock);
+        // action
+        await tasksManager.handleTaskNotification(mergeTaskMock.id);
+        // expectation
+        expect(mockCreateTaskForJob).not.toHaveBeenCalled();
+        expect(mockUpdateJob).not.toHaveBeenCalled();
+      });
+
+      it('should not fail an aborted job when a failed task notification arrives', async () => {
+        // mocks
+        const { tasksManager, mockFindTasks, mockGetJob, mockUpdateJob, jobDefinitionsConfigMock } = testContext;
+        const abortedJobMock = createTestJob(jobDefinitionsConfigMock.jobs.update, { status: OperationStatus.ABORTED });
+        const mergeTaskMock = getTaskMock(abortedJobMock.id, {
+          type: jobDefinitionsConfigMock.tasks.merge,
+          status: OperationStatus.FAILED,
+          reason: 'reason',
+        });
+
+        mockFindTasks.mockResolvedValueOnce([mergeTaskMock]);
+        mockGetJob.mockResolvedValue(abortedJobMock);
+        // action
+        await tasksManager.handleTaskNotification(mergeTaskMock.id);
+        // expectation
+        expect(mockUpdateJob).not.toHaveBeenCalled();
+      });
+
+      it('should not create a next task when a completed task notification arrives for an expired job', async () => {
+        // mocks
+        const { tasksManager, mockFindTasks, mockGetJob, mockCreateTaskForJob, mockUpdateJob, jobDefinitionsConfigMock } = testContext;
+        const expiredJobMock = createTestJob(jobDefinitionsConfigMock.jobs.update, {
+          status: OperationStatus.EXPIRED,
+          completedTasks: 10,
+          taskCount: 10,
+        });
+        const mergeTaskMock = getTaskMock(expiredJobMock.id, {
+          type: jobDefinitionsConfigMock.tasks.merge,
+          status: OperationStatus.COMPLETED,
+        });
+
+        mockFindTasks.mockResolvedValueOnce([mergeTaskMock]);
+        mockGetJob.mockResolvedValue(expiredJobMock);
+        // action
+        await tasksManager.handleTaskNotification(mergeTaskMock.id);
+        // expectation
+        expect(mockCreateTaskForJob).not.toHaveBeenCalled();
+        expect(mockUpdateJob).not.toHaveBeenCalled();
+      });
+    });
+
     describe('Error Handling', () => {
       it('should throw NotFoundError if the given task does not exist', async () => {
         // mocks
