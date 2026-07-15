@@ -37,7 +37,6 @@ export class TasksManager {
 
     const job = await this.jobManager.getJob(task.jobId);
 
-
     if (job.status === OperationStatus.ABORTED || job.status === OperationStatus.EXPIRED) {
       this.logger.warn({
         msg: `Skipping notification handling for task id: ${taskId} - job is in terminal status '${job.status}'`,
