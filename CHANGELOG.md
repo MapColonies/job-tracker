@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.2.1](https://github.com/MapColonies/job-tracker/compare/v5.2.0...v5.2.1) (2026-07-15)
+
+
+### Bug Fixes
+
+* ignore task notifications for aborted/expired jobs(MAPCO-11121) ([#70](https://github.com/MapColonies/job-tracker/issues/70)) ([73deff5](https://github.com/MapColonies/job-tracker/commit/73deff51ebdac0e1d6bb543dd38e918200048562))
+
 ## [5.2.0](https://github.com/MapColonies/job-tracker/compare/v5.1.0...v5.2.0) (2026-06-21)
 
 
