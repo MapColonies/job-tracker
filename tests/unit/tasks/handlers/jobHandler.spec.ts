@@ -23,6 +23,7 @@ describe('JobHandler', () => {
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.swapUpdate), taskType: jobDefinitionsConfig.tasks.merge },
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.export), taskType: jobDefinitionsConfig.tasks.export },
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.seed), taskType: jobDefinitionsConfig.tasks.seed },
+    { mockJob: createTestJob(jobDefinitionsConfig.jobs.deleteLayer), taskType: jobDefinitionsConfig.tasks.delete },
   ];
 
   const testCaseHandlerLog = '$mockJob.type handler';

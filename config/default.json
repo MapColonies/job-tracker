@@ -53,7 +53,8 @@
       "update": "Ingestion_Update",
       "swapUpdate": "Ingestion_Swap_Update",
       "export": "Export",
-      "seed": "TilesSeeding"
+      "seed": "TilesSeeding",
+      "deleteLayer": "Delete_Layer"
     },
     "tasks": {
       "validation": "validation",
@@ -63,13 +64,17 @@
       "createTasks": "create-tasks",
       "export": "tilesExporting",
       "finalize": "finalize",
-      "seed": "TilesSeeding"
+      "seed": "TilesSeeding",
+      "tilesDeletion": "tiles-deletion",
+      "delete": "delete",
+      "artifactsDeletion": "artifacts-deletion"
     },
     "suspendingTaskTypes": ["polygon-parts"]
   },
   "taskFlowManager": {
     "ingestionTasksFlow": ["validation", "create-merge-tasks", "tilesMerging", "finalize"],
     "exportTasksFlow": ["init", "tilesExporting", "polygon-parts", "finalize"],
-    "seedTasksFlow": ["TilesSeeding"]
+    "seedTasksFlow": ["TilesSeeding"],
+    "deleteLayerTasksFlow": ["delete", "tiles-deletion", "artifacts-deletion", "finalize"]
   }
 }

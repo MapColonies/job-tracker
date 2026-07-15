@@ -95,6 +95,8 @@ jobDefinitions:
       type: ''
     seed:
       type: ''
+    deleteLayer:
+      type: ''
   tasks:
     validation:
       type: ''
@@ -115,6 +117,10 @@ jobDefinitions:
       type: ''
     seed:
       type: ''
+    delete:
+      type: ''
+    artifactsDeletion:
+      type: ''
 
 taskFlowManager:
   ingestionTasksFlow:
@@ -130,6 +136,11 @@ taskFlowManager:
   - finalize
   seedTasksFlow:
   - TilesSeeding
+  deleteLayerTasksFlow:
+  - delete
+  - tiles-deletion
+  - artifacts-deletion
+  - finalize
 env:
   port: 80
   targetPort: 8080

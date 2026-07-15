@@ -22,6 +22,7 @@ export interface IJobDefinitionsConfig {
     swapUpdate: string;
     export: string;
     seed: string;
+    deleteLayer: string;
   };
   tasks: {
     polygonParts: string;
@@ -33,6 +34,8 @@ export interface IJobDefinitionsConfig {
     export: string;
     seed: string;
     tilesDeletion: string;
+    delete: string;
+    artifactsDeletion: string;
   };
   suspendingTaskTypes: string[];
 }
