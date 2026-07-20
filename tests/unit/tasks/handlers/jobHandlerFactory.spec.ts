@@ -7,6 +7,7 @@ import { getJobHandler } from '../../../../src/tasks/handlers/jobHandlerFactory'
 import type { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
 import { IngestionJobHandler } from '../../../../src/tasks/handlers/ingestion/ingestionHandler';
 import { ExportJobHandler } from '../../../../src/tasks/handlers/export/exportHandler';
+import { DeleteLayerJobHandler } from '../../../../src/tasks/handlers/deleteLayer/deleteLayerHandler';
 
 // Test helper functions
 const createTestLogger = async (): Promise<Logger> => jsLogger({ enabled: false });
@@ -86,6 +87,20 @@ describe('jobHandlerFactory', () => {
 
       // Then: should create ExportJobHandler
       expect(handler).toBeInstanceOf(ExportJobHandler);
+    });
+
+    it('should create DeleteLayerJobHandler for deleteLayer job type', () => {
+      // Given: deleteLayer job and task
+      const jobType = jobDefinitionsConfig.jobs.deleteLayer;
+      const mockJob = createTestJob(jobType);
+      const mockTask = getTaskMock(mockJob.id);
+      const mockQueueClient = createMockQueueClient();
+
+      // When: creating handler for deleteLayer job type
+      const handler = getJobHandler(jobType, jobDefinitionsConfig, logger, mockQueueClient, configMock, mockJob, mockTask);
+
+      // Then: should create DeleteLayerJobHandler
+      expect(handler).toBeInstanceOf(DeleteLayerJobHandler);
     });
   });
 

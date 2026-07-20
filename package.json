@@ -51,7 +51,7 @@
     "@map-colonies/mc-utils": "^5.1.0",
     "@map-colonies/openapi-express-viewer": "^3.0.0",
     "@map-colonies/prometheus": "^1.0.0",
-    "@map-colonies/raster-shared": "^7.10.2",
+    "@map-colonies/raster-shared": "8.3.0-alpha.0",
     "@map-colonies/read-pkg": "0.0.1",
     "@map-colonies/schemas": "^1.18.0",
     "@map-colonies/telemetry": "^6.0.0",

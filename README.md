@@ -6,6 +6,9 @@ Services notifies Job Tracker on completed tasks, and Job Tracker handles the re
 
 ## API
 Check out the OpenAPI spec [here](/openapi3.yaml)
+
+## Job type deep-dives
+- [Delete_Layer tasks flow](docs/delete-layer-tasks-flow.md) — architecture, design rationale, and test strategy for the `Delete_Layer` job type.
 #### Get all items
 
 ```http

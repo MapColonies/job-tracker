@@ -7,6 +7,7 @@ import type { JobHandler } from './jobHandler';
 import { IngestionJobHandler } from './ingestion/ingestionHandler';
 import { ExportJobHandler } from './export/exportHandler';
 import { SeedJobHandler } from './seed/seedHandler';
+import { DeleteLayerJobHandler } from './deleteLayer/deleteLayerHandler';
 
 export function getJobHandler(
   jobHandlerType: string,
@@ -30,6 +31,9 @@ export function getJobHandler(
     }
     case jobDefinitions.jobs.seed: {
       return new SeedJobHandler(logger, config, jobManagerClient, job, task);
+    }
+    case jobDefinitions.jobs.deleteLayer: {
+      return new DeleteLayerJobHandler(logger, config, jobManagerClient, job, task);
     }
     default:
       throw new BadRequestError(`${jobHandlerType} job type is invalid`);
