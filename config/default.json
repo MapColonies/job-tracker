@@ -74,6 +74,6 @@
     "ingestionTasksFlow": ["validation", "create-merge-tasks", "tilesMerging", "finalize"],
     "exportTasksFlow": ["init", "tilesExporting", "polygon-parts", "finalize"],
     "seedTasksFlow": ["TilesSeeding"],
-    "deleteLayerTasksFlow": ["delete", "tiles-deletion", "finalize"]
+    "deleteLayerTasksFlow": ["delete", "tiles-deletion"]
   }
 }

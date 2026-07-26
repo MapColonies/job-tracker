@@ -21,9 +21,13 @@ export class DeleteLayerJobHandler extends JobHandler {
   ) {
     super(logger, config, jobManagerClient, job, task);
     this.tasksFlow = this.config.get('taskFlowManager.deleteLayerTasksFlow') as unknown as TaskTypes;
-    this.excludedTypes = [this.jobDefinitions.tasks.tilesDeletion];
-    this.blockedDuplicationTypes = [this.jobDefinitions.tasks.finalize];
+    this.excludedTypes = [this.jobDefinitions.tasks.delete, this.jobDefinitions.tasks.tilesDeletion];
+    this.blockedDuplicationTypes = [];
 
     this.initializeTaskOperations();
   }
+
+  public override isJobCompleted = (): boolean => {
+    return this.job.completedTasks === this.job.taskCount;
+  };
 }

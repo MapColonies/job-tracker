@@ -46,6 +46,5 @@ export const createTaskParametersMapper = (jobDefinitions: IJobDefinitionsConfig
         callbacksSent: false,
       } satisfies ExportFinalizeFullProcessingParams,
     ],
-    [`${jobDefinitions.jobs.deleteLayer}_${jobDefinitions.tasks.finalize}`, {}],
   ]);
 };

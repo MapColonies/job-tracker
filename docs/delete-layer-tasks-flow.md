@@ -42,9 +42,9 @@ knowing what the others already do (as of when this was implemented):
 
 | Repo                | Role                                             | State found                                                                                                                                                                                                                                                                                                                                                                                   |
 | ------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `raster-shared`     | Shared types/schemas/constants (npm package)     | Defines `DeletionJobTypes.Delete_Layer`, `DeletionTaskTypes.{Delete, LayerTilesDeletion}`, and the Zod schemas for each task's parameters — but **only on the `alpha` branch/dist-tag**, not in any stable release.                                                                                                                                                        |
+| `raster-shared`     | Shared types/schemas/constants (npm package)     | Defines `DeletionJobTypes.Delete_Layer`, `DeletionTaskTypes.{Delete, LayerTilesDeletion}`, and the Zod schemas for each task's parameters — but **only on the `alpha` branch/dist-tag**, not in any stable release.                                                                                                                                                                           |
 | `ingestion-trigger` | Initiates ingestion/deletion jobs                | Already pinned to `raster-shared@8.3.0-alpha.0`. Its `IngestionManager.deleteLayer()` creates a `Delete_Layer` job with **exactly one task**, type `delete`, params `{ deleteFromCatalog: false, deleteFromMapproxy: false, deleteFromGeoserver: false, deletePolygonParts: false }` (all flags currently hardcoded `false` — this part of the pipeline is itself still incomplete upstream). |
-| `cleaner`           | Worker that dequeues and executes deletion tasks | Only has a `tilesDeletionStrategy`, and its `worker.capabilities.pairs` config currently only pairs `tiles-deletion` with `Ingestion_Update` / `Ingestion_Swap_Update` — **not** with `Delete_Layer`. No strategy exists yet for `delete`.                                                                                                                            |
+| `cleaner`           | Worker that dequeues and executes deletion tasks | Only has a `tilesDeletionStrategy`, and its `worker.capabilities.pairs` config currently only pairs `tiles-deletion` with `Ingestion_Update` / `Ingestion_Swap_Update` — **not** with `Delete_Layer`. No strategy exists yet for `delete`.                                                                                                                                                    |
 | `job-tracker`       | Orchestrates the task flow (this repo)           | **Nothing** — the subject of this change.                                                                                                                                                                                                                                                                                                                                                     |
 
 The practical implication: as of this change, nothing in the ecosystem actually _executes_
@@ -169,9 +169,8 @@ job-tracker has no way to produce generically.
 ```mermaid
 flowchart LR
     A["delete\n(created externally,\nby ingestion-trigger)"] -->|completed| B{"next in flow?"}
-    B -->|"tiles-deletion\n(excluded → skip)"| C{"next in flow?"}
-    C -->|"finalize\n(not excluded)"| E["job-tracker creates\nfinalize task"]
-    E -->|completed| F["job COMPLETED"]
+    B -->|"tiles-deletion\n(excluded → skip)"| C{"end of flow"}
+    C -->|"all tasks completed"| F["job COMPLETED"]
 
     A -.->|"tiles-deletion completes\n(webhook received)"| C
 ```
@@ -179,25 +178,24 @@ flowchart LR
 Configured as (`taskFlowManager.deleteLayerTasksFlow`):
 
 ```json
-["delete", "tiles-deletion", "finalize"]
+["delete", "tiles-deletion"]
 ```
 
 Walking through what actually happens for each possible completion notification, given
-`excludedTypes = [tiles-deletion]`:
+`excludedTypes = [delete, tiles-deletion]`:
 
-| Task that completed | `getNextTaskType()` result           | Condition                                                           | Behavior                                                                   |
-| ------------------- | ------------------------------------ | ------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `delete`            | skips `tiles-deletion` → `finalize`  | `completedTasks === taskCount`                                      | creates `finalize`                                                         |
-| `delete`            | same                                 | `completedTasks !== taskCount` (other deletion tasks still pending) | progress update only                                                       |
-| `tiles-deletion`    | → `finalize`                         | ready                                                               | creates `finalize`                                                         |
-| `finalize`          | `undefined` (end of flow)            | `taskType === Finalize` in `BaseJobHandler.isJobCompleted`          | job **COMPLETED**                                                          |
-| any task, `FAILED`  | —                                    | `delete` is not in `suspendingTaskTypes`                            | job **FAILED** (default `JobHandler.handleFailedTask`, no override needed) |
+| Task that completed | `getNextTaskType()` result                         | Condition                                                           | Behavior                                                                   |
+| ------------------- | -------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `delete`            | skips `tiles-deletion` → `undefined` (end of flow) | `completedTasks === taskCount`                                      | job **COMPLETED** (overridden `isJobCompleted`)                            |
+| `delete`            | same                                               | `completedTasks !== taskCount` (other deletion tasks still pending) | progress update only                                                       |
+| `tiles-deletion`    | `undefined` (end of flow)                          | `completedTasks === taskCount`                                      | job **COMPLETED**                                                          |
+| any task, `FAILED`  | —                                                  | `delete` is not in `suspendingTaskTypes`                            | job **FAILED** (default `JobHandler.handleFailedTask`, no override needed) |
 
 Why `delete` and `tiles-deletion` can be created **in any order
 relative to each other** from job-tracker's point of view: it never creates them itself
 (both are either the pre-existing first task or excluded), so whichever one's
 completion webhook arrives, `isReadyForNextTask()` is the real gate — job-tracker only
-moves to `finalize` once every task that exists for the job (regardless of who created it
+completes the job once every task that exists for the job (regardless of who created it
 or in what order) is done.
 
 ### The handler implementation
@@ -214,20 +212,24 @@ export class DeleteLayerJobHandler extends JobHandler {
   public constructor(/* … */) {
     super(logger, config, jobManagerClient, job, task);
     this.tasksFlow = this.config.get('taskFlowManager.deleteLayerTasksFlow') as unknown as TaskTypes;
-    this.excludedTypes = [this.jobDefinitions.tasks.tilesDeletion];
-    this.blockedDuplicationTypes = [this.jobDefinitions.tasks.finalize];
+    this.excludedTypes = [this.jobDefinitions.tasks.delete, this.jobDefinitions.tasks.tilesDeletion];
+    this.blockedDuplicationTypes = [];
 
     this.initializeTaskOperations();
   }
+
+  public override isJobCompleted = (): boolean => {
+    return this.job.completedTasks === this.job.taskCount;
+  };
 }
 ```
 
 Design choices explained:
 
-- **No `isJobCompleted` override.** Unlike `SeedJobHandler` (which overrides it because a
-  seed job has no `finalize` step at all), `Delete_Layer` ends in `finalize` just like
-  ingestion/export, so the inherited `BaseJobHandler.isJobCompleted` (`completedTasks ===
-taskCount && taskType === TaskTypes.Finalize`) is correct as-is.
+- **`isJobCompleted` override.** Like `SeedJobHandler`, `Delete_Layer` has no `finalize`
+  step at all, so the inherited `BaseJobHandler.isJobCompleted` (which additionally
+  requires `taskType === TaskTypes.Finalize`) would never fire. The override completes the
+  job as soon as `completedTasks === taskCount`.
 - **No `isProceedable` override / proceed rule.** Ingestion registers a
   `ValidationProceedRule` because a validation task can be "completed but invalid" and
   needs to suspend the job instead of proceeding. Nothing in the `Delete_Layer` flow has
@@ -237,32 +239,32 @@ taskCount && taskType === TaskTypes.Finalize`) is correct as-is.
   error-callback finalize task instead of just failing" behavior. Nothing in the ticket
   scope called for that for deletion, so the default `JobHandler.handleFailedTask` (fail
   the job, unless the task type is in `suspendingTaskTypes`) applies as-is.
-- **`blockedDuplicationTypes = [finalize]`** rather than mirroring `ExportJobHandler`
-  (which blocks duplication on the excluded type itself). The rationale: `blockDuplication`
-  only has any effect on task types job-tracker actually creates via `createTaskForJob` —
-  and in this handler that's only ever `finalize`. Protecting the one task type this
-  handler actually creates from double-creation (e.g. if two completion webhooks for
-  different upstream tasks arrive close together) is the meaningful protection here.
+- **`excludedTypes = [delete, tilesDeletion]`** — job-tracker is not in charge of
+  creating any of the delete-layer tasks; both are created externally, so both are
+  excluded from auto-creation. With no `finalize` in the flow, job-tracker never creates
+  any task for this job type — it only tracks progress and completes/fails the job.
+- **`blockedDuplicationTypes = []`** — mirroring `SeedJobHandler`; no duplication
+  blocking is applied to the tasks this handler creates.
 
 ## 5. Every file changed, and why
 
-| File                                                      | Change                                                                                                                                                                                                                                                                                                                         |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `package.json`                                            | `@map-colonies/raster-shared` bumped `^7.10.2` → `8.3.0-alpha.0` (exact pin). See [§7](#7-the-raster-shared-dependency-problem).                                                                                                                                                                                               |
-| `package-lock.json`                                       | Regenerated by `npm install` for the above.                                                                                                                                                                                                                                                                                    |
-| `src/common/interfaces.ts`                                | Added `jobs.deleteLayer` and `tasks.delete` to `IJobDefinitionsConfig`. (`tasks.tilesDeletion` already existed in the interface but had never been populated in `config/default.json` — that gap is now also closed.)                                                                                  |
-| `src/common/mappers.ts`                                   | Added a `${jobs.deleteLayer}_${tasks.finalize} → {}` entry — required because job-tracker creates the `finalize` task itself and the mapper throws if no entry exists for a job+task combination it tries to create.                                                                                                           |
-| `src/tasks/handlers/deleteLayer/deleteLayerHandler.ts`    | **New.** The handler itself — see [§4](#4-the-delete_layer-design).                                                                                                                                                                                                                                                            |
-| `src/tasks/handlers/jobHandlerFactory.ts`                 | Added the `jobDefinitions.jobs.deleteLayer` case to the factory switch.                                                                                                                                                                                                                                                        |
+| File                                                      | Change                                                                                                                                                                                                                                                                                                                   |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `package.json`                                            | `@map-colonies/raster-shared` bumped `^7.10.2` → `8.3.0-alpha.0` (exact pin). See [§7](#7-the-raster-shared-dependency-problem).                                                                                                                                                                                         |
+| `package-lock.json`                                       | Regenerated by `npm install` for the above.                                                                                                                                                                                                                                                                              |
+| `src/common/interfaces.ts`                                | Added `jobs.deleteLayer` and `tasks.delete` to `IJobDefinitionsConfig`. (`tasks.tilesDeletion` already existed in the interface but had never been populated in `config/default.json` — that gap is now also closed.)                                                                                                    |
+| `src/common/mappers.ts`                                   | No `Delete_Layer` entry — job-tracker never creates a task for this job type (all tasks are externally created and there is no `finalize` step), so no static task parameters are needed.                                                                                                                                |
+| `src/tasks/handlers/deleteLayer/deleteLayerHandler.ts`    | **New.** The handler itself — see [§4](#4-the-delete_layer-design).                                                                                                                                                                                                                                                      |
+| `src/tasks/handlers/jobHandlerFactory.ts`                 | Added the `jobDefinitions.jobs.deleteLayer` case to the factory switch.                                                                                                                                                                                                                                                  |
 | `config/default.json`                                     | Added `jobDefinitions.jobs.deleteLayer`, the new/completed task entries, and `taskFlowManager.deleteLayerTasksFlow`. This is the single source of truth for local dev and tests (`config/test.json` and `config/production.json` are both `{}` — everything is either defaulted here or overridden by env vars in prod). |
-| `config/custom-environment-variables.json`                | Env var names for every new/completed config key, so helm can inject real values in each deployed environment.                                                                                                                                                                                                                 |
-| `helm/values.yaml`                                        | Chart defaults for the new job/task types and the new flow array.                                                                                                                                                                                                                                                              |
-| `helm/templates/configmap.yaml`                           | Renders the new env vars (`JOB_DEFINITIONS_JOB_DELETE_LAYER`, `JOB_DEFINITIONS_TASK_DELETE`, `DELETE_LAYER_TASKS_FLOW`) into the ConfigMap.                                                                                                                                         |
-| `tests/mocks/configMock.ts`                               | Test-side mirror of `config/default.json` — same additions, plus the previously-missing `tilesDeletion`/`delete` task entries needed for any test to reference them.                                                                                                                                       |
-| `tests/mocks/jobMocks.ts`                                 | New `getDeleteLayerJobMock()`, mirroring the existing `getExportJobMock`/`getSeedingJobMock` pattern.                                                                                                                                                                                                                          |
-| `tests/unit/tasks/handlers/jobHandler.spec.ts`            | Added a `Delete_Layer` case to the generic cross-handler `testCases` array — see [§8](#8-test-strategy).                                                                                                                                                                                                                       |
-| `tests/unit/tasks/handlers/jobHandlerFactory.spec.ts`     | New test: factory returns a `DeleteLayerJobHandler` instance for the `deleteLayer` job type.                                                                                                                                                                                                                                   |
-| `tests/integration/tasks/deleteLayer/taskManager.spec.ts` | **New.** Full HTTP-level integration suite — see [§8](#8-test-strategy).                                                                                                                                                                                                                                                       |
+| `config/custom-environment-variables.json`                | Env var names for every new/completed config key, so helm can inject real values in each deployed environment.                                                                                                                                                                                                           |
+| `helm/values.yaml`                                        | Chart defaults for the new job/task types and the new flow array.                                                                                                                                                                                                                                                        |
+| `helm/templates/configmap.yaml`                           | Renders the new env vars (`JOB_DEFINITIONS_JOB_DELETE_LAYER`, `JOB_DEFINITIONS_TASK_DELETE`, `DELETE_LAYER_TASKS_FLOW`) into the ConfigMap.                                                                                                                                                                              |
+| `tests/mocks/configMock.ts`                               | Test-side mirror of `config/default.json` — same additions, plus the previously-missing `tilesDeletion`/`delete` task entries needed for any test to reference them.                                                                                                                                                     |
+| `tests/mocks/jobMocks.ts`                                 | New `getDeleteLayerJobMock()`, mirroring the existing `getExportJobMock`/`getSeedingJobMock` pattern.                                                                                                                                                                                                                    |
+| `tests/unit/tasks/handlers/jobHandler.spec.ts`            | Added a `Delete_Layer` case to the generic cross-handler `testCases` array — see [§8](#8-test-strategy).                                                                                                                                                                                                                 |
+| `tests/unit/tasks/handlers/jobHandlerFactory.spec.ts`     | New test: factory returns a `DeleteLayerJobHandler` instance for the `deleteLayer` job type.                                                                                                                                                                                                                             |
+| `tests/integration/tasks/deleteLayer/taskManager.spec.ts` | **New.** Full HTTP-level integration suite — see [§8](#8-test-strategy).                                                                                                                                                                                                                                                 |
 
 ## 6. Config wiring, end to end
 
@@ -341,7 +343,6 @@ assertions across **every** job handler type, driven by one `testCases` array. A
 `Delete_Layer` covered, for free, by:
 
 - `handleFailedTask` → fails the job with the task's reason.
-- `handleCompletedNotification` on `finalize`, all tasks done → completes the job at 100%.
 - `handleCompletedNotification` when `isProceedable()` is mocked `false` → suspends the job.
 - `handleCompletedNotification` when the task is still `IN_PROGRESS` → progress update only, no task created.
 - `handleCompletedNotification` when other tasks in the job are still incomplete → progress update only, no task created.
@@ -361,17 +362,16 @@ just that the handler wires up.
 
 | #   | Scenario                                                                              | Asserts                                                                                                                               |
 | --- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `delete` completes, `completedTasks === taskCount` (nothing else pending)             | `finalize` task created with `blockDuplication: true`, `parameters: {}`; job progress updated                                         |
+| 1   | `delete` completes, `completedTasks === taskCount` (nothing else pending)             | job transitions to `COMPLETED` at 100% — no task created                                                                              |
 | 2   | `delete` completes, `completedTasks < taskCount` (other deletion tasks still pending) | **no** task created; progress updated only                                                                                            |
-| 3   | `tiles-deletion` completes, ready                                                     | correctly walks past the (already-passed) excluded type, creates `finalize`                                                           |
-| 4   | `finalize` completes                                                                  | job transitions to `COMPLETED` at 100%                                                                                                |
-| 5   | `delete` fails                                                                        | job transitions to `FAILED` with the task's reason (default `handleFailedTask`, no suspend — `delete` isn't in `suspendingTaskTypes`) |
+| 3   | `tiles-deletion` completes, all tasks done                                            | job transitions to `COMPLETED` at 100%                                                                                                |
+| 4   | `delete` fails                                                                        | job transitions to `FAILED` with the task's reason (default `handleFailedTask`, no suspend — `delete` isn't in `suspendingTaskTypes`) |
 
 ### Results
 
 ```
 Unit:        134/134 passing, 100% statements/branches/functions/lines on the new handler
-Integration:  95/95 passing (5 new scenarios)
+Integration:  94/94 passing (4 new scenarios)
 ```
 
 ## 9. Verification performed
@@ -395,9 +395,9 @@ selectorLabels` template functions was added just to satisfy `helm template`'s p
 
 |                                      | `IngestionJobHandler`                 | `ExportJobHandler`                           | `SeedJobHandler`                | `DeleteLayerJobHandler`                  |
 | ------------------------------------ | ------------------------------------- | -------------------------------------------- | ------------------------------- | ---------------------------------------- |
-| Ends in `finalize`?                  | ✅                                    | ✅                                           | ❌ (overrides `isJobCompleted`) | ✅                                       |
-| `excludedTypes`                      | `[merge, tilesDeletion]`              | `[export]` (the heavy `tilesExporting` step) | `[seed]` (its only task)        | `[tilesDeletion]`                        |
-| `blockedDuplicationTypes`            | `[validation, createTasks, finalize]` | `[export]`                                   | `[]`                            | `[finalize]`                             |
+| Ends in `finalize`?                  | ✅                                    | ✅                                           | ❌ (overrides `isJobCompleted`) | ❌ (overrides `isJobCompleted`)          |
+| `excludedTypes`                      | `[merge, tilesDeletion]`              | `[export]` (the heavy `tilesExporting` step) | `[seed]` (its only task)        | `[delete, tilesDeletion]`                |
+| `blockedDuplicationTypes`            | `[validation, createTasks, finalize]` | `[export]`                                   | `[]`                            | `[]`                                     |
 | Custom `isProceedable`/proceed rule? | ✅ `ValidationProceedRule`            | ❌                                           | ❌                              | ❌                                       |
 | Custom `handleFailedTask`?           | ❌ (default)                          | ✅ (error-callback finalize task)            | ❌ (default)                    | ❌ (default)                             |
 | First task created by                | job-tracker itself (`validation`)     | external initiator                           | external initiator              | external initiator (`ingestion-trigger`) |
@@ -421,8 +421,3 @@ essentially always the same.
   the `delete` task, it wouldn't currently be told to delete anything from those
   subsystems. Out of scope for job-tracker, but worth knowing if the flow doesn't seem to
   "do" anything end-to-end yet.
-- **No dedicated finalize-parameters schema exists in `raster-shared` for deletion** (unlike
-  export, which has `ExportFinalizeFullProcessingParams`/`ExportFinalizeErrorCallbackParams`).
-  The `mappers.ts` entry therefore uses an empty object. If a future `raster-shared`
-  release adds a typed finalize schema for deletion, this mapper entry should be updated
-  to use it instead of `{}`.

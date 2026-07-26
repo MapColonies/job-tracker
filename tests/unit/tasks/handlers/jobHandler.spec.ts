@@ -59,9 +59,11 @@ describe('JobHandler', () => {
   });
 
   describe('handleCompletedNotification', () => {
-    const nonSeedCases = testCases.filter(({ mockJob }) => mockJob.type !== jobDefinitionsConfig.jobs.seed); // removing seed job test case as finalize task type is not handled there
+    const finalizeCases = testCases.filter(
+      ({ mockJob }) => mockJob.type !== jobDefinitionsConfig.jobs.seed && mockJob.type !== jobDefinitionsConfig.jobs.deleteLayer
+    ); // removing seed and deleteLayer job test cases as finalize task type is not handled there
 
-    it.each(nonSeedCases)(
+    it.each(finalizeCases)(
       `should complete job when all of the task are completed and task type is "finalize" - ${testCaseHandlerLog}`,
       async ({ mockJob }) => {
         mockJob = { ...mockJob, completedTasks: 10, taskCount: 10 };

@@ -103,7 +103,7 @@ const registerDefaultConfig = (): void => {
       ingestionTasksFlow: ['validation', 'create-tasks', 'tilesMerging', 'finalize'],
       exportTasksFlow: ['init', 'tilesExporting', 'polygon-parts', 'finalize'],
       seedTasksFlow: ['TilesSeeding'],
-      deleteLayerTasksFlow: ['delete', 'tiles-deletion', 'finalize'],
+      deleteLayerTasksFlow: ['delete', 'tiles-deletion'],
     },
   };
 
