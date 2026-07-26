@@ -6,6 +6,7 @@ Services notifies Job Tracker on completed tasks, and Job Tracker handles the re
 
 ## API
 Check out the OpenAPI spec [here](/openapi3.yaml)
+
 #### Get all items
 
 ```http
@@ -61,7 +62,7 @@ Start the server
 |`JOB_DEFINITIONS_JOB_SWAP_UPDATE`   |Job name.                                                                 |Ingestion_Swap_Update        |
 |`JOB_DEFINITIONS_TASK_INIT`         |Task name.                                                                |init                         |
 |`JOB_DEFINITIONS_TASK_MERGE`        |Task name.                                                                |merge                        |
-|`JOB_DEFINITIONS_TASK_DELETION`        |Task name.                                                                |merge                        |
+|`JOB_DEFINITIONS_TASK_TILES_DELETION`|Task name.                                                                |tiles-deletion               |
 |`JOB_DEFINITIONS_TASK_POLYGON_PARTS`|Task name.                                                                |polygon-parts                |
 |`JOB_DEFINITIONS_TASK_FINALIZE`     |Task name.                                                                |finalize                     |
 |`HTTP_RETRY_ATTEMPTS`               |How many retries should the service make if a request fails.              |5                            |

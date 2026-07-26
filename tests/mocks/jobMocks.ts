@@ -109,6 +109,39 @@ export const getSeedingJobMock = (override?: Partial<IJobResponse<unknown, unkno
   return { ...defaultJobMock, ...override };
 };
 
+export const getDeleteLayerJobMock = (override?: Partial<IJobResponse<unknown, unknown>>): IJobResponse<unknown, unknown> => {
+  const defaultJobMock = {
+    id: faker.string.uuid(),
+    resourceId: 'test',
+    version: '1.0',
+    type: 'Delete_Layer',
+    description: '',
+    status: OperationStatus.IN_PROGRESS,
+    percentage: 0,
+    reason: '',
+    domain: 'RASTER',
+    isCleaned: false,
+    priority: 0,
+    parameters: { approver: 'test-approver' },
+    expirationDate: undefined,
+    internalId: faker.string.uuid(),
+    producerName: undefined,
+    productName: 'test',
+    productType: 'Orthophoto',
+    additionalIdentifiers: '',
+    taskCount: 1,
+    completedTasks: 0,
+    failedTasks: 0,
+    expiredTasks: 0,
+    pendingTasks: 0,
+    inProgressTasks: 0,
+    abortedTasks: 0,
+    created: faker.date.anytime().toString(),
+    updated: faker.date.anytime().toString(),
+  };
+  return { ...defaultJobMock, ...override };
+};
+
 export const getTaskMock = <T>(jobId: string, override?: Partial<Omit<ITaskResponse<T>, 'jobId'>>): ITaskResponse<T> => {
   const defaultTaskMock = {
     id: faker.string.uuid(),

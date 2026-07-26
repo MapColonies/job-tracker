@@ -33,19 +33,22 @@ data:
   JOB_DEFINITIONS_JOB_SWAP_UPDATE: {{ $jobDefinitions.jobs.swapUpdate.type | quote }}
   JOB_DEFINITIONS_JOB_EXPORT: {{ $jobDefinitions.jobs.export.type | quote }}
   JOB_DEFINITIONS_JOB_SEED: {{ $jobDefinitions.jobs.seed.type | quote }}
+  JOB_DEFINITIONS_JOB_DELETE_LAYER: {{ $jobDefinitions.jobs.deleteLayer.type | quote }}
   JOB_DEFINITIONS_TASK_INIT: {{ $jobDefinitions.tasks.init.type | quote }}
   JOB_DEFINITIONS_TASK_VALIDATION: {{ $jobDefinitions.tasks.validation.type | quote }}
   JOB_DEFINITIONS_TASK_MERGE: {{ $jobDefinitions.tasks.merge.type | quote }}
-  JOB_DEFINITIONS_TASK_DELETION: {{ $jobDefinitions.tasks.tilesDeletion.type | quote }}
+  JOB_DEFINITIONS_TASK_TILES_DELETION: {{ $jobDefinitions.tasks.tilesDeletion.type | quote }}
   JOB_DEFINITIONS_TASK_POLYGON_PARTS: {{ $jobDefinitions.tasks.polygonParts.type | quote }}
   JOB_DEFINITIONS_TASK_CREATE_TASKS: {{ $jobDefinitions.tasks.createTasks.type | quote }}
   JOB_DEFINITIONS_TASK_EXPORT: {{ $jobDefinitions.tasks.export.type | quote }}
   JOB_DEFINITIONS_TASK_FINALIZE: {{ $jobDefinitions.tasks.finalize.type | quote }}
   JOB_DEFINITIONS_TASK_SEED: {{ $jobDefinitions.tasks.seed.type | quote }}
+  JOB_DEFINITIONS_TASK_DELETE: {{ $jobDefinitions.tasks.delete.type | quote }}
   JOB_DEFINITIONS_SUSPENDING_TASKS: {{ $suspendingTaskTypes | quote }}
   INGESTION_TASKS_FLOW: {{ .Values.taskFlowManager.ingestionTasksFlow | toJson | quote }}
   EXPORT_TASKS_FLOW: {{ .Values.taskFlowManager.exportTasksFlow | toJson | quote }}
   SEED_TASKS_FLOW: {{ .Values.taskFlowManager.seedTasksFlow | toJson | quote }}
+  DELETE_LAYER_TASKS_FLOW: {{ .Values.taskFlowManager.deleteLayerTasksFlow | toJson | quote }}
   {{- with .Values.configManagement }}
   CONFIG_NAME: {{ .name | quote }}
   CONFIG_VERSION: {{ .version | quote }}

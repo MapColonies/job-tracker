@@ -68,18 +68,20 @@
       "update": "JOB_DEFINITIONS_JOB_UPDATE",
       "swapUpdate": "JOB_DEFINITIONS_JOB_SWAP_UPDATE",
       "export": "JOB_DEFINITIONS_JOB_EXPORT",
-      "seed": "JOB_DEFINITIONS_JOB_SEED"
+      "seed": "JOB_DEFINITIONS_JOB_SEED",
+      "deleteLayer": "JOB_DEFINITIONS_JOB_DELETE_LAYER"
     },
     "tasks": {
       "validation": "JOB_DEFINITIONS_TASK_VALIDATION",
       "init": "JOB_DEFINITIONS_TASK_INIT",
       "createTasks": "JOB_DEFINITIONS_TASK_CREATE_TASKS",
       "merge": "JOB_DEFINITIONS_TASK_MERGE",
-      "tilesDeletion": "JOB_DEFINITIONS_TASK_DELETION",
+      "tilesDeletion": "JOB_DEFINITIONS_TASK_TILES_DELETION",
       "polygonParts": "JOB_DEFINITIONS_TASK_POLYGON_PARTS",
       "export": "JOB_DEFINITIONS_TASK_EXPORT",
       "finalize": "JOB_DEFINITIONS_TASK_FINALIZE",
-      "seed": "JOB_DEFINITIONS_TASK_SEED"
+      "seed": "JOB_DEFINITIONS_TASK_SEED",
+      "delete": "JOB_DEFINITIONS_TASK_DELETE"
     },
     "suspendingTaskTypes": {
       "__name": "JOB_DEFINITIONS_SUSPENDING_TASKS",
@@ -97,6 +99,10 @@
     },
     "seedTasksFlow": {
       "__name": "SEED_TASKS_FLOW",
+      "__format": "json"
+    },
+    "deleteLayerTasksFlow": {
+      "__name": "DELETE_LAYER_TASKS_FLOW",
       "__format": "json"
     }
   }
