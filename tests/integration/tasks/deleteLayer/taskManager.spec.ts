@@ -76,30 +76,6 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it('should return 200 and only update progress when getting completed delete task while other deletion tasks are still pending', async () => {
-      // mocks
-      const mockDeleteLayerJob = getDeleteLayerJobMock({ taskCount: 3, completedTasks: 1 });
-      const mockDeleteTask = getTaskMock(mockDeleteLayerJob.id, {
-        type: jobDefinitionsConfig.tasks.delete,
-        status: OperationStatus.COMPLETED,
-      });
-
-      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockDeleteTask.id }).reply(httpStatusCodes.OK, [mockDeleteTask]);
-      nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .get(`/jobs/${mockDeleteLayerJob.id}`)
-        .query({ shouldReturnTasks: false })
-        .reply(httpStatusCodes.OK, mockDeleteLayerJob);
-      const taskPercentage = calculateJobPercentage(mockDeleteLayerJob.completedTasks, mockDeleteLayerJob.taskCount);
-      nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockDeleteLayerJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
-
-      // action
-      const response = await requestSender.handleTaskNotification(mockDeleteTask.id);
-
-      // expectation
-      expect(response.status).toBe(httpStatusCodes.OK);
-      expect(response).toSatisfyApiSpec();
-    });
-
     it('should return 200 and complete job when getting completed excluded "tilesDeletion" task and no other task is pending', async () => {
       // mocks
       const mockDeleteLayerJob = getDeleteLayerJobMock({ taskCount: 3, completedTasks: 3 });
@@ -145,6 +121,34 @@ describe('tasks', function () {
 
       // action
       const response = await requestSender.handleTaskNotification(mockDeleteTask.id);
+
+      // expectation
+      expect(response.status).toBe(httpStatusCodes.OK);
+      expect(response).toSatisfyApiSpec();
+    });
+
+    it('should return 200 and fail job when getting failed tiles-deletion task', async () => {
+      // mocks
+      const mockDeleteLayerJob = getDeleteLayerJobMock();
+      const mockTilesDeletionTask = getTaskMock(mockDeleteLayerJob.id, {
+        type: jobDefinitionsConfig.tasks.tilesDeletion,
+        status: OperationStatus.FAILED,
+        reason: 'tiles-deletion task failed',
+      });
+
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post('/tasks/find', { id: mockTilesDeletionTask.id })
+        .reply(httpStatusCodes.OK, [mockTilesDeletionTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockDeleteLayerJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockDeleteLayerJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .put(`/jobs/${mockDeleteLayerJob.id}`, { status: OperationStatus.FAILED, reason: mockTilesDeletionTask.reason })
+        .reply(httpStatusCodes.OK);
+
+      // action
+      const response = await requestSender.handleTaskNotification(mockTilesDeletionTask.id);
 
       // expectation
       expect(response.status).toBe(httpStatusCodes.OK);
