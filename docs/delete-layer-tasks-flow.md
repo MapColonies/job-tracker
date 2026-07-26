@@ -184,12 +184,11 @@ Configured as (`taskFlowManager.deleteLayerTasksFlow`):
 Walking through what actually happens for each possible completion notification, given
 `excludedTypes = [delete, tiles-deletion]`:
 
-| Task that completed | `getNextTaskType()` result                         | Condition                                                           | Behavior                                                                   |
-| ------------------- | -------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `delete`            | skips `tiles-deletion` → `undefined` (end of flow) | `completedTasks === taskCount`                                      | job **COMPLETED** (overridden `isJobCompleted`)                            |
-| `delete`            | same                                               | `completedTasks !== taskCount` (other deletion tasks still pending) | progress update only                                                       |
-| `tiles-deletion`    | `undefined` (end of flow)                          | `completedTasks === taskCount`                                      | job **COMPLETED**                                                          |
-| any task, `FAILED`  | —                                                  | `delete` is not in `suspendingTaskTypes`                            | job **FAILED** (default `JobHandler.handleFailedTask`, no override needed) |
+| Task that completed | `getNextTaskType()` result                         | Condition                                | Behavior                                                                   |
+| ------------------- | -------------------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------- |
+| `delete`            | skips `tiles-deletion` → `undefined` (end of flow) | any                                      | progress update only — completion is gated on `tiles-deletion`             |
+| `tiles-deletion`    | `undefined` (end of flow)                          | `completedTasks === taskCount`           | job **COMPLETED** (overridden `isJobCompleted`)                            |
+| any task, `FAILED`  | —                                                  | `delete` is not in `suspendingTaskTypes` | job **FAILED** (default `JobHandler.handleFailedTask`, no override needed) |
 
 Why `delete` and `tiles-deletion` can be created **in any order
 relative to each other** from job-tracker's point of view: it never creates them itself
@@ -218,18 +217,20 @@ export class DeleteLayerJobHandler extends JobHandler {
     this.initializeTaskOperations();
   }
 
-  public override isJobCompleted = (): boolean => {
-    return this.job.completedTasks === this.job.taskCount;
+  public override isJobCompleted = (taskType: TaskType): boolean => {
+    return this.job.completedTasks === this.job.taskCount && taskType === this.jobDefinitions.tasks.tilesDeletion;
   };
 }
 ```
 
 Design choices explained:
 
-- **`isJobCompleted` override.** Like `SeedJobHandler`, `Delete_Layer` has no `finalize`
-  step at all, so the inherited `BaseJobHandler.isJobCompleted` (which additionally
-  requires `taskType === TaskTypes.Finalize`) would never fire. The override completes the
-  job as soon as `completedTasks === taskCount`.
+- **`isJobCompleted` override.** `Delete_Layer` has no `finalize` step at all, so the
+  inherited `BaseJobHandler.isJobCompleted` (which requires `taskType ===
+TaskTypes.Finalize`) would never fire. Since a `tiles-deletion` task always follows
+  `delete`, the override gates completion on the `tiles-deletion` notification: the job
+  completes only when `completedTasks === taskCount` **and** the completed task is
+  `tiles-deletion` — a completed `delete` alone never completes the job.
 - **No `isProceedable` override / proceed rule.** Ingestion registers a
   `ValidationProceedRule` because a validation task can be "completed but invalid" and
   needs to suspend the job instead of proceeding. Nothing in the `Delete_Layer` flow has
@@ -362,7 +363,7 @@ just that the handler wires up.
 
 | #   | Scenario                                                                              | Asserts                                                                                                                               |
 | --- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `delete` completes, `completedTasks === taskCount` (nothing else pending)             | job transitions to `COMPLETED` at 100% — no task created                                                                              |
+| 1   | `delete` completes, `completedTasks === taskCount` (nothing else pending)             | progress updated only — job is **not** completed; completion is gated on `tiles-deletion`                                             |
 | 2   | `delete` completes, `completedTasks < taskCount` (other deletion tasks still pending) | **no** task created; progress updated only                                                                                            |
 | 3   | `tiles-deletion` completes, all tasks done                                            | job transitions to `COMPLETED` at 100%                                                                                                |
 | 4   | `delete` fails                                                                        | job transitions to `FAILED` with the task's reason (default `handleFailedTask`, no suspend — `delete` isn't in `suspendingTaskTypes`) |

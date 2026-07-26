@@ -52,7 +52,7 @@ describe('tasks', function () {
   });
 
   describe('Happy Path', function () {
-    it('should return 200 and complete job when getting completed delete task and no other task is pending', async () => {
+    it('should return 200 and only update progress when getting completed delete task and no other task is pending', async () => {
       // mocks
       const mockDeleteLayerJob = getDeleteLayerJobMock({ taskCount: 1, completedTasks: 1 });
       const mockDeleteTask = getTaskMock(mockDeleteLayerJob.id, {
@@ -65,9 +65,8 @@ describe('tasks', function () {
         .get(`/jobs/${mockDeleteLayerJob.id}`)
         .query({ shouldReturnTasks: false })
         .reply(httpStatusCodes.OK, mockDeleteLayerJob);
-      nock(jobManagerConfigMock.jobManagerBaseUrl)
-        .put(`/jobs/${mockDeleteLayerJob.id}`, { status: OperationStatus.COMPLETED, percentage: 100 })
-        .reply(httpStatusCodes.OK);
+      const taskPercentage = calculateJobPercentage(mockDeleteLayerJob.completedTasks, mockDeleteLayerJob.taskCount);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockDeleteLayerJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
 
       // action
       const response = await requestSender.handleTaskNotification(mockDeleteTask.id);

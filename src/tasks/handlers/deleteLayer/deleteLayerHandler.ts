@@ -2,7 +2,7 @@ import type { Logger } from '@map-colonies/js-logger';
 import type { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
 import { injectable, inject } from 'tsyringe';
 import type { ConfigType } from '@src/common/config';
-import type { TaskTypes } from '../../../common/interfaces';
+import type { TaskType, TaskTypes } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
 import { JobHandler } from '../jobHandler';
 
@@ -27,7 +27,7 @@ export class DeleteLayerJobHandler extends JobHandler {
     this.initializeTaskOperations();
   }
 
-  public override isJobCompleted = (): boolean => {
-    return this.job.completedTasks === this.job.taskCount;
+  public override isJobCompleted = (taskType: TaskType): boolean => {
+    return this.job.completedTasks === this.job.taskCount && taskType === this.jobDefinitions.tasks.tilesDeletion;
   };
 }
