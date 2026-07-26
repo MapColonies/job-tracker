@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.3.0](https://github.com/MapColonies/job-tracker/compare/v5.2.1...v5.3.0) (2026-07-26)
+
+
+### Features
+
+* handle Delete_Layer tasks flow (MAPCO-10814) ([#72](https://github.com/MapColonies/job-tracker/issues/72)) ([211a89f](https://github.com/MapColonies/job-tracker/commit/211a89f51609b2932932a2c0e20b7c9ad786c85c))
+
 ## [5.2.1](https://github.com/MapColonies/job-tracker/compare/v5.2.0...v5.2.1) (2026-07-15)
 
 
