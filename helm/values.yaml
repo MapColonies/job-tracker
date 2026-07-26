@@ -119,8 +119,6 @@ jobDefinitions:
       type: ''
     delete:
       type: ''
-    artifactsDeletion:
-      type: ''
 
 taskFlowManager:
   ingestionTasksFlow:
@@ -139,7 +137,6 @@ taskFlowManager:
   deleteLayerTasksFlow:
   - delete
   - tiles-deletion
-  - artifacts-deletion
   - finalize
 env:
   port: 80

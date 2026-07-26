@@ -44,7 +44,6 @@ data:
   JOB_DEFINITIONS_TASK_FINALIZE: {{ $jobDefinitions.tasks.finalize.type | quote }}
   JOB_DEFINITIONS_TASK_SEED: {{ $jobDefinitions.tasks.seed.type | quote }}
   JOB_DEFINITIONS_TASK_DELETE: {{ $jobDefinitions.tasks.delete.type | quote }}
-  JOB_DEFINITIONS_TASK_ARTIFACTS_DELETION: {{ $jobDefinitions.tasks.artifactsDeletion.type | quote }}
   JOB_DEFINITIONS_SUSPENDING_TASKS: {{ $suspendingTaskTypes | quote }}
   INGESTION_TASKS_FLOW: {{ .Values.taskFlowManager.ingestionTasksFlow | toJson | quote }}
   EXPORT_TASKS_FLOW: {{ .Values.taskFlowManager.exportTasksFlow | toJson | quote }}

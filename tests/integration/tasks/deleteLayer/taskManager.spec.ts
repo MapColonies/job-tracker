@@ -106,40 +106,37 @@ describe('tasks', function () {
       expect(response).toSatisfyApiSpec();
     });
 
-    it.each([{ taskTypeKey: 'tilesDeletion' as const }, { taskTypeKey: 'artifactsDeletion' as const }])(
-      'should return 200 and create finalize task when getting completed excluded "$taskTypeKey" task and no other task is pending',
-      async ({ taskTypeKey }) => {
-        // mocks
-        const mockDeleteLayerJob = getDeleteLayerJobMock({ taskCount: 3, completedTasks: 3 });
-        const mockExcludedTask = getTaskMock(mockDeleteLayerJob.id, {
-          type: jobDefinitionsConfig.tasks[taskTypeKey],
-          status: OperationStatus.COMPLETED,
-        });
-        const mockFinalizeTaskBody = {
-          parameters: {},
-          type: jobDefinitionsConfig.tasks.finalize,
-          blockDuplication: true,
-        };
+    it('should return 200 and create finalize task when getting completed excluded "tilesDeletion" task and no other task is pending', async () => {
+      // mocks
+      const mockDeleteLayerJob = getDeleteLayerJobMock({ taskCount: 3, completedTasks: 3 });
+      const mockExcludedTask = getTaskMock(mockDeleteLayerJob.id, {
+        type: jobDefinitionsConfig.tasks.tilesDeletion,
+        status: OperationStatus.COMPLETED,
+      });
+      const mockFinalizeTaskBody = {
+        parameters: {},
+        type: jobDefinitionsConfig.tasks.finalize,
+        blockDuplication: true,
+      };
 
-        nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockExcludedTask.id }).reply(httpStatusCodes.OK, [mockExcludedTask]);
-        nock(jobManagerConfigMock.jobManagerBaseUrl)
-          .get(`/jobs/${mockDeleteLayerJob.id}`)
-          .query({ shouldReturnTasks: false })
-          .reply(httpStatusCodes.OK, mockDeleteLayerJob);
-        nock(jobManagerConfigMock.jobManagerBaseUrl)
-          .post(`/jobs/${mockDeleteLayerJob.id}/tasks`, mockFinalizeTaskBody)
-          .reply(httpStatusCodes.CREATED);
-        const taskPercentage = calculateJobPercentage(mockDeleteLayerJob.completedTasks, mockDeleteLayerJob.taskCount + 1);
-        nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockDeleteLayerJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockExcludedTask.id }).reply(httpStatusCodes.OK, [mockExcludedTask]);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .get(`/jobs/${mockDeleteLayerJob.id}`)
+        .query({ shouldReturnTasks: false })
+        .reply(httpStatusCodes.OK, mockDeleteLayerJob);
+      nock(jobManagerConfigMock.jobManagerBaseUrl)
+        .post(`/jobs/${mockDeleteLayerJob.id}/tasks`, mockFinalizeTaskBody)
+        .reply(httpStatusCodes.CREATED);
+      const taskPercentage = calculateJobPercentage(mockDeleteLayerJob.completedTasks, mockDeleteLayerJob.taskCount + 1);
+      nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockDeleteLayerJob.id}`, { percentage: taskPercentage }).reply(httpStatusCodes.OK);
 
-        // action
-        const response = await requestSender.handleTaskNotification(mockExcludedTask.id);
+      // action
+      const response = await requestSender.handleTaskNotification(mockExcludedTask.id);
 
-        // expectation
-        expect(response.status).toBe(httpStatusCodes.OK);
-        expect(response).toSatisfyApiSpec();
-      }
-    );
+      // expectation
+      expect(response.status).toBe(httpStatusCodes.OK);
+      expect(response).toSatisfyApiSpec();
+    });
 
     it('should return 200 and complete job when getting completed finalize task', async () => {
       // mocks

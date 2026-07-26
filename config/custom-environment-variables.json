@@ -81,8 +81,7 @@
       "export": "JOB_DEFINITIONS_TASK_EXPORT",
       "finalize": "JOB_DEFINITIONS_TASK_FINALIZE",
       "seed": "JOB_DEFINITIONS_TASK_SEED",
-      "delete": "JOB_DEFINITIONS_TASK_DELETE",
-      "artifactsDeletion": "JOB_DEFINITIONS_TASK_ARTIFACTS_DELETION"
+      "delete": "JOB_DEFINITIONS_TASK_DELETE"
     },
     "suspendingTaskTypes": {
       "__name": "JOB_DEFINITIONS_SUSPENDING_TASKS",

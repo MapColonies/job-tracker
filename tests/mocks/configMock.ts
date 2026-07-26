@@ -96,7 +96,6 @@ const registerDefaultConfig = (): void => {
         seed: 'TilesSeeding',
         tilesDeletion: 'tiles-deletion',
         delete: 'delete',
-        artifactsDeletion: 'artifacts-deletion',
       },
       suspendingTaskTypes: ['validation'],
     },
@@ -104,7 +103,7 @@ const registerDefaultConfig = (): void => {
       ingestionTasksFlow: ['validation', 'create-tasks', 'tilesMerging', 'finalize'],
       exportTasksFlow: ['init', 'tilesExporting', 'polygon-parts', 'finalize'],
       seedTasksFlow: ['TilesSeeding'],
-      deleteLayerTasksFlow: ['delete', 'tiles-deletion', 'artifacts-deletion', 'finalize'],
+      deleteLayerTasksFlow: ['delete', 'tiles-deletion', 'finalize'],
     },
   };
 

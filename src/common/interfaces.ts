@@ -35,7 +35,6 @@ export interface IJobDefinitionsConfig {
     seed: string;
     tilesDeletion: string;
     delete: string;
-    artifactsDeletion: string;
   };
   suspendingTaskTypes: string[];
 }

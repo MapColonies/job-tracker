@@ -21,7 +21,7 @@ export class DeleteLayerJobHandler extends JobHandler {
   ) {
     super(logger, config, jobManagerClient, job, task);
     this.tasksFlow = this.config.get('taskFlowManager.deleteLayerTasksFlow') as unknown as TaskTypes;
-    this.excludedTypes = [this.jobDefinitions.tasks.tilesDeletion, this.jobDefinitions.tasks.artifactsDeletion];
+    this.excludedTypes = [this.jobDefinitions.tasks.tilesDeletion];
     this.blockedDuplicationTypes = [this.jobDefinitions.tasks.finalize];
 
     this.initializeTaskOperations();
