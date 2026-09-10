@@ -6,6 +6,7 @@
 {{- $cloudProviderDockerRegistryUrl := include "job-tracker.cloudProviderDockerRegistryUrl" . -}}
 {{- $cloudProviderImagePullSecretName := include "job-tracker.cloudProviderImagePullSecretName" . -}}
 {{- $imageTag := include "job-tracker.tag" . -}}
+{{- $server := .Values.server -}}
 {{- if .Values.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -71,7 +72,7 @@ spec:
             {{- end }}
           env:
             - name: SERVER_PORT
-              value: {{ .Values.env.targetPort | quote }}
+              value: {{ $server.targetPort | quote }}
             - name: K8S_POD_UID
               valueFrom:
                 fieldRef:
@@ -90,8 +91,8 @@ spec:
                 name: {{ $configmapName }}
           ports:
             - name: http
-              containerPort: {{ .Values.env.targetPort }}
-              protocol: {{ .Values.env.protocol }}
+              containerPort: {{ $server.targetPort }}
+              protocol: {{ $server.protocol }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
@@ -99,7 +100,7 @@ spec:
             failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
             httpGet:
               path: {{ .Values.livenessProbe.path }}
-              port: {{ .Values.env.targetPort }}
+              port: {{ $server.targetPort }}
           {{- end }}
           {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
@@ -108,7 +109,7 @@ spec:
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
             httpGet:
               path: {{ .Values.readinessProbe.path }}
-              port: {{ .Values.env.targetPort }}
+              port: {{ $server.targetPort }}
           {{- end }}        
           {{- if .Values.resources.enabled }}
           resources:

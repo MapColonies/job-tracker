@@ -1,10 +1,12 @@
 global:
   cloudProvider: {}
-  tracing: {}
+  telemetry:
+    tracing: {}
+    logger:
+      opentelemetryOptions: {}
   environment: ''
   jobDefinitions: {}
   serviceUrls: {}
-  openTelemetryOptions: {}
   ca:
     secretName: ''
     path: '/usr/local/share/ca-certificates'
@@ -63,10 +65,6 @@ cloudProvider:
   dockerRegistryUrl:
   imagePullSecretName: ''
   flavor: openshift
-
-tracing:
-  enabled: false
-  url: ''
 
 configManagement:
   offlineMode: true
@@ -137,21 +135,32 @@ taskFlowManager:
   deleteLayerTasksFlow:
   - delete
   - tiles-deletion
-env:
+server:
   port: 80
   targetPort: 8080
   protocol: TCP
-  logLevel: info
-  logPrettyPrintEnabled: false
-  openTelemetryOptions:
-    enabled: false
-    url: ''
-    resourceAttributes: {}
   responseCompressionEnabled: true
   requestPayloadLimit: 1mb
-  queue:
-    dequeueIntervalMs: 3000
-    heartbeatIntervalMs: 3000
+
+telemetry:
+  logger:
+    level: info
+    prettyPrint: false
+    # OpenTelemetry logging. Rendered into the configmap as OPENTELEMETRY_LOGGING_ENABLED,
+    # OTLP_LOGGER_ENDPOINT_URL and, when resourceAttributes is set, OTEL_RESOURCE_ATTRIBUTES
+    # as a key=value,key=value list. All three are mapped in
+    # config/custom-environment-variables.json.
+    # url can be overridden from global.telemetry.logger.opentelemetryOptions.url.
+    opentelemetryOptions:
+      enabled: true
+      url: http://localhost:4317
+      # Rendered as OTEL_RESOURCE_ATTRIBUTES in "key=value,key=value" format
+      # resourceAttributes:
+      #   service.namespace: namespace
+      #   deployment.environment: dev
+  tracing:
+    enabled: true
+    url: http://localhost:55681/v1/traces
 
 resources:
   enabled: false
