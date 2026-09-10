@@ -135,6 +135,7 @@ taskFlowManager:
   deleteLayerTasksFlow:
   - delete
   - tiles-deletion
+
 server:
   port: 80
   targetPort: 8080
