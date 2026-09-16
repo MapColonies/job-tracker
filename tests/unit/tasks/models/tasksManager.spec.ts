@@ -3,7 +3,7 @@ import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import type { ExportFinalizeErrorCallbackParams } from '@map-colonies/raster-shared';
 import { ExportFinalizeType } from '@map-colonies/raster-shared';
 import { registerDefaultConfig, clear as clearConfig } from '../../../mocks/configMock';
-import { createTestJob, getExportJobMock, getSeedingJobMock, getTaskMock } from '../../../mocks/jobMocks';
+import { createTestJob, getExportJobMock, getDeleteCacheJobMock, getTaskMock } from '../../../mocks/jobMocks';
 import { IrrelevantOperationStatusError } from '../../../../src/common/errors';
 import type { TasksModelTestContext } from './tasksManagerSetup';
 import { setupTasksManagerTest } from './tasksManagerSetup';
@@ -129,23 +129,23 @@ describe('TasksManager', () => {
         expect(mockUpdateJob).toHaveBeenCalledWith(exportJobMock.id, { status: OperationStatus.FAILED, reason: exportTaskMock.reason });
       });
 
-      it('should fail a job on a failed seeding task', async () => {
+      it('should fail a job on a failed tiles-deletion task', async () => {
         // mocks
         const { tasksManager, mockFindTasks, mockUpdateJob, jobDefinitionsConfigMock, mockGetJob } = testContext;
-        const seedingJob = getSeedingJobMock();
-        const seedTaskMock = getTaskMock(seedingJob.id, {
-          type: jobDefinitionsConfigMock.tasks.seed,
+        const deleteCacheJob = getDeleteCacheJobMock();
+        const tilesDeletionTaskMock = getTaskMock(deleteCacheJob.id, {
+          type: jobDefinitionsConfigMock.tasks.tilesDeletion,
           status: OperationStatus.FAILED,
           reason: 'some error reason',
         });
 
-        mockFindTasks.mockResolvedValueOnce([seedTaskMock]);
-        mockGetJob.mockResolvedValue(seedingJob);
+        mockFindTasks.mockResolvedValueOnce([tilesDeletionTaskMock]);
+        mockGetJob.mockResolvedValue(deleteCacheJob);
         // action
-        await tasksManager.handleTaskNotification(seedTaskMock.id);
+        await tasksManager.handleTaskNotification(tilesDeletionTaskMock.id);
         // expectation
         expect(mockUpdateJob).toHaveBeenCalledTimes(1);
-        expect(mockUpdateJob).toHaveBeenCalledWith(seedingJob.id, { status: OperationStatus.FAILED, reason: 'some error reason' });
+        expect(mockUpdateJob).toHaveBeenCalledWith(deleteCacheJob.id, { status: OperationStatus.FAILED, reason: 'some error reason' });
       });
     });
 
