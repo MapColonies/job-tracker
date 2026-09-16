@@ -32,8 +32,8 @@ data:
   JOB_DEFINITIONS_JOB_UPDATE: {{ $jobDefinitions.jobs.update.type | quote }}
   JOB_DEFINITIONS_JOB_SWAP_UPDATE: {{ $jobDefinitions.jobs.swapUpdate.type | quote }}
   JOB_DEFINITIONS_JOB_EXPORT: {{ $jobDefinitions.jobs.export.type | quote }}
-  JOB_DEFINITIONS_JOB_UPDATE_DELETE_CACHE: {{ $jobDefinitions.jobs.updateDeleteCache.type | quote }}
-  JOB_DEFINITIONS_JOB_SWAP_DELETE_CACHE: {{ $jobDefinitions.jobs.swapDeleteCache.type | quote }}
+  JOB_DEFINITIONS_JOB_UPDATE_DELETE_CACHE: {{ $jobDefinitions.jobs.updateCacheDeletion.type | quote }}
+  JOB_DEFINITIONS_JOB_SWAP_DELETE_CACHE: {{ $jobDefinitions.jobs.swapCacheDeletion.type | quote }}
   JOB_DEFINITIONS_JOB_DELETE_LAYER: {{ $jobDefinitions.jobs.deleteLayer.type | quote }}
   JOB_DEFINITIONS_TASK_INIT: {{ $jobDefinitions.tasks.init.type | quote }}
   JOB_DEFINITIONS_TASK_VALIDATION: {{ $jobDefinitions.tasks.validation.type | quote }}

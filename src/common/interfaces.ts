@@ -21,8 +21,8 @@ export interface IJobDefinitionsConfig {
     update: string;
     swapUpdate: string;
     export: string;
-    updateDeleteCache: string;
-    swapDeleteCache: string;
+    updateCacheDeletion: string;
+    swapCacheDeletion: string;
     deleteLayer: string;
   };
   tasks: {

@@ -82,8 +82,8 @@ const registerDefaultConfig = (): void => {
         update: 'Ingestion_Update',
         swapUpdate: 'Ingestion_Swap_Update',
         export: 'Export',
-        updateDeleteCache: 'Update_Delete_Cache',
-        swapDeleteCache: 'Swap_Delete_Cache',
+        updateCacheDeletion: 'Update_Delete_Cache',
+        swapCacheDeletion: 'Swap_Delete_Cache',
         deleteLayer: 'Delete_Layer',
       },
       tasks: {

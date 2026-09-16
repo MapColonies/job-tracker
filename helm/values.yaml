@@ -93,9 +93,9 @@ jobDefinitions:
       type: ''
     export:
       type: ''
-    updateDeleteCache:
+    updateCacheDeletion:
       type: ''
-    swapDeleteCache:
+    swapCacheDeletion:
       type: ''
     deleteLayer:
       type: ''

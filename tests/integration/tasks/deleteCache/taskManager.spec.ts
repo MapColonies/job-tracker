@@ -51,7 +51,7 @@ describe('tasks', function () {
     }
   });
 
-  const deleteCacheJobTypes = [{ jobTypeKey: 'updateDeleteCache' as const }, { jobTypeKey: 'swapDeleteCache' as const }];
+  const deleteCacheJobTypes = [{ jobTypeKey: 'updateCacheDeletion' as const }, { jobTypeKey: 'swapCacheDeletion' as const }];
 
   describe('Happy Path', function () {
     it.each(deleteCacheJobTypes)(

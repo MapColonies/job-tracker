@@ -29,8 +29,8 @@ export function getJobHandler(
     case jobDefinitions.jobs.export: {
       return new ExportJobHandler(logger, config, jobManagerClient, job, task);
     }
-    case jobDefinitions.jobs.updateDeleteCache:
-    case jobDefinitions.jobs.swapDeleteCache: {
+    case jobDefinitions.jobs.updateCacheDeletion:
+    case jobDefinitions.jobs.swapCacheDeletion: {
       return new DeleteCacheJobHandler(logger, config, jobManagerClient, job, task);
     }
     case jobDefinitions.jobs.deleteLayer: {

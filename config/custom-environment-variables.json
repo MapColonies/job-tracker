@@ -68,8 +68,8 @@
       "update": "JOB_DEFINITIONS_JOB_UPDATE",
       "swapUpdate": "JOB_DEFINITIONS_JOB_SWAP_UPDATE",
       "export": "JOB_DEFINITIONS_JOB_EXPORT",
-      "updateDeleteCache": "JOB_DEFINITIONS_JOB_UPDATE_DELETE_CACHE",
-      "swapDeleteCache": "JOB_DEFINITIONS_JOB_SWAP_DELETE_CACHE",
+      "updateCacheDeletion": "JOB_DEFINITIONS_JOB_UPDATE_DELETE_CACHE",
+      "swapCacheDeletion": "JOB_DEFINITIONS_JOB_SWAP_DELETE_CACHE",
       "deleteLayer": "JOB_DEFINITIONS_JOB_DELETE_LAYER"
     },
     "tasks": {

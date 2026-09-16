@@ -22,8 +22,8 @@ describe('JobHandler', () => {
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.update), taskType: jobDefinitionsConfig.tasks.merge },
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.swapUpdate), taskType: jobDefinitionsConfig.tasks.merge },
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.export), taskType: jobDefinitionsConfig.tasks.export },
-    { mockJob: createTestJob(jobDefinitionsConfig.jobs.updateDeleteCache), taskType: jobDefinitionsConfig.tasks.tilesDeletion },
-    { mockJob: createTestJob(jobDefinitionsConfig.jobs.swapDeleteCache), taskType: jobDefinitionsConfig.tasks.tilesDeletion },
+    { mockJob: createTestJob(jobDefinitionsConfig.jobs.updateCacheDeletion), taskType: jobDefinitionsConfig.tasks.tilesDeletion },
+    { mockJob: createTestJob(jobDefinitionsConfig.jobs.swapCacheDeletion), taskType: jobDefinitionsConfig.tasks.tilesDeletion },
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.deleteLayer), taskType: jobDefinitionsConfig.tasks.delete },
   ];
 
@@ -62,8 +62,8 @@ describe('JobHandler', () => {
   describe('handleCompletedNotification', () => {
     const finalizeCases = testCases.filter(
       ({ mockJob }) =>
-        mockJob.type !== jobDefinitionsConfig.jobs.updateDeleteCache &&
-        mockJob.type !== jobDefinitionsConfig.jobs.swapDeleteCache &&
+        mockJob.type !== jobDefinitionsConfig.jobs.updateCacheDeletion &&
+        mockJob.type !== jobDefinitionsConfig.jobs.swapCacheDeletion &&
         mockJob.type !== jobDefinitionsConfig.jobs.deleteLayer
     ); // removing deleteCache and deleteLayer job test cases as finalize task type is not handled there
 
