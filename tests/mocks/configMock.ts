@@ -82,7 +82,8 @@ const registerDefaultConfig = (): void => {
         update: 'Ingestion_Update',
         swapUpdate: 'Ingestion_Swap_Update',
         export: 'Export',
-        seed: 'TilesSeeding',
+        updateDeleteCache: 'Update_Delete_Cache',
+        swapDeleteCache: 'Swap_Delete_Cache',
         deleteLayer: 'Delete_Layer',
       },
       tasks: {
@@ -93,7 +94,6 @@ const registerDefaultConfig = (): void => {
         polygonParts: 'polygon-parts',
         finalize: 'finalize',
         export: 'tilesExporting',
-        seed: 'TilesSeeding',
         tilesDeletion: 'tiles-deletion',
         delete: 'delete',
       },
@@ -102,7 +102,7 @@ const registerDefaultConfig = (): void => {
     taskFlowManager: {
       ingestionTasksFlow: ['validation', 'create-tasks', 'tilesMerging', 'finalize'],
       exportTasksFlow: ['init', 'tilesExporting', 'polygon-parts', 'finalize'],
-      seedTasksFlow: ['TilesSeeding'],
+      deleteCacheTasksFlow: ['tiles-deletion'],
       deleteLayerTasksFlow: ['delete', 'tiles-deletion'],
     },
   };

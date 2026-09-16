@@ -93,7 +93,9 @@ jobDefinitions:
       type: ''
     export:
       type: ''
-    seed:
+    updateDeleteCache:
+      type: ''
+    swapDeleteCache:
       type: ''
     deleteLayer:
       type: ''
@@ -115,8 +117,6 @@ jobDefinitions:
       type: ''
     export:
       type: ''
-    seed:
-      type: ''
     delete:
       type: ''
 
@@ -132,8 +132,8 @@ taskFlowManager:
   - tilesExporting
   - polygon-parts
   - finalize
-  seedTasksFlow:
-  - TilesSeeding
+  deleteCacheTasksFlow:
+  - tiles-deletion
   deleteLayerTasksFlow:
   - delete
   - tiles-deletion

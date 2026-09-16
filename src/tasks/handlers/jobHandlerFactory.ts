@@ -6,7 +6,7 @@ import type { IJobDefinitionsConfig } from '../../common/interfaces';
 import type { JobHandler } from './jobHandler';
 import { IngestionJobHandler } from './ingestion/ingestionHandler';
 import { ExportJobHandler } from './export/exportHandler';
-import { SeedJobHandler } from './seed/seedHandler';
+import { DeleteCacheJobHandler } from './deleteCache/deleteCacheHandler';
 import { DeleteLayerJobHandler } from './deleteLayer/deleteLayerHandler';
 
 export function getJobHandler(
@@ -29,8 +29,9 @@ export function getJobHandler(
     case jobDefinitions.jobs.export: {
       return new ExportJobHandler(logger, config, jobManagerClient, job, task);
     }
-    case jobDefinitions.jobs.seed: {
-      return new SeedJobHandler(logger, config, jobManagerClient, job, task);
+    case jobDefinitions.jobs.updateDeleteCache:
+    case jobDefinitions.jobs.swapDeleteCache: {
+      return new DeleteCacheJobHandler(logger, config, jobManagerClient, job, task);
     }
     case jobDefinitions.jobs.deleteLayer: {
       return new DeleteLayerJobHandler(logger, config, jobManagerClient, job, task);

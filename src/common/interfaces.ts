@@ -21,7 +21,8 @@ export interface IJobDefinitionsConfig {
     update: string;
     swapUpdate: string;
     export: string;
-    seed: string;
+    updateDeleteCache: string;
+    swapDeleteCache: string;
     deleteLayer: string;
   };
   tasks: {
@@ -32,7 +33,6 @@ export interface IJobDefinitionsConfig {
     validation: string;
     init: string;
     export: string;
-    seed: string;
     tilesDeletion: string;
     delete: string;
   };

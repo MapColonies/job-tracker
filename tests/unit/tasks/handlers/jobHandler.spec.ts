@@ -22,7 +22,8 @@ describe('JobHandler', () => {
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.update), taskType: jobDefinitionsConfig.tasks.merge },
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.swapUpdate), taskType: jobDefinitionsConfig.tasks.merge },
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.export), taskType: jobDefinitionsConfig.tasks.export },
-    { mockJob: createTestJob(jobDefinitionsConfig.jobs.seed), taskType: jobDefinitionsConfig.tasks.seed },
+    { mockJob: createTestJob(jobDefinitionsConfig.jobs.updateDeleteCache), taskType: jobDefinitionsConfig.tasks.tilesDeletion },
+    { mockJob: createTestJob(jobDefinitionsConfig.jobs.swapDeleteCache), taskType: jobDefinitionsConfig.tasks.tilesDeletion },
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.deleteLayer), taskType: jobDefinitionsConfig.tasks.delete },
   ];
 
@@ -60,8 +61,11 @@ describe('JobHandler', () => {
 
   describe('handleCompletedNotification', () => {
     const finalizeCases = testCases.filter(
-      ({ mockJob }) => mockJob.type !== jobDefinitionsConfig.jobs.seed && mockJob.type !== jobDefinitionsConfig.jobs.deleteLayer
-    ); // removing seed and deleteLayer job test cases as finalize task type is not handled there
+      ({ mockJob }) =>
+        mockJob.type !== jobDefinitionsConfig.jobs.updateDeleteCache &&
+        mockJob.type !== jobDefinitionsConfig.jobs.swapDeleteCache &&
+        mockJob.type !== jobDefinitionsConfig.jobs.deleteLayer
+    ); // removing deleteCache and deleteLayer job test cases as finalize task type is not handled there
 
     it.each(finalizeCases)(
       `should complete job when all of the task are completed and task type is "finalize" - ${testCaseHandlerLog}`,

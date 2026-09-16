@@ -53,7 +53,8 @@
       "update": "Ingestion_Update",
       "swapUpdate": "Ingestion_Swap_Update",
       "export": "Export",
-      "seed": "TilesSeeding",
+      "updateDeleteCache": "Update_Delete_Cache",
+      "swapDeleteCache": "Swap_Delete_Cache",
       "deleteLayer": "Delete_Layer"
     },
     "tasks": {
@@ -64,7 +65,6 @@
       "createTasks": "create-tasks",
       "export": "tilesExporting",
       "finalize": "finalize",
-      "seed": "TilesSeeding",
       "tilesDeletion": "tiles-deletion",
       "delete": "delete"
     },
@@ -73,7 +73,7 @@
   "taskFlowManager": {
     "ingestionTasksFlow": ["validation", "create-merge-tasks", "tilesMerging", "finalize"],
     "exportTasksFlow": ["init", "tilesExporting", "polygon-parts", "finalize"],
-    "seedTasksFlow": ["TilesSeeding"],
+    "deleteCacheTasksFlow": ["tiles-deletion"],
     "deleteLayerTasksFlow": ["delete", "tiles-deletion"]
   }
 }

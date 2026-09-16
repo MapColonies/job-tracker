@@ -68,7 +68,8 @@
       "update": "JOB_DEFINITIONS_JOB_UPDATE",
       "swapUpdate": "JOB_DEFINITIONS_JOB_SWAP_UPDATE",
       "export": "JOB_DEFINITIONS_JOB_EXPORT",
-      "seed": "JOB_DEFINITIONS_JOB_SEED",
+      "updateDeleteCache": "JOB_DEFINITIONS_JOB_UPDATE_DELETE_CACHE",
+      "swapDeleteCache": "JOB_DEFINITIONS_JOB_SWAP_DELETE_CACHE",
       "deleteLayer": "JOB_DEFINITIONS_JOB_DELETE_LAYER"
     },
     "tasks": {
@@ -80,7 +81,6 @@
       "polygonParts": "JOB_DEFINITIONS_TASK_POLYGON_PARTS",
       "export": "JOB_DEFINITIONS_TASK_EXPORT",
       "finalize": "JOB_DEFINITIONS_TASK_FINALIZE",
-      "seed": "JOB_DEFINITIONS_TASK_SEED",
       "delete": "JOB_DEFINITIONS_TASK_DELETE"
     },
     "suspendingTaskTypes": {
@@ -97,8 +97,8 @@
       "__name": "EXPORT_TASKS_FLOW",
       "__format": "json"
     },
-    "seedTasksFlow": {
-      "__name": "SEED_TASKS_FLOW",
+    "deleteCacheTasksFlow": {
+      "__name": "DELETE_CACHE_TASKS_FLOW",
       "__format": "json"
     },
     "deleteLayerTasksFlow": {
