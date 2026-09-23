@@ -1,6 +1,8 @@
 import type { Logger } from '@map-colonies/js-logger';
 import type { IJobResponse, ITaskResponse, JobManagerClient } from '@map-colonies/mc-priority-queue';
 import { injectable, inject } from 'tsyringe';
+import { BadRequestError } from '@map-colonies/error-types';
+import { cacheDeletionJobParamsSchema } from '@map-colonies/raster-shared';
 import type { ConfigType } from '@src/common/config';
 import type { TaskTypes } from '../../../common/interfaces';
 import { SERVICES } from '../../../common/constants';
@@ -27,7 +29,19 @@ export class DeleteCacheJobHandler extends JobHandler {
     this.initializeTaskOperations();
   }
 
+  /**
+   * Overseer streams the tasks onto the job in batches, so all known tasks being completed is not enough -
+   * the job is completed only once overseer flags that it finished creating tasks.
+   */
   public override isJobCompleted = (): boolean => {
-    return this.job.completedTasks === this.job.taskCount;
+    const result = cacheDeletionJobParamsSchema.safeParse(this.job.parameters);
+
+    if (!result.success) {
+      const errorMessage = `Failed to parse cache deletion job parameters: ${result.error.message}`;
+      this.logger.error({ msg: errorMessage, jobId: this.job.id });
+      throw new BadRequestError(errorMessage);
+    }
+
+    return this.job.completedTasks === this.job.taskCount && result.data.tasksCreationCompleted;
   };
 }

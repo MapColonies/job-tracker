@@ -1,6 +1,7 @@
 import type { IJobResponse, ITaskResponse } from '@map-colonies/mc-priority-queue';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import { faker } from '@faker-js/faker';
+import type { CacheDeletionJobParams } from '@map-colonies/raster-shared';
 import type { JobType } from '../../src/common/interfaces';
 
 export const createTestJob = (jobType: JobType, overrides?: Partial<IJobResponse<unknown, unknown>>): IJobResponse<unknown, unknown> => {
@@ -76,6 +77,10 @@ export const getExportJobMock = (override?: Partial<IJobResponse<unknown, unknow
   return { ...defaultJobMock, ...override };
 };
 
+export const getCacheDeletionJobParamsMock = (override?: Partial<CacheDeletionJobParams>): CacheDeletionJobParams => {
+  return { ingestionJobId: faker.string.uuid(), tasksCreationCompleted: true, ...override };
+};
+
 export const getDeleteCacheJobMock = (
   jobType: string = 'Update_Delete_Cache',
   override?: Partial<IJobResponse<unknown, unknown>>
@@ -92,7 +97,7 @@ export const getDeleteCacheJobMock = (
     domain: 'RASTER',
     isCleaned: false,
     priority: 0,
-    parameters: {},
+    parameters: getCacheDeletionJobParamsMock(),
     expirationDate: undefined,
     internalId: faker.string.uuid(),
     producerName: undefined,

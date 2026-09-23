@@ -7,7 +7,7 @@ import { initConfig } from '../../../../src/common/config';
 import { configMock } from '../../../mocks/configMock';
 import { getApp } from '../../../../src/app';
 import type { IJobManagerConfig, IJobDefinitionsConfig } from '../../../../src/common/interfaces';
-import { getDeleteCacheJobMock, getTaskMock } from '../../../mocks/jobMocks';
+import { getCacheDeletionJobParamsMock, getDeleteCacheJobMock, getTaskMock } from '../../../mocks/jobMocks';
 import { calculateJobPercentage } from '../../../../src/utils/jobUtils';
 import { SERVICES } from '../../../../src/common/constants';
 import { registerExternalValues } from '../../../../src/containerConfig';
@@ -92,6 +92,30 @@ describe('tasks', function () {
     });
 
     it.each(deleteCacheJobTypes)(
+      'should return 200 and only update progress when all tasks are completed but tasks creation is not completed - $jobTypeKey',
+      async ({ jobTypeKey }) => {
+        // mocks
+        const mockJob = getDeleteCacheJobMock(jobDefinitionsConfig.jobs[jobTypeKey], {
+          completedTasks: 5,
+          taskCount: 5,
+          parameters: getCacheDeletionJobParamsMock({ tasksCreationCompleted: false }),
+        });
+        const mockTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.tilesDeletion, status: OperationStatus.COMPLETED });
+        nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockTask.id }).reply(httpStatusCodes.OK, [mockTask]);
+        nock(jobManagerConfigMock.jobManagerBaseUrl)
+          .get(`/jobs/${mockJob.id}`)
+          .query({ shouldReturnTasks: false })
+          .reply(httpStatusCodes.OK, mockJob);
+        nock(jobManagerConfigMock.jobManagerBaseUrl).put(`/jobs/${mockJob.id}`, { percentage: 100 }).reply(httpStatusCodes.OK);
+        // action
+        const response = await requestSender.handleTaskNotification(mockTask.id);
+        // expectation
+        expect(response.status).toBe(httpStatusCodes.OK);
+        expect(response).toSatisfyApiSpec();
+      }
+    );
+
+    it.each(deleteCacheJobTypes)(
       'should return 200 and fail the job when getting failed tiles-deletion task - $jobTypeKey',
       async ({ jobTypeKey }) => {
         // mocks
@@ -108,6 +132,27 @@ describe('tasks', function () {
         const response = await requestSender.handleTaskNotification(mockTask.id);
         // expectation
         expect(response.status).toBe(httpStatusCodes.OK);
+        expect(response).toSatisfyApiSpec();
+      }
+    );
+  });
+
+  describe('Bad Path', function () {
+    it.each(deleteCacheJobTypes)(
+      'should return 400 and not complete the job when job parameters are invalid - $jobTypeKey',
+      async ({ jobTypeKey }) => {
+        // mocks
+        const mockJob = getDeleteCacheJobMock(jobDefinitionsConfig.jobs[jobTypeKey], { completedTasks: 5, taskCount: 5, parameters: {} });
+        const mockTask = getTaskMock(mockJob.id, { type: jobDefinitionsConfig.tasks.tilesDeletion, status: OperationStatus.COMPLETED });
+        nock(jobManagerConfigMock.jobManagerBaseUrl).post('/tasks/find', { id: mockTask.id }).reply(httpStatusCodes.OK, [mockTask]);
+        nock(jobManagerConfigMock.jobManagerBaseUrl)
+          .get(`/jobs/${mockJob.id}`)
+          .query({ shouldReturnTasks: false })
+          .reply(httpStatusCodes.OK, mockJob);
+        // action
+        const response = await requestSender.handleTaskNotification(mockTask.id);
+        // expectation
+        expect(response.status).toBe(httpStatusCodes.BAD_REQUEST);
         expect(response).toSatisfyApiSpec();
       }
     );
