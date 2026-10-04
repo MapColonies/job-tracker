@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.0.0](https://github.com/MapColonies/job-tracker/compare/v5.3.1...v6.0.0) (2026-10-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* JOB_DEFINITIONS_JOB_SEED, JOB_DEFINITIONS_TASK_SEED and SEED_TASKS_FLOW are no longer read; use JOB_DEFINITIONS_JOB_UPDATE_DELETE_CACHE, JOB_DEFINITIONS_JOB_SWAP_DELETE_CACHE and DELETE_CACHE_TASKS_FLOW.
+
+### Features
+
+* support Update_Delete_Cache and Swap_Delete_Cache jobs instead of TilesSeeding (MAPCO-11709) ([#77](https://github.com/MapColonies/job-tracker/issues/77)) ([3da941c](https://github.com/MapColonies/job-tracker/commit/3da941c69bc8679c267e434df33634bb4648c72c))
+
+
+### Bug Fixes
+
+* complete cache deletion jobs only after overseer finished creating tasks (MAPCO-11779) ([#78](https://github.com/MapColonies/job-tracker/issues/78)) ([9e8b77e](https://github.com/MapColonies/job-tracker/commit/9e8b77e975281c4f8d093b15d3af47cb51fb2896))
+
 ## [5.3.1](https://github.com/MapColonies/job-tracker/compare/v5.3.0...v5.3.1) (2026-08-04)
 
 
