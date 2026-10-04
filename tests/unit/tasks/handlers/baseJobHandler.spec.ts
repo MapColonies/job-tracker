@@ -25,8 +25,6 @@ describe('BaseJobHandler', () => {
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.update) },
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.swapUpdate) },
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.export) },
-    { mockJob: createTestJob(jobDefinitionsConfig.jobs.updateCacheDeletion) },
-    { mockJob: createTestJob(jobDefinitionsConfig.jobs.swapCacheDeletion) },
   ];
 
   const testCaseHandlerLog = '$mockJob.type handler';
@@ -138,10 +136,6 @@ describe('BaseJobHandler', () => {
   });
 
   describe('isJobCompleted', () => {
-    const nonDeleteCacheTestCases = testCases.filter(
-      ({ mockJob }) => mockJob.type !== jobDefinitionsConfig.jobs.updateCacheDeletion && mockJob.type !== jobDefinitionsConfig.jobs.swapCacheDeletion
-    ); // removing deleteCache job test cases as finalize task type is not handled there
-
     it.each(testCases)(`should return true when all tasks are completed - ${testCaseHandlerLog}`, (testCase) => {
       let { mockJob } = testCase;
       mockJob = { ...mockJob, completedTasks: 10, taskCount: 10 };
@@ -174,7 +168,7 @@ describe('BaseJobHandler', () => {
       expect(result).toBe(false);
     });
 
-    it.each(nonDeleteCacheTestCases)(`should return false in case task type is not finalize - ${testCaseHandlerLog}`, (testCase) => {
+    it.each(testCases)(`should return false in case task type is not finalize - ${testCaseHandlerLog}`, (testCase) => {
       let { mockJob } = testCase;
       mockJob = { ...mockJob, completedTasks: 10, taskCount: 10 };
       mockTask = getTaskMock<unknown>(mockJob.id, {

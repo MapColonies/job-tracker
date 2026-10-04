@@ -2,7 +2,7 @@ import { jsLogger } from '@map-colonies/js-logger';
 import type { Logger } from '@map-colonies/js-logger';
 import { OperationStatus } from '@map-colonies/mc-priority-queue';
 import type { IJobDefinitionsConfig } from '../../../../src/common/interfaces';
-import { createTestJob, getTaskMock } from '../../../mocks/jobMocks';
+import { createTestJob, getCacheDeletionJobParamsMock, getTaskMock } from '../../../mocks/jobMocks';
 import { registerDefaultConfig, clear as clearConfig, configMock } from '../../../mocks/configMock';
 import { mockJobManager, queueClientMock } from '../../../mocks/mockJobManager';
 import { getJobHandler } from '../../../../src/tasks/handlers/jobHandlerFactory';
@@ -22,8 +22,14 @@ describe('JobHandler', () => {
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.update), taskType: jobDefinitionsConfig.tasks.merge },
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.swapUpdate), taskType: jobDefinitionsConfig.tasks.merge },
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.export), taskType: jobDefinitionsConfig.tasks.export },
-    { mockJob: createTestJob(jobDefinitionsConfig.jobs.updateCacheDeletion), taskType: jobDefinitionsConfig.tasks.tilesDeletion },
-    { mockJob: createTestJob(jobDefinitionsConfig.jobs.swapCacheDeletion), taskType: jobDefinitionsConfig.tasks.tilesDeletion },
+    {
+      mockJob: createTestJob(jobDefinitionsConfig.jobs.updateCacheDeletion, { parameters: getCacheDeletionJobParamsMock() }),
+      taskType: jobDefinitionsConfig.tasks.tilesDeletion,
+    },
+    {
+      mockJob: createTestJob(jobDefinitionsConfig.jobs.swapCacheDeletion, { parameters: getCacheDeletionJobParamsMock() }),
+      taskType: jobDefinitionsConfig.tasks.tilesDeletion,
+    },
     { mockJob: createTestJob(jobDefinitionsConfig.jobs.deleteLayer), taskType: jobDefinitionsConfig.tasks.delete },
   ];
 
