@@ -76,12 +76,15 @@ export const getExportJobMock = (override?: Partial<IJobResponse<unknown, unknow
   return { ...defaultJobMock, ...override };
 };
 
-export const getSeedingJobMock = (override?: Partial<IJobResponse<unknown, unknown>>): IJobResponse<unknown, unknown> => {
+export const getDeleteCacheJobMock = (
+  jobType: string = 'Update_Delete_Cache',
+  override?: Partial<IJobResponse<unknown, unknown>>
+): IJobResponse<unknown, unknown> => {
   const defaultJobMock = {
     id: faker.string.uuid(),
     resourceId: 'test',
     version: '1.0',
-    type: 'TilesSeeding',
+    type: jobType,
     description: '',
     status: OperationStatus.IN_PROGRESS,
     percentage: 87,

@@ -7,7 +7,7 @@ import { SERVICES } from '../../../common/constants';
 import { JobHandler } from '../jobHandler';
 
 @injectable()
-export class SeedJobHandler extends JobHandler {
+export class DeleteCacheJobHandler extends JobHandler {
   protected readonly tasksFlow: TaskTypes;
   protected readonly excludedTypes: TaskTypes;
   protected readonly blockedDuplicationTypes: TaskTypes;
@@ -20,8 +20,8 @@ export class SeedJobHandler extends JobHandler {
     task: ITaskResponse<unknown>
   ) {
     super(logger, config, jobManagerClient, job, task);
-    this.tasksFlow = this.config.get('taskFlowManager.seedTasksFlow') as unknown as TaskTypes;
-    this.excludedTypes = [this.jobDefinitions.tasks.seed];
+    this.tasksFlow = this.config.get('taskFlowManager.deleteCacheTasksFlow') as unknown as TaskTypes;
+    this.excludedTypes = [this.jobDefinitions.tasks.tilesDeletion];
     this.blockedDuplicationTypes = [];
 
     this.initializeTaskOperations();

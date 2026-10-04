@@ -60,6 +60,8 @@ Start the server
 |`JOB_DEFINITIONS_JOB_NEW`           |Job name.                                                                 |Ingestion_New                |
 |`JOB_DEFINITIONS_JOB_UPDATE`        |Job name.                                                                 |Ingestion_Update             |
 |`JOB_DEFINITIONS_JOB_SWAP_UPDATE`   |Job name.                                                                 |Ingestion_Swap_Update        |
+|`JOB_DEFINITIONS_JOB_UPDATE_DELETE_CACHE`|Job name.                                                            |Update_Delete_Cache          |
+|`JOB_DEFINITIONS_JOB_SWAP_DELETE_CACHE`|Job name.                                                              |Swap_Delete_Cache            |
 |`JOB_DEFINITIONS_TASK_INIT`         |Task name.                                                                |init                         |
 |`JOB_DEFINITIONS_TASK_MERGE`        |Task name.                                                                |merge                        |
 |`JOB_DEFINITIONS_TASK_TILES_DELETION`|Task name.                                                                |tiles-deletion               |
