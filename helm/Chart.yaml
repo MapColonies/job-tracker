@@ -2,8 +2,8 @@ apiVersion: v2
 name: job-tracker
 description: A Helm chart for job-tracker service
 type: application
-version: 6.0.0
-appVersion: 6.0.0
+version: 6.0.1
+appVersion: 6.0.1
 dependencies:
   - name: mclabels
     version: 1.0.1
