@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.0.1](https://github.com/MapColonies/job-tracker/compare/v6.0.0...v6.0.1) (2026-11-25)
+
+
+### Bug Fixes
+
+* **helm:** add mclabels to pod template labels ([#80](https://github.com/MapColonies/job-tracker/issues/80)) ([b98760a](https://github.com/MapColonies/job-tracker/commit/b98760a5bb95d2d263839d8fa9f69ba68fe16fbe))
+
 ## [6.0.0](https://github.com/MapColonies/job-tracker/compare/v5.3.1...v6.0.0) (2026-10-04)
 
 
