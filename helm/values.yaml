@@ -1,10 +1,12 @@
 global:
   cloudProvider: {}
-  tracing: {}
+  telemetry:
+    tracing: {}
+    logger:
+      opentelemetryOptions: {}
   environment: ''
   jobDefinitions: {}
   serviceUrls: {}
-  openTelemetryOptions: {}
   ca:
     secretName: ''
     path: '/usr/local/share/ca-certificates'
@@ -64,12 +66,8 @@ cloudProvider:
   imagePullSecretName: ''
   flavor: openshift
 
-tracing:
-  enabled: false
-  url: ''
-
 configManagement:
-  offlineMode: false
+  offlineMode: true
   name: 'job-tracker'
   version: 'latest'
   serverUrl: 'http://localhost:8080/api'
@@ -137,21 +135,28 @@ taskFlowManager:
   deleteLayerTasksFlow:
   - delete
   - tiles-deletion
-env:
+
+server:
   port: 80
   targetPort: 8080
   protocol: TCP
-  logLevel: info
-  logPrettyPrintEnabled: false
-  openTelemetryOptions:
-    enabled: false
-    url: ''
-    resourceAttributes: {}
   responseCompressionEnabled: true
   requestPayloadLimit: 1mb
-  queue:
-    dequeueIntervalMs: 3000
-    heartbeatIntervalMs: 3000
+
+telemetry:
+  logger:
+    level: info
+    prettyPrint: false
+    opentelemetryOptions:
+      enabled: true
+      url: http://localhost:4317
+      # Rendered as OTEL_RESOURCE_ATTRIBUTES in "key=value,key=value" format
+      # resourceAttributes:
+      #   service.namespace: namespace
+      #   deployment.environment: dev
+  tracing:
+    enabled: true
+    url: http://localhost:55681/v1/traces
 
 resources:
   enabled: false
